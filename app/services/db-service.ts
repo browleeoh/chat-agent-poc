@@ -119,6 +119,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         lessonId: string,
         video: {
           path: string;
+          originalFootagePath: string;
         }
       ) {
         const videoResults = yield* makeDbCall(() =>
@@ -135,6 +136,36 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             cause: "No video was returned from the database",
           });
         }
+
+        return videoResult;
+      }),
+      hasOriginalFootagePathAlreadyBeenUsed: Effect.fn(
+        "hasOriginalFootagePathAlreadyBeenUsed"
+      )(function* (originalFootagePath: string) {
+        const foundVideo = yield* makeDbCall(() =>
+          db.query.videos.findFirst({
+            where: eq(videos.originalFootagePath, originalFootagePath),
+          })
+        );
+
+        return !!foundVideo;
+      }),
+      updateVideo: Effect.fn("updateVideo")(function* (
+        videoId: string,
+        video: {
+          originalFootagePath: string;
+        }
+      ) {
+        const videoResult = yield* makeDbCall(() =>
+          db.update(videos).set(video).where(eq(videos.id, videoId))
+        );
+
+        return videoResult;
+      }),
+      deleteVideo: Effect.fn("deleteVideo")(function* (videoId: string) {
+        const videoResult = yield* makeDbCall(() =>
+          db.delete(videos).where(eq(videos.id, videoId))
+        );
 
         return videoResult;
       }),

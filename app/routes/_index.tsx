@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { VideoPlayer } from "@/components/video-player";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { Effect } from "effect";
@@ -75,8 +76,18 @@ export default function Component(props: Route.ComponentProps) {
   const selectedRepoId = searchParams.get("repoId");
   const [isAddRepoModalOpen, setIsAddRepoModalOpen] = useState(false);
   const [newRepoPath, setNewRepoPath] = useState("");
+  const [videoPlayerState, setVideoPlayerState] = useState<{
+    isOpen: boolean;
+    videoId: string;
+    videoPath: string;
+  }>({
+    isOpen: false,
+    videoId: "",
+    videoPath: "",
+  });
 
   const latestObsVideoFetcher = useFetcher();
+  const deleteVideoFetcher = useFetcher();
 
   const repos = props.loaderData.repos;
 
@@ -228,12 +239,37 @@ export default function Component(props: Route.ComponentProps) {
                               <span className="font-medium">{video.path}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setVideoPlayerState({
+                                    isOpen: true,
+                                    videoId: video.id,
+                                    videoPath: `${section.path}/${lesson.path}/${video.path}`,
+                                  });
+                                }}
+                              >
                                 <Play className="w-4 h-4" />
                               </Button>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <deleteVideoFetcher.Form
+                                method="post"
+                                action="/api/videos/delete"
+                                className="inline"
+                              >
+                                <input
+                                  type="hidden"
+                                  name="videoId"
+                                  value={video.id}
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {}}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </deleteVideoFetcher.Form>
                             </div>
                           </div>
                         ))}
@@ -246,6 +282,19 @@ export default function Component(props: Route.ComponentProps) {
           </div>
         </div>
       </div>
+
+      <VideoPlayer
+        videoId={videoPlayerState.videoId}
+        videoPath={videoPlayerState.videoPath}
+        isOpen={videoPlayerState.isOpen}
+        onClose={() => {
+          setVideoPlayerState({
+            isOpen: false,
+            videoId: "",
+            videoPath: "",
+          });
+        }}
+      />
     </div>
   );
 }

@@ -77,6 +77,7 @@ export const videos = createTable("video", {
     .references(() => lessons.id)
     .notNull(),
   path: text("path").notNull(),
+  originalFootagePath: text("original_footage_path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
     withTimezone: true,

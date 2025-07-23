@@ -23,9 +23,18 @@ export const action = async (args: Route.ActionArgs) => {
 
     const video = yield* db.createVideo(lesson.id, {
       path,
+      originalFootagePath: "",
     });
 
-    execSync("tt queue-auto-edited-video-for-course " + video.id);
+    const originalFootagePath = execSync(
+      "tt queue-auto-edited-video-for-course " + video.id
+    )
+      .toString()
+      .trim();
+
+    yield* db.updateVideo(video.id, {
+      originalFootagePath: originalFootagePath,
+    });
 
     return video;
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
