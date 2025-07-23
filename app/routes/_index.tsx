@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +19,10 @@ import { Effect } from "effect";
 import { Play, Plus, Trash2, VideoIcon } from "lucide-react";
 import { homedir } from "node:os";
 import path from "node:path";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useFetcher, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
+import { cn } from "@/lib/utils";
 
 export const loader = async (args: Route.LoaderArgs) => {
   const url = new URL(args.request.url);
@@ -195,21 +195,27 @@ export default function Component(props: Route.ComponentProps) {
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">{currentRepo?.name}</h1>
 
-          <div className="space-y-8">
+          <div className="max-w-sm">
             {currentRepo?.sections.map((section) => (
-              <Card key={section.id} className="border-0 shadow-none">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">{section.path}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {section.lessons.map((lesson) => (
-                    <div key={lesson.id} className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium">{lesson.path}</h3>
+              <div key={section.id} className="mb-6">
+                <h2 className="mb-4 text-gray-700">{section.path}</h2>
+                {section.lessons.map((lesson, index, arr) => (
+                  <React.Fragment key={lesson.id}>
+                    <div
+                      key={lesson.id}
+                      className={cn(
+                        "ml-8 text-gray-700",
+                        arr[index - 1]?.videos.length === 0
+                          ? "border border-t-0"
+                          : "border"
+                      )}
+                    >
+                      <div className="flex items-center justify-between px-3 py-2">
+                        <h3 className="text-sm">{lesson.path}</h3>
                         <latestObsVideoFetcher.Form
                           method="post"
                           action="/api/videos/edit-latest-obs-video"
-                          className="inline"
+                          className="block"
                         >
                           <input
                             type="hidden"
@@ -221,27 +227,36 @@ export default function Component(props: Route.ComponentProps) {
                             name="path"
                             value={getVideoPath(lesson)}
                           />
-                          <Button type="submit" variant="outline" size="sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add from OBS
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-xs"
+                          >
+                            <Plus className="w-4 h-4" />
                           </Button>
                         </latestObsVideoFetcher.Form>
                       </div>
-
-                      <div className="space-y-2 ml-4">
-                        {lesson.videos.map((video) => (
+                    </div>
+                    {lesson.videos.length > 0 && (
+                      <div className="ml-16 text-gray-700">
+                        {lesson.videos.map((video, index) => (
                           <div
                             key={video.id}
-                            className="flex items-center justify-between p-3 bg-muted/10 rounded-md"
+                            className={cn(
+                              "flex items-center justify-between text-sm border-x px-3 py-2",
+                              index !== 0 ? "border-t" : ""
+                            )}
                           >
-                            <div className="flex items-center gap-2">
-                              <VideoIcon />
-                              <span className="font-medium">{video.path}</span>
+                            <div className="flex items-center">
+                              <VideoIcon className="w-4 h-4 mr-2" />
+                              <span className="">{video.path}</span>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center space-x-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-6 w-6 p-0"
                                 onClick={() => {
                                   setVideoPlayerState({
                                     isOpen: true,
@@ -265,6 +280,7 @@ export default function Component(props: Route.ComponentProps) {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  className="h-6 w-6 p-0"
                                   onClick={() => {}}
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -274,10 +290,10 @@ export default function Component(props: Route.ComponentProps) {
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             ))}
           </div>
         </div>
