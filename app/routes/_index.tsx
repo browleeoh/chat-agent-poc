@@ -19,7 +19,7 @@ import { Effect } from "effect";
 import { Play, Plus, Trash2, VideoIcon } from "lucide-react";
 import { homedir } from "node:os";
 import path from "node:path";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFetcher, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
 import { cn } from "@/lib/utils";
@@ -85,6 +85,29 @@ export default function Component(props: Route.ComponentProps) {
     videoId: "",
     videoPath: "",
   });
+
+  const poller = useFetcher();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.visibilityState === "visible") {
+          poller.submit(null, {
+            method: "GET",
+            preventScrollReset: true,
+          });
+        }
+      },
+      {
+        signal: controller.signal,
+      }
+    );
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   const latestObsVideoFetcher = useFetcher();
   const deleteVideoFetcher = useFetcher();
