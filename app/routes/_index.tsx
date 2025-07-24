@@ -24,6 +24,24 @@ import { useFetcher, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
 import { cn } from "@/lib/utils";
 
+export const meta: Route.MetaFunction = ({ data }) => {
+  const selectedRepo = data?.selectedRepo;
+
+  if (selectedRepo) {
+    return [
+      {
+        title: `CVM - ${selectedRepo.name}`,
+      },
+    ];
+  }
+
+  return [
+    {
+      title: "CVM",
+    },
+  ];
+};
+
 export const loader = async (args: Route.LoaderArgs) => {
   const url = new URL(args.request.url);
   const selectedRepoId = url.searchParams.get("repoId");
@@ -87,35 +105,55 @@ export default function Component(props: Route.ComponentProps) {
 
   const addRepoFetcher = useFetcher();
 
-  const poller = useFetcher();
+  const poller = useFetcher<typeof props.loaderData>();
 
   useEffect(() => {
-    const controller = new AbortController();
+    const abortController = new AbortController();
+
+    const submit = () => {
+      poller.submit(
+        {
+          repoId: selectedRepoId,
+        },
+        {
+          method: "GET",
+          preventScrollReset: true,
+        }
+      );
+    };
+
     document.addEventListener(
       "visibilitychange",
       () => {
         if (document.visibilityState === "visible") {
-          poller.submit(null, {
-            method: "GET",
-            preventScrollReset: true,
-          });
+          submit();
         }
       },
       {
-        signal: controller.signal,
+        signal: abortController.signal,
       }
     );
+
+    const interval = setInterval(() => {
+      submit();
+    }, 5000);
+
     return () => {
-      controller.abort();
+      clearInterval(interval);
+      abortController.abort();
     };
-  }, []);
+  }, [selectedRepoId]);
 
   const latestObsVideoFetcher = useFetcher();
   const deleteVideoFetcher = useFetcher();
 
-  const repos = props.loaderData.repos;
+  console.log(poller.data);
 
-  const currentRepo = props.loaderData.selectedRepo;
+  const data = poller.data ?? props.loaderData;
+
+  const repos = data.repos;
+
+  const currentRepo = data.selectedRepo;
 
   // Function to determine the path based on video count
   const getVideoPath = (lesson: { videos: unknown[] }) => {
