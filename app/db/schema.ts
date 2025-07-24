@@ -1,8 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
-  integer,
+  doublePrecision,
   pgTableCreator,
-  serial,
   text,
   timestamp,
   varchar,
@@ -47,7 +46,7 @@ export const sections = createTable("section", {
   })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  order: integer("order").notNull(),
+  order: doublePrecision("order").notNull(),
 });
 
 export const lessons = createTable("lesson", {
@@ -65,7 +64,7 @@ export const lessons = createTable("lesson", {
   })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  order: integer("order").notNull(),
+  order: doublePrecision("order").notNull(),
 });
 
 export const videos = createTable("video", {
@@ -144,7 +143,7 @@ export const reposRelations = relations(repos, ({ many }) => ({
 //   role: varchar("role", { length: 255 }).notNull(),
 //   parts: json("parts").notNull(),
 //   annotations: json("annotations"),
-//   order: integer("order").notNull(),
+//   order: gloat("order").notNull(),
 //   createdAt: timestamp("created_at", {
 //     mode: "date",
 //     withTimezone: true,

@@ -75,7 +75,6 @@ export default function Component(props: Route.ComponentProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedRepoId = searchParams.get("repoId");
   const [isAddRepoModalOpen, setIsAddRepoModalOpen] = useState(false);
-  const [newRepoPath, setNewRepoPath] = useState("");
   const [videoPlayerState, setVideoPlayerState] = useState<{
     isOpen: boolean;
     videoId: string;
@@ -85,6 +84,8 @@ export default function Component(props: Route.ComponentProps) {
     videoId: "",
     videoPath: "",
   });
+
+  const addRepoFetcher = useFetcher();
 
   const poller = useFetcher();
 
@@ -113,15 +114,6 @@ export default function Component(props: Route.ComponentProps) {
   const deleteVideoFetcher = useFetcher();
 
   const repos = props.loaderData.repos;
-
-  const handleAddRepo = () => {
-    if (newRepoPath.trim()) {
-      // Here you would typically add the repo to your repositories array
-      console.log("Adding repo from path:", newRepoPath);
-      setNewRepoPath("");
-      setIsAddRepoModalOpen(false);
-    }
-  };
 
   const currentRepo = props.loaderData.selectedRepo;
 
@@ -175,39 +167,30 @@ export default function Component(props: Route.ComponentProps) {
               <DialogHeader>
                 <DialogTitle>Add New Repository</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 py-4">
+              <addRepoFetcher.Form
+                method="post"
+                action="/api/repos/add"
+                className="space-y-4 py-4"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="repo-path">Repository File Path</Label>
                   <Input
                     id="repo-path"
                     placeholder="Enter local file path..."
-                    value={newRepoPath}
-                    onChange={(e) => setNewRepoPath(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleAddRepo();
-                      }
-                    }}
+                    name="repoPath"
                   />
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setIsAddRepoModalOpen(false);
-                      setNewRepoPath("");
-                    }}
+                    onClick={() => setIsAddRepoModalOpen(false)}
+                    type="button"
                   >
                     Cancel
                   </Button>
-                  <Button
-                    onClick={handleAddRepo}
-                    disabled={!newRepoPath.trim()}
-                  >
-                    Add Repository
-                  </Button>
+                  <Button type="submit">Add Repository</Button>
                 </div>
-              </div>
+              </addRepoFetcher.Form>
             </DialogContent>
           </Dialog>
         </div>
@@ -216,25 +199,27 @@ export default function Component(props: Route.ComponentProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-6">{currentRepo?.name}</h1>
+          <h1 className="text-2xl font-bold mb-8">{currentRepo?.name}</h1>
 
-          <div className="max-w-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
             {currentRepo?.sections.map((section) => (
-              <div key={section.id} className="mb-6">
-                <h2 className="mb-4 text-gray-700">{section.path}</h2>
+              <div key={section.id} className="">
+                <h2 className="mb-4 text-gray-700 text-lg font-semibold tracking-tight">
+                  {section.path}
+                </h2>
                 {section.lessons.map((lesson, index, arr) => (
                   <React.Fragment key={lesson.id}>
                     <div
                       key={lesson.id}
                       className={cn(
-                        "ml-8 text-gray-700",
+                        "text-gray-700",
                         arr[index - 1]?.videos.length === 0
                           ? "border border-t-0"
                           : "border"
                       )}
                     >
                       <div className="flex items-center justify-between px-3 py-2">
-                        <h3 className="text-sm">{lesson.path}</h3>
+                        <h3 className="text-sm tracking-wide">{lesson.path}</h3>
                         <latestObsVideoFetcher.Form
                           method="post"
                           action="/api/videos/edit-latest-obs-video"
@@ -262,7 +247,7 @@ export default function Component(props: Route.ComponentProps) {
                       </div>
                     </div>
                     {lesson.videos.length > 0 && (
-                      <div className="ml-16 text-gray-700">
+                      <div className="ml-8 text-gray-700">
                         {lesson.videos.map((video, index) => (
                           <div
                             key={video.id}
@@ -273,7 +258,9 @@ export default function Component(props: Route.ComponentProps) {
                           >
                             <div className="flex items-center">
                               <VideoIcon className="w-4 h-4 mr-2" />
-                              <span className="">{video.path}</span>
+                              <span className="tracking-wide">
+                                {video.path}
+                              </span>
                             </div>
                             <div className="flex items-center space-x-2">
                               <Button

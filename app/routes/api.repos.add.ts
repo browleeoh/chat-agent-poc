@@ -9,10 +9,11 @@ const addRepoSchema = Schema.Struct({
 });
 
 export const action = async ({ request }: Route.ActionArgs) => {
-  const json = await request.json();
+  const formData = await request.formData();
+  const formDataObject = Object.fromEntries(formData);
 
   return await Effect.gen(function* () {
-    const result = yield* Schema.decode(addRepoSchema)(json);
+    const result = yield* Schema.decodeUnknown(addRepoSchema)(formDataObject);
 
     const repoParserService = yield* RepoParserService;
 
