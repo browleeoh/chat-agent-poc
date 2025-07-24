@@ -108,6 +108,10 @@ export default function Component(props: Route.ComponentProps) {
   const poller = useFetcher<typeof props.loaderData>();
 
   useEffect(() => {
+    if (!selectedRepoId) {
+      return;
+    }
+
     const abortController = new AbortController();
 
     const submit = () => {
@@ -146,7 +150,7 @@ export default function Component(props: Route.ComponentProps) {
 
   const latestObsVideoFetcher = useFetcher();
   const deleteVideoFetcher = useFetcher();
-
+  const deleteLessonFetcher = useFetcher();
   console.log(poller.data);
 
   const data = poller.data ?? props.loaderData;
@@ -258,30 +262,51 @@ export default function Component(props: Route.ComponentProps) {
                     >
                       <div className="flex items-center justify-between px-3 py-2">
                         <h3 className="text-sm tracking-wide">{lesson.path}</h3>
-                        <latestObsVideoFetcher.Form
-                          method="post"
-                          action="/api/videos/edit-latest-obs-video"
-                          className="block"
-                        >
-                          <input
-                            type="hidden"
-                            name="lessonId"
-                            value={lesson.id}
-                          />
-                          <input
-                            type="hidden"
-                            name="path"
-                            value={getVideoPath(lesson)}
-                          />
-                          <Button
-                            type="submit"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 text-xs"
+                        <div className="flex items-center space-x-2">
+                          <latestObsVideoFetcher.Form
+                            method="post"
+                            action="/api/videos/edit-latest-obs-video"
+                            className="block"
                           >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </latestObsVideoFetcher.Form>
+                            <input
+                              type="hidden"
+                              name="lessonId"
+                              value={lesson.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="path"
+                              value={getVideoPath(lesson)}
+                            />
+                            <Button
+                              type="submit"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-xs"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </latestObsVideoFetcher.Form>
+                          <deleteLessonFetcher.Form
+                            method="post"
+                            action="/api/lessons/delete"
+                            className="block"
+                          >
+                            <input
+                              type="hidden"
+                              name="lessonId"
+                              value={lesson.id}
+                            />
+                            <Button
+                              type="submit"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-xs"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </deleteLessonFetcher.Form>
+                        </div>
                       </div>
                     </div>
                     {lesson.videos.length > 0 && (
