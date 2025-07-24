@@ -179,7 +179,7 @@ export default function Component(props: Route.ComponentProps) {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Left Sidebar - Repos */}
       <div className="w-80 border-r bg-muted/30">
         <div className="p-4 pb-0">
@@ -252,7 +252,7 @@ export default function Component(props: Route.ComponentProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
             {currentRepo?.sections.map((section) => (
               <div key={section.id} className="">
-                <h2 className="mb-4 text-gray-700 text-lg font-semibold tracking-tight">
+                <h2 className="mb-4 text-foreground text-lg font-semibold tracking-tight">
                   {section.path}
                 </h2>
                 {section.lessons.map((lesson, index, arr) => (
@@ -260,7 +260,7 @@ export default function Component(props: Route.ComponentProps) {
                     <div
                       key={lesson.id}
                       className={cn(
-                        "text-gray-700",
+                        "text-foreground",
                         arr[index - 1]?.videos.length === 0
                           ? "border border-t-0"
                           : "border"
@@ -316,7 +316,7 @@ export default function Component(props: Route.ComponentProps) {
                       </div>
                     </div>
                     {lesson.videos.length > 0 && (
-                      <div className="ml-8 text-gray-700">
+                      <div className="ml-8 text-foreground">
                         {lesson.videos.map((video, index) => (
                           <div
                             key={video.id}
