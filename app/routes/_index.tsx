@@ -86,7 +86,13 @@ export const loader = async (args: Route.LoaderArgs) => {
       }
     );
     return { repos, selectedRepo };
-  }).pipe(Effect.provide(layerLive), Effect.runPromise);
+  }).pipe(
+    Effect.catchTag("NotFoundError", (e) => {
+      return Effect.succeed(new Response("Not Found", { status: 404 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
 };
 
 export default function Component(props: Route.ComponentProps) {
