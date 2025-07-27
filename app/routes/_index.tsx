@@ -13,16 +13,16 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { VideoPlayer } from "@/components/video-player";
+import { cn } from "@/lib/utils";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { Effect } from "effect";
-import { Play, Plus, Trash2, VideoIcon } from "lucide-react";
+import { PencilIcon, Play, Plus, Trash2, VideoIcon } from "lucide-react";
 import { homedir } from "node:os";
 import path from "node:path";
 import React, { useEffect, useState } from "react";
-import { useFetcher, useSearchParams } from "react-router";
+import { Link, useFetcher, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
-import { cn } from "@/lib/utils";
 
 export const meta: Route.MetaFunction = ({ data }) => {
   const selectedRepo = data?.selectedRepo;
@@ -332,6 +332,16 @@ export default function Component(props: Route.ComponentProps) {
                               </span>
                             </div>
                             <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                asChild
+                              >
+                                <Link to={`/videos/${video.id}/write`}>
+                                  <PencilIcon className="w-4 h-4" />
+                                </Link>
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"

@@ -79,6 +79,34 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return lesson;
     });
 
+    const getVideoDeepById = Effect.fn("getVideoById")(function* (id: string) {
+      const video = yield* makeDbCall(() =>
+        db.query.videos.findFirst({
+          where: eq(videos.id, id),
+          with: {
+            lesson: {
+              with: {
+                section: {
+                  with: {
+                    repo: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+      );
+
+      if (!video) {
+        return yield* new NotFoundError({
+          type: "getVideoById",
+          params: { id },
+        });
+      }
+
+      return video;
+    });
+
     const getRepoWithSectionsById = Effect.fn("getRepoWithSectionsById")(
       function* (id: string) {
         const repo = yield* makeDbCall(() =>
@@ -183,6 +211,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         const repos = yield* makeDbCall(() => db.query.repos.findMany());
         return repos;
       }),
+      getVideoById: getVideoDeepById,
       createRepo: Effect.fn("createRepo")(function* (filePath: string) {
         const reposResult = yield* makeDbCall(() =>
           db.insert(repos).values({ filePath }).returning()
