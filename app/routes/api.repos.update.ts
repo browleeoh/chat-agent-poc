@@ -42,6 +42,7 @@ export class LessonNotFoundError extends Data.TaggedError(
   "LessonNotFoundError"
 )<{
   lessonPath: string;
+  message: string;
 }> {}
 
 const parseSectionAndLesson = (path: string) => {
@@ -69,10 +70,7 @@ export const action = async (args: Route.ActionArgs) => {
     // Fetch the current repo, including all sections and lessons
     const repo = yield* db.getRepoWithSectionsByFilePath(filePath);
 
-    const lessonPathToLesson = new Map<
-      string,
-      (typeof repo.sections)[number]["lessons"][number]
-    >();
+    const lessonPathToLessonId = new Map<string, string>();
 
     const sectionPathToSectionId = new Map<string, string>();
 
@@ -101,29 +99,33 @@ export const action = async (args: Route.ActionArgs) => {
 
     for (const section of repo.sections) {
       for (const lesson of section.lessons) {
-        lessonPathToLesson.set(
+        lessonPathToLessonId.set(
           serializeSectionAndLesson(section.path, lesson.path),
-          lesson
+          lesson.id
         );
       }
     }
 
     for (const lessonPath of Object.keys(modifiedLessons)) {
-      const lesson = lessonPathToLesson.get(lessonPath);
-      if (!lesson) {
+      const lessonId = lessonPathToLessonId.get(lessonPath);
+      if (!lessonId) {
         return yield* new LessonNotFoundError({
           lessonPath,
+          message: `Lesson in modifiedLessons not found in the repo`,
         });
       }
     }
 
     for (const lessonPath of deletedLessons) {
-      const lesson = lessonPathToLesson.get(lessonPath);
-      if (!lesson) {
+      const lessonId = lessonPathToLessonId.get(lessonPath);
+      if (!lessonId) {
         return yield* new LessonNotFoundError({
           lessonPath,
+          message: `Lesson in deletedLessons not found in the repo`,
         });
       }
+
+      const lesson = yield* db.getLessonById(lessonId);
 
       if (lesson && lesson.videos && lesson.videos.length > 0) {
         // Throw an error and abort the update if a deleted lesson has an attached video
@@ -140,20 +142,35 @@ export const action = async (args: Route.ActionArgs) => {
     //      - Do NOT change the lesson's ID or attached videos, we'll handle that later
 
     for (const [lessonPath, newLessonPath] of Object.entries(modifiedLessons)) {
-      const existingLessonPath = lessonPathToLesson.get(lessonPath)!;
+      const existingLessonId = lessonPathToLessonId.get(lessonPath);
+      if (!existingLessonId) {
+        return yield* new LessonNotFoundError({
+          lessonPath,
+          message: `Lesson in modifiedLessons not found in the repo`,
+        });
+      }
 
-      const pathParseResult = yield* parseSectionAndLesson(newLessonPath);
+      const newLessonPathParsed = yield* parseSectionAndLesson(newLessonPath);
 
       const sectionId = yield* getSectionOrCreate(
-        pathParseResult.sectionPathWithNumber,
-        pathParseResult.sectionNumber
+        newLessonPathParsed.sectionPathWithNumber,
+        newLessonPathParsed.sectionNumber
       );
 
-      yield* db.updateLesson(existingLessonPath.id, {
-        path: pathParseResult.lessonPathWithNumber,
+      yield* db.updateLesson(existingLessonId, {
+        path: newLessonPathParsed.lessonPathWithNumber,
         sectionId,
-        lessonNumber: pathParseResult.lessonNumber,
+        lessonNumber: newLessonPathParsed.lessonNumber,
       });
+
+      lessonPathToLessonId.delete(lessonPath);
+      lessonPathToLessonId.set(
+        serializeSectionAndLesson(
+          newLessonPathParsed.sectionPathWithNumber,
+          newLessonPathParsed.lessonPathWithNumber
+        ),
+        existingLessonId
+      );
     }
 
     // 3. Handle added lessons:
@@ -170,7 +187,7 @@ export const action = async (args: Route.ActionArgs) => {
         pathParseResult.sectionNumber
       );
 
-      const lesson = lessonPathToLesson.get(
+      const lessonId = lessonPathToLessonId.get(
         serializeSectionAndLesson(
           pathParseResult.sectionPathWithNumber,
           pathParseResult.lessonPathWithNumber
@@ -178,16 +195,24 @@ export const action = async (args: Route.ActionArgs) => {
       );
 
       // If the lesson already exists, skip it
-      if (lesson) {
+      if (lessonId) {
         continue;
       }
 
-      yield* db.createLessons(sectionId, [
+      const [newLesson] = yield* db.createLessons(sectionId, [
         {
           lessonPathWithNumber: pathParseResult.lessonPathWithNumber,
           lessonNumber: pathParseResult.lessonNumber,
         },
       ]);
+
+      lessonPathToLessonId.set(
+        serializeSectionAndLesson(
+          pathParseResult.sectionPathWithNumber,
+          pathParseResult.lessonPathWithNumber
+        ),
+        newLesson!.id
+      );
     }
 
     // 4. Handle deleted lessons:
@@ -197,9 +222,13 @@ export const action = async (args: Route.ActionArgs) => {
     //      - If the section is now empty, consider deleting/archiving the section
 
     for (const lessonPath of deletedLessons) {
-      const lesson = lessonPathToLesson.get(lessonPath)!;
+      const lessonId = lessonPathToLessonId.get(lessonPath);
+      if (!lessonId) {
+        // It has already been deleted or moved, so ignore
+        continue;
+      }
 
-      yield* db.deleteLesson(lesson.id);
+      yield* db.deleteLesson(lessonId);
     }
 
     // 5. After all updates, check for any sections that have no lessons left
