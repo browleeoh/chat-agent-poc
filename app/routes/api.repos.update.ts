@@ -62,13 +62,16 @@ const parseSectionAndLesson = (path: string) => {
 export const action = async (args: Route.ActionArgs) => {
   const body = await args.request.json();
   return Effect.gen(function* () {
-    const { filePath, modifiedLessons, addedLessons, deletedLessons } =
-      yield* Schema.decodeUnknown(updateRepoSchema)(body);
+    const decoded = yield* Schema.decodeUnknown(updateRepoSchema)(body);
+
+    const addedLessons = [...decoded.addedLessons];
+    const deletedLessons = [...decoded.deletedLessons];
+    const modifiedLessons = { ...decoded.modifiedLessons };
 
     const db = yield* DBService;
 
     // Fetch the current repo, including all sections and lessons
-    const repo = yield* db.getRepoWithSectionsByFilePath(filePath);
+    const repo = yield* db.getRepoWithSectionsByFilePath(decoded.filePath);
 
     const lessonPathToLessonId = new Map<string, string>();
 
@@ -106,13 +109,13 @@ export const action = async (args: Route.ActionArgs) => {
       }
     }
 
-    for (const lessonPath of Object.keys(modifiedLessons)) {
+    for (const [lessonPath, newLessonPath] of Object.entries(modifiedLessons)) {
       const lessonId = lessonPathToLessonId.get(lessonPath);
+      // If the lesson is not found, it has been moved to a new path
+      // so we need to add it to the added lessons
       if (!lessonId) {
-        return yield* new LessonNotFoundError({
-          lessonPath,
-          message: `Lesson in modifiedLessons not found in the repo`,
-        });
+        addedLessons.push(newLessonPath);
+        delete modifiedLessons[lessonPath];
       }
     }
 
