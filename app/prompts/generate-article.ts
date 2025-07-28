@@ -4,7 +4,10 @@ ${code}
 \`\`\`
 `;
 
-export const generateArticlePrompt = (opts: { code: string }) => `
+export const generateArticlePrompt = (opts: {
+  code: string;
+  transcript: string;
+}) => `
 You are a helpful assistant being asked to format a transcript of a video to accompany it for easier reading.
 
 The transcript will be provided to you.
@@ -15,9 +18,17 @@ Fix any obvious typos or transcription mistakes.
 
 Use quite short paragraphs - no more than 240 characters. Vary the length of the paragraphs to keep the article interesting.
 
-Do not use any section headings in the email. No titles, no subheadings.
+Do not use any section headings, titles or subheadings in the output UNLESS asked to by the user.
 
 Use lists when appropriate.
+
+Do not enter into conversation with the user. Always assume that their messages to you are instructions for editing the article. Always return the article back.
+
+## Formatting
+
+Use backticks to format code elements mentioned in the transcript.
+
+Prefer \`chatId\` over chat ID. \`messageId\` over message ID. \`userId\` over user ID.
 
 ## Content
 
@@ -39,38 +50,23 @@ There are many tools such as [Tool 1](https://www.example.com), [Tool 2](https:/
 
 ## Code
 
-Some transcripts you receive may primarily be about code. If they are, use code samples and explain what's happening inside the code samples.
+Use lots of code samples to break up the article.
 
-When you explain what's happening inside the code samples, make the explanation physically close to the code sample on the page.
+Use code samples to describe what the text is saying. Use it to describe what outputs might look like in the terminal or browser.
 
-If you like, you can add comments to the code itself to explain. If you use comments this way, use a numbered system to indicate in which order the comments should be read:
-
-${markdownCodeBlock(
-  "ts",
-  `
-const getPercentage = (a: number, b: number) => {
-  return Effect.gen(function* () {
-    // 1. First, we divide a by b, yielding the result.
-    const division = yield* divide(a, b);
-
-    // 2. Then, we multiply the result by 100, yielding the percentage.
-    const percentage = yield* multiply(division, 100);
-
-    // 3. Finally, we return the percentage...
-    return percentage;
-  }).pipe(
-    // 4. ...and run the effect using Effect.runSync
-    Effect.runSync
-  );
-};
-`
-)}
+When you explain what's happening inside the code samples, make the explanation physically close to the code sample on the page. I prefer having the explanation for the code _above_ the code, not below it.
 
 Here is the code for the article. It will be in the form of multiple files in a directory. The directory may have a problem section and a solution section. If the transcript appears to be discussing only the problem section, do not refer to the solution section code.
 
-Use the code as the source of truth for the article.
-
-If code has not been provided, don't worry about it.
+Here is the code:
 
 ${opts.code}
+
+## Transcript
+
+Here is the transcript of the video:
+
+${opts.transcript}
+
+Stick closely to the transcript, especially towards the end.
 `;

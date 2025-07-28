@@ -49,9 +49,7 @@ export const loader = async (args: Route.LoaderArgs) => {
 export default function Component(props: Route.ComponentProps) {
   const { videoId } = props.params;
   const { videoPath, lessonPath, sectionPath } = props.loaderData;
-  const [text, setText] = useState<string>(
-    "Generate an article for this video."
-  );
+  const [text, setText] = useState<string>("Go.");
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -73,7 +71,7 @@ export default function Component(props: Route.ComponentProps) {
       <h1 className="text-lg mb-4">
         {sectionPath}/{lessonPath}/{videoPath}
       </h1>
-      <video src={`/videos/${videoId}`} className="w-full" controls autoPlay />
+      <video src={`/videos/${videoId}`} className="w-full" controls />
       <AIConversation className="">
         <AIConversationContent>
           {messages.map((message) => {

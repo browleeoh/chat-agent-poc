@@ -18,12 +18,14 @@ import {
   CodeBlockSelectValue,
 } from "../code-block";
 import type { HTMLAttributes } from "react";
-import { memo } from "react";
+import { memo, useState } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { CheckIcon, CopyIcon } from "lucide-react";
 import "katex/dist/katex.min.css";
 
 export type AIResponseProps = HTMLAttributes<HTMLDivElement> & {
@@ -172,23 +174,58 @@ const components: Options["components"] = {
 };
 
 export const AIResponse = memo(
-  ({ className, options, children, ...props }: AIResponseProps) => (
-    <div
-      className={cn(
-        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
-        className
-      )}
-      {...props}
-    >
-      <ReactMarkdown
-        components={components}
-        rehypePlugins={[rehypeKatex]}
-        remarkPlugins={[remarkGfm, remarkMath]}
-        {...options}
+  ({ className, options, children, ...props }: AIResponseProps) => {
+    const [isCopied, setIsCopied] = useState(false);
+
+    const copyToClipboard = async () => {
+      try {
+        // Convert the markdown content to plain text for copying
+        const textContent = typeof children === "string" ? children : "";
+        await navigator.clipboard.writeText(textContent);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (error) {
+        console.error("Failed to copy to clipboard:", error);
+      }
+    };
+
+    return (
+      <div
+        className={cn(
+          "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 relative group",
+          className
+        )}
+        {...props}
       >
-        {children}
-      </ReactMarkdown>
-    </div>
-  ),
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 -right-16 z-10 opacity-0 group-hover:opacity-100 transition-opacity text-left"
+          onClick={copyToClipboard}
+          title="Copy to clipboard"
+        >
+          {isCopied ? (
+            <div className="flex items-center gap-2">
+              <CheckIcon className="h-4 w-4" />
+              <span>Copied</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <CopyIcon className="h-4 w-4" />
+              <span>Copy</span>
+            </div>
+          )}
+        </Button>
+        <ReactMarkdown
+          components={components}
+          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={[remarkGfm, remarkMath]}
+          {...options}
+        >
+          {children}
+        </ReactMarkdown>
+      </div>
+    );
+  },
   (prevProps, nextProps) => prevProps.children === nextProps.children
 );

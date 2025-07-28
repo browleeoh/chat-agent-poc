@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 interface VideoPlayerProps {
   videoId: string;

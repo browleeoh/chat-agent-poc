@@ -1,18 +1,25 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 import type { Route } from "./+types/videos.$videoId.completions";
 import { DBService } from "@/services/db-service";
 import { FileSystem } from "@effect/platform";
 import path from "node:path";
 import { layerLive } from "@/services/layer";
 import { generateArticlePrompt } from "@/prompts/generate-article";
+import { getVideoTranscriptPath } from "@/lib/get-video";
 
 const chatSchema = Schema.Struct({
   messages: Schema.Any,
 });
 
 const NOT_A_FILE = Symbol("NOT_A_FILE");
+
+class CouldNotFindTranscript extends Data.TaggedError(
+  "CouldNotFindTranscript"
+)<{
+  readonly originalFootagePath: string;
+}> {}
 
 export const action = async (args: Route.ActionArgs) => {
   const body = await args.request.json();
@@ -74,11 +81,23 @@ export const action = async (args: Route.ActionArgs) => {
       })
       .join("\n\n");
 
+    const transcript = yield* fs
+      .readFileString(getVideoTranscriptPath(video.originalFootagePath))
+      .pipe(
+        Effect.mapError(
+          (e) =>
+            new CouldNotFindTranscript({
+              originalFootagePath: video.originalFootagePath,
+            })
+        )
+      );
+
     const result = streamText({
       model: anthropic("claude-3-7-sonnet-20250219"),
-      messages: convertToModelMessages(body.messages),
+      messages: convertToModelMessages(messages),
       system: generateArticlePrompt({
         code: codeFormatted,
+        transcript,
       }),
     });
 
