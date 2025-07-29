@@ -199,8 +199,7 @@ export const AIResponse = memo(
       >
         <Button
           variant="ghost"
-          size="icon"
-          className="absolute top-2 -right-16 z-10 opacity-0 group-hover:opacity-100 transition-opacity text-left"
+          className="w-24 absolute bottom-2 -right-24 z-10 opacity-0 group-hover:opacity-100 transition-opacity text-left"
           onClick={copyToClipboard}
           title="Copy to clipboard"
         >
