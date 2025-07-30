@@ -157,7 +157,6 @@ export default function Component(props: Route.ComponentProps) {
   const latestObsVideoFetcher = useFetcher();
   const deleteVideoFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
-  console.log(poller.data);
 
   const data = poller.data ?? props.loaderData;
 
@@ -177,6 +176,21 @@ export default function Component(props: Route.ComponentProps) {
       return `solution ${videoCount}`;
     }
   };
+
+  const totalLessonsWithVideos =
+    data.selectedRepo?.sections.reduce((acc, section) => {
+      return (
+        acc +
+        section.lessons.filter((lesson) => lesson.videos.length > 0).length
+      );
+    }, 0) ?? 0;
+
+  const totalLessons =
+    data.selectedRepo?.sections.reduce((acc, section) => {
+      return acc + section.lessons.length;
+    }, 0) ?? 0;
+
+  const progress = (totalLessonsWithVideos / totalLessons) * 100;
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -247,7 +261,10 @@ export default function Component(props: Route.ComponentProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-8">{currentRepo?.name}</h1>
+          <h1 className="text-2xl font-bold mb-2">{currentRepo?.name}</h1>
+          <p className="text-sm text-muted-foreground mb-8">
+            {totalLessonsWithVideos} / {totalLessons} lessons with recordings
+          </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
             {currentRepo?.sections.map((section) => (
