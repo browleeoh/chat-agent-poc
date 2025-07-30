@@ -21,7 +21,16 @@ class CouldNotFindTranscript extends Data.TaggedError(
   readonly originalFootagePath: string;
 }> {}
 
-const ALLOWED_FILE_EXTENSIONS = ["ts", "tsx", "js", "jsx", "json", "md", "mdx"];
+const ALLOWED_FILE_EXTENSIONS = [
+  "ts",
+  "tsx",
+  "js",
+  "jsx",
+  "json",
+  "md",
+  "mdx",
+  "txt",
+];
 
 const DISALLOWED_FILE_PATHS = ["node_modules", ".vite", "readme.md"];
 
