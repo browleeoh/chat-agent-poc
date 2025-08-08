@@ -77,9 +77,11 @@ export const loader = async (args: Route.LoaderArgs) => {
                     path.join(homedir(), "repos"),
                     repo.filePath
                   ),
-                  sections: repo.sections.filter((section) => {
-                    return !section.path.endsWith("ARCHIVE");
-                  }),
+                  sections: repo.sections
+                    .filter((section) => {
+                      return !section.path.endsWith("ARCHIVE");
+                    })
+                    .filter((section) => section.lessons.length > 0),
                 };
               })
             ),

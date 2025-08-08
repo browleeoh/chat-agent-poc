@@ -32,7 +32,12 @@ const ALLOWED_FILE_EXTENSIONS = [
   "txt",
 ];
 
-const DISALLOWED_FILE_PATHS = ["node_modules", ".vite", "readme.md"];
+const DISALLOWED_FILE_DIRECTORIES = [
+  "node_modules",
+  ".vite",
+  "readme.md",
+  "solution",
+];
 
 export const action = async (args: Route.ActionArgs) => {
   const body = await args.request.json();
@@ -64,7 +69,7 @@ export const action = async (args: Route.ActionArgs) => {
 
     const filteredFiles = allFilesInDirectory.filter((filePath) => {
       return (
-        !DISALLOWED_FILE_PATHS.some((disallowedPath) =>
+        !DISALLOWED_FILE_DIRECTORIES.some((disallowedPath) =>
           filePath.includes(disallowedPath)
         ) && ALLOWED_FILE_EXTENSIONS.includes(path.extname(filePath).slice(1))
       );

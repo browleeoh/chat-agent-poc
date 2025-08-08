@@ -19,7 +19,7 @@ import {
 import { AIMessage, AIMessageContent } from "components/ui/kibo-ui/ai/message";
 import { AIResponse } from "components/ui/kibo-ui/ai/response";
 import { Effect } from "effect";
-import { useState, type FormEvent } from "react";
+import React, { useState, type FormEvent } from "react";
 import type { Route } from "./+types/videos.$videoId.write";
 import { ChevronLeftIcon } from "lucide-react";
 import { Link } from "react-router";
@@ -84,6 +84,12 @@ This should be in the format of:
 </example>
 `.trim();
 
+const Video = (props: { src: string }) => {
+  return <video src={props.src} className="w-full" controls />;
+};
+
+const LazyVideo = React.lazy(() => Promise.resolve({ default: Video }));
+
 export default function Component(props: Route.ComponentProps) {
   const { videoId } = props.params;
   const { videoPath, lessonPath, sectionPath, repoId, lessonId } =
@@ -119,7 +125,7 @@ export default function Component(props: Route.ComponentProps) {
       </div>
       <AIConversation className="flex-1 overflow-y-auto">
         <AIConversationContent>
-          <video src={`/videos/${videoId}`} className="w-full" controls />
+          <LazyVideo src={`/videos/${videoId}`} />
           {messages.map((message) => {
             if (message.role === "system") {
               return null;
