@@ -197,6 +197,11 @@ export default function Component(props: Route.ComponentProps) {
       return acc + section.lessons.length;
     }, 0) ?? 0;
 
+  const percentageComplete =
+    totalLessons > 0
+      ? Math.round((totalLessonsWithVideos / totalLessons) * 100)
+      : 0;
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Left Sidebar - Repos */}
@@ -266,206 +271,272 @@ export default function Component(props: Route.ComponentProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <div className="flex gap-6">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">{currentRepo?.name}</h1>
-              <p className="text-sm text-muted-foreground mb-8">
-                {totalLessonsWithVideos} / {totalLessons} lessons with
-                recordings
-              </p>
-            </div>
-            <publishRepoFetcher.Form method="post" action="/api/repos/publish">
-              <input type="hidden" name="repoId" value={currentRepo?.id} />
-              <Button type="submit">
-                {publishRepoFetcher.state === "submitting" ? (
-                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 mr-1" />
-                )}
-                <span className="hidden md:block">Publish</span>
-              </Button>
-            </publishRepoFetcher.Form>
-          </div>
+          {currentRepo ? (
+            <>
+              <div className="flex gap-6">
+                <div>
+                  <h1 className="text-2xl font-bold mb-2">
+                    {currentRepo.name}
+                  </h1>
+                  <p className="text-sm text-muted-foreground mb-8">
+                    {totalLessonsWithVideos} / {totalLessons} lessons with
+                    recordings ({percentageComplete}%)
+                  </p>
+                </div>
+                <publishRepoFetcher.Form
+                  method="post"
+                  action="/api/repos/publish"
+                >
+                  <input type="hidden" name="repoId" value={currentRepo.id} />
+                  <Button type="submit">
+                    {publishRepoFetcher.state === "submitting" ? (
+                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-1" />
+                    )}
+                    <span className="hidden md:block">Publish</span>
+                  </Button>
+                </publishRepoFetcher.Form>
+              </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
-            {currentRepo?.sections.map((section) => (
-              <div key={section.id} className="">
-                <h2 className="mb-4 text-foreground text-lg font-semibold tracking-tight">
-                  {section.path}
-                </h2>
-                {section.lessons.map((lesson, index, arr) => (
-                  <React.Fragment key={lesson.id}>
-                    <a id={lesson.id} />
-                    <div
-                      key={lesson.id}
-                      className={cn(
-                        "text-foreground",
-                        arr[index - 1]?.videos.length === 0
-                          ? "border border-t-0"
-                          : "border"
-                      )}
-                    >
-                      <div className="flex items-center justify-between px-3 py-2">
-                        <h3 className="text-sm tracking-wide">{lesson.path}</h3>
-                        <div className="flex items-center space-x-2">
-                          <Dialog
-                            open={addVideoToLessonId === lesson.id}
-                            onOpenChange={(open) => {
-                              setAddVideoToLessonId(open ? lesson.id : null);
-                            }}
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                type="submit"
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 text-xs"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Add New Video</DialogTitle>
-                              </DialogHeader>
-                              <latestObsVideoFetcher.Form
-                                method="post"
-                                action="/api/videos/edit-latest-obs-video"
-                                className="space-y-4 py-4"
-                                onSubmit={async (e) => {
-                                  e.preventDefault();
-                                  await latestObsVideoFetcher.submit(
-                                    e.currentTarget
+              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-x-18 gap-y-12">
+                {currentRepo.sections.map((section) => (
+                  <div key={section.id} className="">
+                    <h2 className="mb-4 text-foreground text-lg font-semibold tracking-tight">
+                      {section.path}
+                    </h2>
+                    {section.lessons.map((lesson, index, arr) => (
+                      <React.Fragment key={lesson.id}>
+                        <a id={lesson.id} />
+                        <div
+                          key={lesson.id}
+                          className={cn(
+                            "text-foreground",
+                            arr[index - 1]?.videos.length === 0
+                              ? "border border-t-0"
+                              : "border"
+                          )}
+                        >
+                          <div className="flex items-center justify-between px-3 py-2">
+                            <h3 className="text-sm tracking-wide">
+                              {lesson.path}
+                            </h3>
+                            <div className="flex items-center space-x-2">
+                              <Dialog
+                                open={addVideoToLessonId === lesson.id}
+                                onOpenChange={(open) => {
+                                  setAddVideoToLessonId(
+                                    open ? lesson.id : null
                                   );
-                                  setAddVideoToLessonId(null);
                                 }}
+                              >
+                                <DialogTrigger asChild>
+                                  <Button
+                                    type="submit"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-xs"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle>Add New Video</DialogTitle>
+                                  </DialogHeader>
+                                  <latestObsVideoFetcher.Form
+                                    method="post"
+                                    action="/api/videos/edit-latest-obs-video"
+                                    className="space-y-4 py-4"
+                                    onSubmit={async (e) => {
+                                      e.preventDefault();
+                                      await latestObsVideoFetcher.submit(
+                                        e.currentTarget
+                                      );
+                                      setAddVideoToLessonId(null);
+                                    }}
+                                  >
+                                    <input
+                                      type="hidden"
+                                      name="lessonId"
+                                      value={lesson.id}
+                                    />
+                                    <div className="space-y-2">
+                                      <Label htmlFor="video-path">
+                                        Video Name
+                                      </Label>
+                                      <Input
+                                        id="video-path"
+                                        placeholder="Problem, Solution, Explainer..."
+                                        defaultValue={getVideoPath(lesson)}
+                                        name="path"
+                                      />
+                                    </div>
+                                    <div className="flex justify-end space-x-2">
+                                      <Button
+                                        variant="outline"
+                                        onClick={() =>
+                                          setAddVideoToLessonId(null)
+                                        }
+                                        type="button"
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button type="submit">
+                                        {latestObsVideoFetcher.state ===
+                                        "submitting" ? (
+                                          <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                          "Add Video"
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </latestObsVideoFetcher.Form>
+                                </DialogContent>
+                              </Dialog>
+                              <deleteLessonFetcher.Form
+                                method="post"
+                                action="/api/lessons/delete"
+                                className="block"
                               >
                                 <input
                                   type="hidden"
                                   name="lessonId"
                                   value={lesson.id}
                                 />
-                                <div className="space-y-2">
-                                  <Label htmlFor="video-path">Video Name</Label>
-                                  <Input
-                                    id="video-path"
-                                    placeholder="Problem, Solution, Explainer..."
-                                    defaultValue={getVideoPath(lesson)}
-                                    name="path"
-                                  />
-                                </div>
-                                <div className="flex justify-end space-x-2">
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => setAddVideoToLessonId(null)}
-                                    type="button"
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button type="submit">
-                                    {latestObsVideoFetcher.state ===
-                                    "submitting" ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      "Add Video"
-                                    )}
-                                  </Button>
-                                </div>
-                              </latestObsVideoFetcher.Form>
-                            </DialogContent>
-                          </Dialog>
-                          <deleteLessonFetcher.Form
-                            method="post"
-                            action="/api/lessons/delete"
-                            className="block"
-                          >
-                            <input
-                              type="hidden"
-                              name="lessonId"
-                              value={lesson.id}
-                            />
-                            <Button
-                              type="submit"
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 text-xs"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </deleteLessonFetcher.Form>
-                        </div>
-                      </div>
-                    </div>
-                    {lesson.videos.length > 0 && (
-                      <div className="ml-8 text-foreground">
-                        {lesson.videos.map((video, index) => (
-                          <div
-                            key={video.id}
-                            className={cn(
-                              "flex items-center justify-between text-sm border-x px-3 py-2",
-                              index !== 0 ? "border-t" : ""
-                            )}
-                          >
-                            <div className="flex items-center">
-                              <VideoIcon className="w-4 h-4 mr-2" />
-                              <span className="tracking-wide">
-                                {video.path}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                asChild
-                              >
-                                <Link to={`/videos/${video.id}/write`}>
-                                  <PencilIcon className="w-4 h-4" />
-                                </Link>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() => {
-                                  setVideoPlayerState({
-                                    isOpen: true,
-                                    videoId: video.id,
-                                    videoPath: `${section.path}/${lesson.path}/${video.path}`,
-                                  });
-                                }}
-                              >
-                                <Play className="w-4 h-4" />
-                              </Button>
-                              <deleteVideoFetcher.Form
-                                method="post"
-                                action="/api/videos/delete"
-                                className="inline"
-                              >
-                                <input
-                                  type="hidden"
-                                  name="videoId"
-                                  value={video.id}
-                                />
                                 <Button
+                                  type="submit"
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => {}}
+                                  className="h-6 w-6 p-0 text-xs"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
-                              </deleteVideoFetcher.Form>
+                              </deleteLessonFetcher.Form>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </React.Fragment>
+                        </div>
+                        {lesson.videos.length > 0 && (
+                          <div className="ml-8 text-foreground">
+                            {lesson.videos.map((video, index) => (
+                              <div
+                                key={video.id}
+                                className={cn(
+                                  "flex items-center justify-between text-sm border-x px-3 py-2",
+                                  index !== 0 ? "border-t" : ""
+                                )}
+                              >
+                                <div className="flex items-center">
+                                  <VideoIcon className="w-4 h-4 mr-2" />
+                                  <span className="tracking-wide">
+                                    {video.path}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    asChild
+                                  >
+                                    <Link to={`/videos/${video.id}/write`}>
+                                      <PencilIcon className="w-4 h-4" />
+                                    </Link>
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => {
+                                      setVideoPlayerState({
+                                        isOpen: true,
+                                        videoId: video.id,
+                                        videoPath: `${section.path}/${lesson.path}/${video.path}`,
+                                      });
+                                    }}
+                                  >
+                                    <Play className="w-4 h-4" />
+                                  </Button>
+                                  <deleteVideoFetcher.Form
+                                    method="post"
+                                    action="/api/videos/delete"
+                                    className="inline"
+                                  >
+                                    <input
+                                      type="hidden"
+                                      name="videoId"
+                                      value={video.id}
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => {}}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </deleteVideoFetcher.Form>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
                 ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold mb-2">
+                  Course Video Manager
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Select a repository
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {repos.map((repo) => (
+                  <Link
+                    key={repo.id}
+                    to={`?repoId=${repo.id}`}
+                    className="block border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">{repo.name}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {repo.filePath}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+
+              {repos.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="mb-4">
+                    <VideoIcon className="w-16 h-16 mx-auto text-muted-foreground/50" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    No repositories found
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Get started by adding your first repository
+                  </p>
+                  <Button
+                    onClick={() => setIsAddRepoModalOpen(true)}
+                    className="mx-auto"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Repository
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
