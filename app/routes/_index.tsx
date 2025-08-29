@@ -505,10 +505,10 @@ export default function Component(props: Route.ComponentProps) {
                     to={`?repoId=${repo.id}`}
                     className="block border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-1">
                       <h3 className="text-lg font-semibold">{repo.name}</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-sm text-muted-foreground">
                       {repo.filePath}
                     </p>
                   </Link>
