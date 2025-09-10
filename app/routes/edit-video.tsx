@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import type { Route } from "./+types/edit-video";
+import {
+  extractAudioFromVideoURL,
+  generateWaveformData,
+  getWaveformForTimeRange,
+} from "@/services/video-editing";
 
 // Core data model - flat array of clips
 interface Clip {
@@ -61,6 +66,7 @@ const Clip = (props: {
   onPreloadComplete: () => void;
   hidden: boolean;
   state: ClipState;
+  onUpdateCurrentTime: (time: number) => void;
 }) => {
   const [preloadState, setPreloadState] = useState<"preloading" | "finished">(
     "preloading"
@@ -123,7 +129,10 @@ const Clip = (props: {
       } else if (currentTime >= modifiedEndTime) {
         props.onFinish();
         ref.current!.currentTime = props.clip.sourceStartTime;
+        return;
       }
+
+      props.onUpdateCurrentTime(currentTime - props.clip.sourceStartTime);
 
       animationId = requestAnimationFrame(checkCurrentTime);
     };
@@ -142,6 +151,7 @@ const Clip = (props: {
     modifiedEndTime,
     props.clip.sourceStartTime,
     preloadTo,
+    props.onUpdateCurrentTime,
   ]);
 
   return (
@@ -161,6 +171,7 @@ const TimelineView = (props: {
   onFinish: () => void;
   currentClipId: string;
   setCurrentClipId: (clipId: string) => void;
+  onUpdateCurrentTime: (time: number) => void;
 }) => {
   const prioritizedClips = getPrioritizedListOfClips({
     clips: props.clips,
@@ -183,7 +194,10 @@ const TimelineView = (props: {
           if (nextClip === undefined) {
             props.onFinish();
           } else {
-            props.setCurrentClipId(nextClip.id);
+            startTransition(() => {
+              props.setCurrentClipId(nextClip.id);
+              props.onUpdateCurrentTime(0);
+            });
           }
         };
 
@@ -195,6 +209,11 @@ const TimelineView = (props: {
               onFinish={onFinish}
               hidden={!isCurrentlyPlaying}
               state={props.state}
+              onUpdateCurrentTime={(time) => {
+                if (isCurrentlyPlaying) {
+                  props.onUpdateCurrentTime(time);
+                }
+              }}
               onPreloadComplete={() => {
                 console.log("onPreloadComplete", clip.id);
               }}
@@ -206,39 +225,110 @@ const TimelineView = (props: {
   );
 };
 
+export const clientLoader = async () => {
+  const audioBuffer = await extractAudioFromVideoURL(
+    `/view-video?videoPath=${initialClips[0]!.inputVideo}`
+  );
+
+  const clipsWithWaveformData = initialClips.map((clip) => {
+    const waveformDataForTimeRange = getWaveformForTimeRange(
+      audioBuffer,
+      clip.sourceStartTime,
+      clip.sourceEndTime,
+      200
+    );
+    return {
+      ...clip,
+      waveformDataForTimeRange,
+    };
+  });
+
+  return { clipsWithWaveformData };
+};
+
 export default function Component(props: Route.ComponentProps) {
   const [state, setState] = useState<ClipState>("paused");
-  const [clips, setClips] = useState<Clip[]>(initialClips);
+  const [clips, setClips] = useState(props.loaderData.clipsWithWaveformData);
   const [currentClipId, setCurrentClipId] = useState<string>(
     initialClips[0]!.id
   );
+  const [currentTimeInClip, setCurrentTimeInClip] = useState(0);
+
+  console.log("currentTimeInClip", currentTimeInClip);
+
   return (
     <div className="flex gap-6">
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 flex-wrap flex gap-2 h-full">
         {clips.map((clip, index, array) => {
           const nextClip = array[index + 1];
           const previousClip = array[index - 1];
+          const duration = clip.sourceEndTime - clip.sourceStartTime;
+
+          const waveformData = clip.waveformDataForTimeRange;
+
+          const percentComplete = currentTimeInClip / duration;
+
           return (
-            <div key={clip.id}>
-              <div className={cn(clip.id === currentClipId && "text-red-500")}>
-                {(clip.sourceEndTime - clip.sourceStartTime).toFixed(2)}
+            <button
+              key={clip.id}
+              style={{ width: `${duration * 50}px` }}
+              className={cn(
+                "bg-gray-800 p-2 rounded-md text-left block relative overflow-hidden h-12",
+                clip.id === currentClipId && "bg-blue-500"
+              )}
+              onClick={() => {
+                startTransition(() => {
+                  setCurrentClipId(clip.id);
+                  setCurrentTimeInClip(0);
+                });
+              }}
+            >
+              {/* Moving bar indicator */}
+              {clip.id === currentClipId && (
+                <div
+                  className="absolute top-0 left-0 w-full h-full bg-blue-400 z-0"
+                  style={{
+                    width: `${percentComplete * 100}%`,
+                    height: "100%",
+                  }}
+                />
+              )}
+              <div className="absolute bottom-0 left-0 w-full h-full flex items-end z-0">
+                {waveformData.map((data, index) => {
+                  return (
+                    <div
+                      key={index}
+                      style={{ height: `${data * 120}px`, width: "0.5%" }}
+                      className="bg-blue-300 z-0"
+                    />
+                  );
+                })}
               </div>
-              <Button onClick={() => setCurrentClipId(clip.id)}>
-                Set as current
-              </Button>
-              <Button
+              {/* <Button
+                className="z-10 relative"
                 onClick={() => {
                   setClips(clips.filter((c) => c.id !== clip.id));
-                  if (nextClip) {
-                    setCurrentClipId(nextClip.id);
-                  } else if (previousClip) {
-                    setCurrentClipId(previousClip.id);
+
+                  if (clip.id === currentClipId) {
+                    if (nextClip) {
+                      setCurrentClipId(nextClip.id);
+                    } else if (previousClip) {
+                      setCurrentClipId(previousClip.id);
+                    }
                   }
                 }}
               >
                 Delete
-              </Button>
-            </div>
+              </Button> */}
+              <div
+                className={cn(
+                  "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
+                  clip.id === currentClipId && "text-blue-200"
+                )}
+              >
+                {formatSecondsToTime(clip.sourceEndTime - clip.sourceStartTime)}
+              </div>
+            </button>
           );
         })}
       </div>
@@ -253,6 +343,9 @@ export default function Component(props: Route.ComponentProps) {
             }}
             currentClipId={currentClipId}
             setCurrentClipId={setCurrentClipId}
+            onUpdateCurrentTime={(time) => {
+              setCurrentTimeInClip(time);
+            }}
           />
           <Button onClick={() => setState("playing")}>Play</Button>
           <Button onClick={() => setState("paused")}>Pause</Button>
@@ -418,3 +511,8 @@ const initialClips: Clip[] = VIDEO_DATA.clips
       sourceEndTime: clip.sourceVideoEndTime,
     };
   });
+
+// Should return 3.2s
+const formatSecondsToTime = (seconds: number) => {
+  return seconds.toFixed(1) + "s";
+};
