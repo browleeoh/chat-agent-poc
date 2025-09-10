@@ -214,14 +214,20 @@ const xmlTagTransform =
           return;
         }
         if (state.type === "capturing-xml-tag") {
-          if (chunk.text.includes(endTag)) {
+          state.xmlTag += chunk.text;
+          if (state.xmlTag.includes(endTag)) {
             // Put everything up to the end of the code snippet
             // into the state
-            const xmlTagEndIndex = chunk.text.indexOf(endTag);
+            const xmlTagEndIndex = state.xmlTag.indexOf(endTag);
 
-            state.xmlTag += chunk.text.slice(0, xmlTagEndIndex + endTag.length);
+            const xmlTag = state.xmlTag.slice(
+              0,
+              xmlTagEndIndex + endTag.length
+            );
 
-            const xmlTag = state.xmlTag;
+            const textAfterXmlTag = state.xmlTag.slice(
+              xmlTagEndIndex + endTag.length
+            );
 
             const attributesObject = opts.attributes.reduce(
               (acc, attribute) => {
@@ -247,14 +253,9 @@ const xmlTagTransform =
               attributes: attributesObject,
             });
 
-            // Enqueue everything not in the code snippet
-            const textToEnqueue = chunk.text.slice(
-              xmlTagEndIndex + endTag.length
-            );
-
             controller.enqueue({
               ...chunk,
-              text: code + textToEnqueue,
+              text: code + textAfterXmlTag,
             });
 
             state = {
@@ -263,7 +264,6 @@ const xmlTagTransform =
 
             return;
           } else {
-            state.xmlTag += chunk.text;
             return;
           }
         }
