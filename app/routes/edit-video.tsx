@@ -60,6 +60,7 @@ type ClipState = "playing" | "paused";
 const PRELOAD_PLAY_AMOUNT = 0.1;
 
 const Clip = (props: {
+  playbackRate: number;
   clip: Clip;
   onFinish: () => void;
   aggressivePreload: boolean;
@@ -83,6 +84,13 @@ const Clip = (props: {
     if (!ref.current) {
       return;
     }
+    ref.current.playbackRate = props.playbackRate;
+  }, [props.playbackRate, ref.current]);
+
+  useEffect(() => {
+    if (!ref.current) {
+      return;
+    }
 
     if (preloadState === "preloading" && props.aggressivePreload) {
       ref.current.muted = true;
@@ -96,8 +104,6 @@ const Clip = (props: {
       ref.current.muted = false;
       return;
     }
-
-    ref.current.playbackRate = 1;
 
     if (isPlaying) {
       ref.current.play();
@@ -172,6 +178,7 @@ const Clip = (props: {
 };
 
 const TimelineView = (props: {
+  playbackRate: number;
   clips: Clip[];
   clipsToAggressivelyPreload: string[];
   state: ClipState;
@@ -195,6 +202,7 @@ const TimelineView = (props: {
         return (
           <div key={clip.id}>
             <Clip
+              playbackRate={props.playbackRate}
               clip={clip}
               key={clip.id}
               onFinish={onFinish}
@@ -208,9 +216,7 @@ const TimelineView = (props: {
                   props.onUpdateCurrentTime(time);
                 }
               }}
-              onPreloadComplete={() => {
-                console.log("onPreloadComplete", clip.id);
-              }}
+              onPreloadComplete={() => {}}
             />
           </div>
         );
@@ -251,6 +257,7 @@ type State = {
   currentClipId: string;
   currentTimeInClip: number;
   selectedClipsSet: Set<string>;
+  playbackRate: number;
 };
 
 type Action =
@@ -287,6 +294,18 @@ type Action =
     }
   | {
       type: "press-arrow-right";
+    }
+  | {
+      type: "press-l";
+    }
+  | {
+      type: "press-home";
+    }
+  | {
+      type: "press-end";
+    }
+  | {
+      type: "press-k";
     };
 
 const preloadSelectedClips = (state: State) => {
@@ -332,6 +351,31 @@ const reducer = (state: State, action: Action): State => {
         ...state,
         runningState: state.runningState === "playing" ? "paused" : "playing",
       };
+    case "press-home":
+      return { ...state, selectedClipsSet: new Set([state.clips[0]!.id]) };
+    case "press-end":
+      return {
+        ...state,
+        selectedClipsSet: new Set([state.clips[state.clips.length - 1]!.id]),
+      };
+    case "press-l":
+      if (state.playbackRate === 2) {
+        return {
+          ...state,
+          playbackRate: 2,
+          runningState: state.runningState === "playing" ? "paused" : "playing",
+        };
+      }
+      return { ...state, playbackRate: 2, runningState: "playing" };
+    case "press-k":
+      if (state.playbackRate === 1) {
+        return {
+          ...state,
+          playbackRate: 1,
+          runningState: state.runningState === "playing" ? "paused" : "playing",
+        };
+      }
+      return { ...state, playbackRate: 1, runningState: "playing" };
     case "press-pause":
       return { ...state, runningState: "paused" };
     case "press-play":
@@ -553,6 +597,7 @@ export default function Component(props: Route.ComponentProps) {
       initialClips[0]!.id,
       initialClips[1]!.id,
     ]),
+    playbackRate: 1,
   });
 
   const currentClipIndex = state.clips.findIndex(
@@ -573,6 +618,7 @@ export default function Component(props: Route.ComponentProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log("handleKeyDown", e.key);
       if (e.key === " ") {
         if (e.repeat) return;
         dispatch({ type: "press-space-bar" });
@@ -584,6 +630,14 @@ export default function Component(props: Route.ComponentProps) {
         dispatch({ type: "press-arrow-left" });
       } else if (e.key === "ArrowRight") {
         dispatch({ type: "press-arrow-right" });
+      } else if (e.key === "l") {
+        dispatch({ type: "press-l" });
+      } else if (e.key === "k") {
+        dispatch({ type: "press-k" });
+      } else if (e.key === "Home") {
+        dispatch({ type: "press-home" });
+      } else if (e.key === "End") {
+        dispatch({ type: "press-end" });
       }
     };
 
@@ -687,11 +741,8 @@ export default function Component(props: Route.ComponentProps) {
             onUpdateCurrentTime={(time) => {
               dispatch({ type: "update-clip-current-time", time });
             }}
+            playbackRate={state.playbackRate}
           />
-          <Button onClick={() => dispatch({ type: "press-play" })}>Play</Button>
-          <Button onClick={() => dispatch({ type: "press-pause" })}>
-            Pause
-          </Button>
         </div>
       </div>
     </div>
