@@ -57,6 +57,8 @@ const Clip = (props: {
 }) => {
   const ref = useRef<HTMLVideoElement>(null);
 
+  const isPlaying = !props.hidden && props.state === "playing";
+
   useEffect(() => {
     if (!ref.current) {
       return;
@@ -69,7 +71,7 @@ const Clip = (props: {
 
     ref.current.playbackRate = 1;
 
-    if (props.state === "playing") {
+    if (isPlaying) {
       ref.current.play();
     } else {
       ref.current.pause();
@@ -78,17 +80,36 @@ const Clip = (props: {
 
   const modifiedEndTime = props.clip.sourceEndTime;
 
+  useEffect(() => {
+    if (!ref.current) {
+      return;
+    }
+
+    if (!isPlaying) {
+      return;
+    }
+    let animationId: number | null = null;
+
+    const checkCurrentTime = () => {
+      if (ref.current!.currentTime >= modifiedEndTime) {
+        props.onFinish();
+      }
+      animationId = requestAnimationFrame(checkCurrentTime);
+    };
+
+    animationId = requestAnimationFrame(checkCurrentTime);
+
+    return () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [ref.current, isPlaying]);
+
   return (
     <video
       key={props.clip.id}
       src={`/view-video?videoPath=${props.clip.inputVideo}#t=${props.clip.sourceStartTime},${modifiedEndTime}`}
-      onPause={() => {
-        const currentTime = ref.current!.currentTime;
-        console.log("currentTime", currentTime);
-        if (currentTime >= modifiedEndTime) {
-          props.onFinish();
-        }
-      }}
       onCanPlayThrough={() => {
         props.onPreloadComplete();
       }}
@@ -111,7 +132,7 @@ const TimelineView = (props: { clips: Clip[]; state: ClipState }) => {
   const prioritizedClips = getPrioritizedListOfClips({
     clips: props.clips,
     currentClipId,
-  }).slice(0, 3);
+  }).slice(0, 6);
 
   return (
     <div className="flex flex-col gap-4">
