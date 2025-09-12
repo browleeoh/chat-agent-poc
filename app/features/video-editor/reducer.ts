@@ -181,7 +181,6 @@ export const makeVideoEditorReducer =
           currentClipId: mostRecentClipId,
           runningState: "playing",
           currentTimeInClip: 0,
-          playbackRate: 1,
           selectedClipsSet: new Set([mostRecentClipId]),
         });
       case "click-clip":
