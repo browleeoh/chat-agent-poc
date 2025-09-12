@@ -38,8 +38,12 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
   {
     effect: Effect.gen(function* () {
       const getLatestOBSVideoClips = Effect.fn("getLatestOBSVideoClips")(
-        function* () {
-          const command = Command.make("tt", "get-clips-from-latest-video");
+        function* (opts: { filePath: string | undefined }) {
+          const command = Command.make(
+            "tt",
+            "get-clips-from-latest-video",
+            ...(opts.filePath ? [opts.filePath] : [])
+          );
 
           const result = yield* Command.string(command);
 
