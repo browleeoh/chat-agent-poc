@@ -156,30 +156,36 @@ export const VideoEditor = (props: {
               />
             </div>
 
-            {props.liveMediaStream && (
-              <div className="w-full h-full">
+            {props.liveMediaStream &&
+            props.obsConnectorState.type === "obs-recording" ? (
+              <div className="w-full h-full relative">
+                {props.obsConnectorState.type === "obs-recording" && (
+                  <RecordingSignalIndicator />
+                )}
+
                 <LiveMediaStream mediaStream={props.liveMediaStream} />
               </div>
+            ) : (
+              <PreloadableClipManager
+                clipsToAggressivelyPreload={clipsToAggressivelyPreload}
+                clips={state.clips.filter((clip) =>
+                  state.clipIdsPreloaded.has(clip.id)
+                )}
+                finalClipId={
+                  props.initialClips[props.initialClips.length - 1]?.id
+                }
+                state={state.runningState}
+                currentClipId={currentClipId}
+                onClipFinished={() => {
+                  dispatch({ type: "clip-finished" });
+                }}
+                onUpdateCurrentTime={(time) => {
+                  dispatch({ type: "update-clip-current-time", time });
+                }}
+                playbackRate={state.playbackRate}
+              />
             )}
 
-            <PreloadableClipManager
-              clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-              clips={state.clips.filter((clip) =>
-                state.clipIdsPreloaded.has(clip.id)
-              )}
-              finalClipId={
-                props.initialClips[props.initialClips.length - 1]?.id
-              }
-              state={state.runningState}
-              currentClipId={currentClipId}
-              onClipFinished={() => {
-                dispatch({ type: "clip-finished" });
-              }}
-              onUpdateCurrentTime={(time) => {
-                dispatch({ type: "update-clip-current-time", time });
-              }}
-              playbackRate={state.playbackRate}
-            />
             <div className="flex gap-2 mt-4">
               <Button asChild variant="secondary">
                 <Link to={`/?repoId=${props.repoId}#${props.lessonId}`}>
@@ -316,8 +322,6 @@ const formatSecondsToTime = (seconds: number) => {
 export const LiveMediaStream = (props: { mediaStream: MediaStream }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  console.log(videoRef.current, props.mediaStream);
-
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = props.mediaStream;
@@ -325,5 +329,13 @@ export const LiveMediaStream = (props: { mediaStream: MediaStream }) => {
     }
   }, [props.mediaStream, videoRef.current]);
 
-  return <video className="w-full h-full" ref={videoRef} />;
+  return <video ref={videoRef} />;
+};
+
+export const RecordingSignalIndicator = () => {
+  return (
+    <div className="absolute top-6 right-6 flex items-center justify-center">
+      <div className="w-10 h-10 bg-red-700 rounded-full animate-pulse" />
+    </div>
+  );
 };

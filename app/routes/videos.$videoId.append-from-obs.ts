@@ -29,6 +29,10 @@ export const action = async (args: Route.ActionArgs) => {
       filePath: result.filePath,
     });
 
+    if (latestOBSVideoClips.clips.length === 0) {
+      return [];
+    }
+
     const clips = yield* db.appendClips(videoId, latestOBSVideoClips.clips);
 
     return clips;

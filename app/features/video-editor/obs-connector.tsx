@@ -87,7 +87,11 @@ export const useConnectToOBSVirtualCamera = (props: {
 
       if (obsVirtualcamDevice) {
         const obsStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: obsVirtualcamDevice.deviceId },
+          video: {
+            deviceId: obsVirtualcamDevice.deviceId,
+            width: 1280,
+            height: 720,
+          },
         });
 
         setMediaStream(obsStream);
