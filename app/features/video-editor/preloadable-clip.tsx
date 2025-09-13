@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Clip, ClipState } from "./reducer";
+import type { Clip, ClipOnDatabase, ClipState } from "./reducer";
 import { cn } from "@/lib/utils";
 import { FINAL_VIDEO_PADDING } from "./constants";
 
@@ -7,7 +7,7 @@ const PRELOAD_PLAY_AMOUNT = 0.1;
 
 export const PreloadableClip = (props: {
   playbackRate: number;
-  clip: Clip;
+  clip: ClipOnDatabase;
   onFinish: () => void;
   aggressivePreload: boolean;
   onPreloadComplete: () => void;
@@ -125,7 +125,7 @@ export const PreloadableClip = (props: {
 
 export const PreloadableClipManager = (props: {
   playbackRate: number;
-  clips: Clip[];
+  clips: ClipOnDatabase[];
   finalClipId: string | undefined;
   clipsToAggressivelyPreload: string[];
   state: ClipState;

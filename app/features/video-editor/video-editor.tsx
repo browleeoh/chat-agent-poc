@@ -146,7 +146,10 @@ export const VideoEditor = (props: {
   const exportVideoClipsFetcher = useFetcher();
 
   const totalDuration = props.clips.reduce((acc, clip) => {
-    return acc + (clip.sourceEndTime - clip.sourceStartTime);
+    if (clip.type === "on-database") {
+      return acc + (clip.sourceEndTime - clip.sourceStartTime);
+    }
+    return acc;
   }, 0);
 
   const shouldShowVideoPlayer =
@@ -197,9 +200,9 @@ export const VideoEditor = (props: {
             <div className={cn(!shouldShowVideoPlayer && "hidden")}>
               <PreloadableClipManager
                 clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-                clips={props.clips.filter((clip) =>
-                  state.clipIdsPreloaded.has(clip.id)
-                )}
+                clips={props.clips
+                  .filter((clip) => state.clipIdsPreloaded.has(clip.id))
+                  .filter((clip) => clip.type === "on-database")}
                 finalClipId={props.clips[props.clips.length - 1]?.id}
                 state={state.runningState}
                 currentClipId={currentClipId}
@@ -244,11 +247,16 @@ export const VideoEditor = (props: {
       <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1">
         <div className="flex gap-3 h-full flex-col w-full">
           {props.clips.map((clip) => {
-            const duration = clip.sourceEndTime - clip.sourceStartTime;
+            const duration =
+              clip.type === "on-database"
+                ? clip.sourceEndTime - clip.sourceStartTime
+                : null;
 
             // const waveformData = props.waveformDataForClip[clip.id];
 
-            const percentComplete = state.currentTimeInClip / duration;
+            const percentComplete = duration
+              ? state.currentTimeInClip / duration
+              : 0;
 
             return (
               <button
@@ -297,6 +305,7 @@ export const VideoEditor = (props: {
                 )} */}
                 <span className="z-10 block relative text-white text-sm mr-6 leading-6">
                   {props.clipIdsBeingTranscribed.has(clip.id) &&
+                    clip.type === "on-database" &&
                     !clip.transcribedAt &&
                     !clip.text && (
                       <div className="flex items-center">
@@ -304,7 +313,16 @@ export const VideoEditor = (props: {
                         <span className="text-gray-400">Transcribing...</span>
                       </div>
                     )}
-                  {clip.text}
+                  {clip.type === "on-database" ? (
+                    clip.text
+                  ) : (
+                    <div className="flex items-center">
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
+                      <span className="text-gray-400">
+                        Detecting silence...
+                      </span>
+                    </div>
+                  )}
                 </span>
                 {/* <Button
                 className="z-10 relative"
@@ -322,17 +340,17 @@ export const VideoEditor = (props: {
               >
                 Delete
               </Button> */}
-                <div
-                  className={cn(
-                    "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
-                    clip.id === currentClipId && "text-blue-200",
-                    state.selectedClipsSet.has(clip.id) && "text-gray-300"
-                  )}
-                >
-                  {formatSecondsToTime(
-                    clip.sourceEndTime - clip.sourceStartTime
-                  )}
-                </div>
+                {duration && (
+                  <div
+                    className={cn(
+                      "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
+                      clip.id === currentClipId && "text-blue-200",
+                      state.selectedClipsSet.has(clip.id) && "text-gray-300"
+                    )}
+                  >
+                    {formatSecondsToTime(duration)}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -367,23 +385,23 @@ export const LiveMediaStream = (props: {
 
   return (
     <div className={cn("relative")}>
-      {props.speechDetectorState === "silence" && (
+      {props.speechDetectorState.type === "silence" && (
         <div className="absolute top-2 left-2 bg-blue-600 rounded-full size-6 flex items-center justify-center">
           <CheckIcon className="size-3 text-white" />
         </div>
       )}
-      {props.speechDetectorState === "speaking-detected" && (
+      {props.speechDetectorState.type === "speaking-detected" && (
         <div className="absolute top-2 left-2 bg-yellow-600 rounded-full size-6 flex items-center justify-center">
           <MicIcon className="size-3 text-white" />
         </div>
       )}
-      {props.speechDetectorState ===
+      {props.speechDetectorState.type ===
         "long-enough-speaking-for-clip-detected" && (
         <div className="absolute top-2 left-2 bg-green-600 rounded-full size-6 flex items-center justify-center">
           <MicIcon className="size-3 text-white" />
         </div>
       )}
-      {props.speechDetectorState === "warming-up" && (
+      {props.speechDetectorState.type === "warming-up" && (
         <div className="absolute top-2 left-2 bg-red-600 rounded-full size-6 flex items-center justify-center">
           <Loader2 className="size-3 text-white animate-spin" />
         </div>
@@ -395,12 +413,12 @@ export const LiveMediaStream = (props: {
         className={cn(
           "outline-4",
           "rounded-lg",
-          props.speechDetectorState === "speaking-detected" &&
+          props.speechDetectorState.type === "speaking-detected" &&
             "outline-yellow-600",
-          props.speechDetectorState ===
+          props.speechDetectorState.type ===
             "long-enough-speaking-for-clip-detected" && "outline-green-600",
-          props.speechDetectorState === "silence" && "outline-blue-600",
-          props.speechDetectorState === "warming-up" && "outline-red-600"
+          props.speechDetectorState.type === "silence" && "outline-blue-600",
+          props.speechDetectorState.type === "warming-up" && "outline-red-600"
         )}
       />
     </div>

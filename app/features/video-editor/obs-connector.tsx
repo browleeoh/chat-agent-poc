@@ -7,7 +7,8 @@ import {
   useSpeechDetector,
   useWatchForSpeechDetected,
 } from "./use-speech-detector";
-import type { Clip } from "./reducer";
+import type { Clip, ClipOnDatabase, ClipOptimisticallyAdded } from "./reducer";
+import type { DB } from "@/db/schema";
 
 export type OBSConnectionState =
   | {
@@ -126,7 +127,7 @@ export const useRunOBSImportRepeatedly = (props: {
     | {
         type: "should-not-run";
       };
-  onNewClips: (clips: Clip[]) => void;
+  onNewDatabaseClips: (clips: DB.Clip[]) => void;
 }) => {
   useEffect(() => {
     if (props.state.type === "should-run") {
@@ -141,9 +142,9 @@ export const useRunOBSImportRepeatedly = (props: {
             body: JSON.stringify({ filePath }),
           }).then(async (res) => {
             if (res.ok) {
-              const clips: Clip[] = await res.json();
+              const clips: DB.Clip[] = await res.json();
               if (clips.length > 0) {
-                props.onNewClips(clips);
+                props.onNewDatabaseClips(clips);
               }
             }
           });
@@ -159,7 +160,8 @@ export const useRunOBSImportRepeatedly = (props: {
 
 export const useOBSConnector = (props: {
   videoId: string;
-  onNewClips: (clips: Clip[]) => void;
+  onNewDatabaseClips: (clips: DB.Clip[]) => void;
+  onNewClipOptimisticallyAdded: (clip: ClipOptimisticallyAdded) => void;
 }) => {
   const [websocket] = useState(() => new OBSWebSocket());
 
@@ -178,7 +180,7 @@ export const useOBSConnector = (props: {
         : {
             type: "should-not-run",
           },
-    onNewClips: props.onNewClips,
+    onNewDatabaseClips: props.onNewDatabaseClips,
   });
 
   useEffect(() => {
@@ -280,6 +282,13 @@ export const useOBSConnector = (props: {
       setState({
         ...state,
         hasSpeechBeenDetected: true,
+      });
+    }
+
+    if (state.type === "obs-recording") {
+      props.onNewClipOptimisticallyAdded({
+        type: "optimistically-added",
+        id: crypto.randomUUID(),
       });
     }
   });

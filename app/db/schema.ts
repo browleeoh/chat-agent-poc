@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations, sql, type InferSelectModel } from "drizzle-orm";
 import {
   boolean,
   doublePrecision,
@@ -108,6 +108,10 @@ export const clips = createTable("clip", {
     withTimezone: true,
   }),
 });
+
+export namespace DB {
+  export type Clip = InferSelectModel<typeof clips>;
+}
 
 export const clipsRelations = relations(clips, ({ one }) => ({
   video: one(videos, { fields: [clips.videoId], references: [videos.id] }),

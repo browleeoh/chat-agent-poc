@@ -17,7 +17,8 @@ import { Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos.$videoId.edit";
 import { useDebounceIdStore } from "@/features/video-editor/utils";
 import { useEffect, useState } from "react";
-import type { Clip } from "@/features/video-editor/reducer";
+import type { Clip, ClipOnDatabase } from "@/features/video-editor/reducer";
+import type { DB } from "@/db/schema";
 
 // Core data model - flat array of clips
 
@@ -56,7 +57,7 @@ export const loader = async (args: Route.LoaderArgs) => {
 // };
 
 const useDebounceTranscribeClips = (
-  onClipsUpdated: (clips: Clip[]) => void
+  onClipsUpdated: (clips: ClipOnDatabase[]) => void
 ) => {
   const transcribe = useDebounceIdStore(
     (ids) =>
@@ -65,8 +66,13 @@ const useDebounceTranscribeClips = (
         body: JSON.stringify({ clipIds: ids }),
       })
         .then((res) => res.json())
-        .then((clips) => {
-          onClipsUpdated(clips);
+        .then((clips: DB.Clip[]) => {
+          onClipsUpdated(
+            clips.map((clip) => ({
+              ...clip,
+              type: "on-database",
+            }))
+          );
         }),
     500
   );
@@ -77,17 +83,45 @@ const useDebounceTranscribeClips = (
 };
 
 export default function Component(props: Route.ComponentProps) {
-  const refetch = useFetcher();
-  const [clips, setClips] = useState<Clip[]>(props.loaderData.clips);
+  const [clips, setClips] = useState<Clip[]>(
+    props.loaderData.clips.map((clip) => ({
+      ...clip,
+      type: "on-database",
+    }))
+  );
 
   const obsConnector = useOBSConnector({
     videoId: props.loaderData.video.id,
-    onNewClips: (clips) => {
-      setClips((prev) => [...prev, ...clips]);
+    onNewDatabaseClips: (databaseClips) => {
+      setClips((prev) => {
+        const newClips = [...prev];
+        for (const clip of databaseClips) {
+          const optimisticallyAddedClipIndex = newClips.findIndex(
+            (c) => c.type === "optimistically-added"
+          );
+          if (optimisticallyAddedClipIndex !== -1) {
+            newClips[optimisticallyAddedClipIndex] = {
+              ...clip,
+              type: "on-database",
+            };
+          } else {
+            newClips.push({
+              ...clip,
+              type: "on-database",
+            });
+          }
+        }
+
+        return newClips;
+      });
+
       window.scrollTo({
         top: document.body.scrollHeight,
         behavior: "smooth",
       });
+    },
+    onNewClipOptimisticallyAdded: (clip) => {
+      setClips((prev) => [...prev, clip]);
     },
   });
 
@@ -112,6 +146,7 @@ export default function Component(props: Route.ComponentProps) {
     }
 
     const clipIdsToTranscribe = clips
+      .filter((clip) => clip.type === "on-database")
       .filter(
         (clip) =>
           !clip.transcribedAt &&

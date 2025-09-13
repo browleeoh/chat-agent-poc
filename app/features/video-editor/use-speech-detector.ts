@@ -19,10 +19,10 @@ export type SpeechDetectorState =
     };
 
 export type FrontendSpeechDetectorState =
-  | "warming-up"
-  | "speaking-detected"
-  | "long-enough-speaking-for-clip-detected"
-  | "silence";
+  | { type: "warming-up" }
+  | { type: "speaking-detected"; speechStartTime: number }
+  | { type: "long-enough-speaking-for-clip-detected"; speechStartTime: number }
+  | { type: "silence" };
 
 const SPEAKING_THRESHOLD = -33;
 const LONG_ENOUGH_TIME_IN_MILLISECONDS = 800;
@@ -36,16 +36,22 @@ const resolveFrontendSpeechDetectorState = (
     state.type === "no-silence-detected"
   ) {
     if (state.lastLongEnoughSilenceEndTime === null) {
-      return "warming-up";
+      return { type: "warming-up" };
     }
     if (state.isLongEnoughSpeech) {
-      return "long-enough-speaking-for-clip-detected";
+      return {
+        type: "long-enough-speaking-for-clip-detected",
+        speechStartTime: state.lastLongEnoughSilenceEndTime,
+      };
     }
-    return "speaking-detected";
+    return {
+      type: "speaking-detected",
+      speechStartTime: state.lastLongEnoughSilenceEndTime,
+    };
   }
 
   if (state.type === "long-enough-silence-detected") {
-    return "silence";
+    return { type: "silence" };
   }
 
   state satisfies never;
@@ -64,8 +70,11 @@ export const useSpeechDetector = (opts: {
     isLongEnoughSpeech: false,
   });
 
+  const recordingStartTime = useRef<number | null>(null);
+
   useEffect(() => {
     if (opts.isRecording) {
+      recordingStartTime.current = Date.now();
       setState({
         type: "no-silence-detected",
         speechStartTime: Date.now(),
@@ -189,8 +198,8 @@ export const useWatchForSpeechDetected = (
   );
   useEffect(() => {
     if (
-      prevState.current === "long-enough-speaking-for-clip-detected" &&
-      frontendSpeechDetectorState === "silence"
+      prevState.current.type === "long-enough-speaking-for-clip-detected" &&
+      frontendSpeechDetectorState.type === "silence"
     ) {
       onSpeechDetected();
     }

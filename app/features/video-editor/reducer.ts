@@ -1,11 +1,19 @@
-export interface Clip {
+export type ClipOnDatabase = {
+  type: "on-database";
   id: string;
   videoFilename: string;
   sourceStartTime: number; // Start time in source video (seconds)
   sourceEndTime: number; // End time in source video (seconds)
   text: string;
   transcribedAt: Date | null;
-}
+};
+
+export type ClipOptimisticallyAdded = {
+  type: "optimistically-added";
+  id: string;
+};
+
+export type Clip = ClipOnDatabase | ClipOptimisticallyAdded;
 
 export type ClipState = "playing" | "paused";
 
