@@ -189,11 +189,16 @@ export const useOBSConnector = (props: {
         .connect("ws://192.168.1.55:4455")
         .then(async () => {
           const profile = await websocket.call("GetProfileList");
+
           setState({
             type: "obs-connected",
             profile: profile.currentProfileName,
             latestOutputPath: null,
           });
+
+          try {
+            await websocket.call("StopRecord");
+          } catch (e) {}
         })
         .catch((e) => {
           console.error(e);
@@ -225,14 +230,20 @@ export const useOBSConnector = (props: {
         outputState: string;
         outputPath: string;
       }) => {
-        if (e.outputState === "OBS_WEBSOCKET_OUTPUT_STARTED") {
+        if (
+          e.outputState === "OBS_WEBSOCKET_OUTPUT_STARTED" ||
+          e.outputState === "OBS_WEBSOCKET_OUTPUT_RESUMED"
+        ) {
           setState({
             type: "obs-recording",
             profile: state.profile,
             latestOutputPath: e.outputPath,
             hasSpeechBeenDetected: false,
           });
-        } else if (e.outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") {
+        } else if (
+          e.outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED" ||
+          e.outputState === "OBS_WEBSOCKET_OUTPUT_PAUSED"
+        ) {
           setState({
             type: "obs-connected",
             profile: state.profile,
