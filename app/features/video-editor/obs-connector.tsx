@@ -164,8 +164,6 @@ export const useOBSImportQueue = (props: {
   };
 };
 
-const TIME_AFTER_CLIP_DELAY = 1800;
-
 export const useOBSConnector = (props: {
   videoId: string;
   onImportComplete: () => void;
@@ -272,11 +270,9 @@ export const useOBSConnector = (props: {
   });
 
   useWatchForSpeechDetected(speechDetectorState, () => {
-    setTimeout(() => {
-      if (state.type === "obs-recording" || state.type === "obs-connected") {
-        addToImportQueue(state.latestOutputPath!);
-      }
-    }, TIME_AFTER_CLIP_DELAY);
+    if (state.type === "obs-recording") {
+      addToImportQueue(state.latestOutputPath!);
+    }
   });
 
   return {

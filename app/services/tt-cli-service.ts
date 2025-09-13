@@ -8,23 +8,29 @@ const getLatestOBSVideoClipsSchema = Schema.Struct({
       inputVideo: Schema.String,
       startTime: Schema.Number,
       endTime: Schema.Number,
-      words: Schema.Array(
-        Schema.Struct({
-          start: Schema.Number,
-          end: Schema.Number,
-          text: Schema.String,
-        })
-      ),
-      segments: Schema.Array(
-        Schema.Struct({
-          start: Schema.Number,
-          end: Schema.Number,
-          text: Schema.String,
-        })
-      ),
     })
   ),
 });
+
+const transcribeClipsSchema = Schema.Array(
+  Schema.Struct({
+    id: Schema.String,
+    words: Schema.Array(
+      Schema.Struct({
+        start: Schema.Number,
+        end: Schema.Number,
+        text: Schema.String,
+      })
+    ),
+    segments: Schema.Array(
+      Schema.Struct({
+        start: Schema.Number,
+        end: Schema.Number,
+        text: Schema.String,
+      })
+    ),
+  })
+);
 
 class CouldNotParseJsonError extends Data.TaggedError(
   "CouldNotParseJsonError"
@@ -80,9 +86,29 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
         return result;
       });
 
+      const transcribeClips = Effect.fn("transcribeClips")(function* (
+        clips: {
+          id: string;
+          inputVideo: string;
+          startTime: number;
+          duration: number;
+        }[]
+      ) {
+        const command = Command.make(
+          "tt",
+          "transcribe-clips",
+          JSON.stringify(clips)
+        );
+        const result = yield* Command.string(command);
+        return yield* Schema.decodeUnknown(transcribeClipsSchema)(
+          JSON.parse(result.trim())
+        );
+      });
+
       return {
         getLatestOBSVideoClips,
         exportVideoClips,
+        transcribeClips,
       };
     }),
     dependencies: [NodeContext.layer],

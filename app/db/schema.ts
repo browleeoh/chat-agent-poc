@@ -103,6 +103,10 @@ export const clips = createTable("clip", {
   order: varchar("order", { length: 255 }).notNull(),
   archived: boolean("archived").notNull().default(false),
   text: text("text").notNull(),
+  transcribedAt: timestamp("transcribed_at", {
+    mode: "date",
+    withTimezone: true,
+  }),
 });
 
 export const clipsRelations = relations(clips, ({ one }) => ({

@@ -4,6 +4,7 @@ export interface Clip {
   sourceStartTime: number; // Start time in source video (seconds)
   sourceEndTime: number; // End time in source video (seconds)
   text: string;
+  transcribedAt: Date | null;
 }
 
 export type ClipState = "playing" | "paused";
@@ -19,10 +20,15 @@ export interface State {
   forceViewTimeline: boolean;
 }
 
-export type Effect = {
-  type: "archive-clips";
-  clipIds: string[];
-};
+export type Effect =
+  | {
+      type: "archive-clips";
+      clipIds: string[];
+    }
+  | {
+      type: "transcribe-clips";
+      clipIds: string[];
+    };
 
 export type Action =
   | {
@@ -111,13 +117,6 @@ const preloadSelectedClips = (state: State) => {
     .add(state.currentClipId)
     .union(state.selectedClipsSet);
 
-  console.log(
-    "preloadSelectedClips",
-    newClipIdsPreloaded,
-    nextClip,
-    nextNextClip
-  );
-
   return {
     ...state,
     clipIdsPreloaded: newClipIdsPreloaded,
@@ -132,11 +131,26 @@ export const makeVideoEditorReducer =
         return { ...state, forceViewTimeline: true };
       case "keyup-v":
         return { ...state, forceViewTimeline: false };
-      case "clips-updated-from-props":
+      case "clips-updated-from-props": {
+        const existingClipIds = new Set(state.clips.map((clip) => clip.id));
+        const newClips = action.clips.filter(
+          (clip) => !existingClipIds.has(clip.id)
+        );
+
+        const newClipsRequiringTranscription = newClips.filter(
+          (clip) => clip.transcribedAt === null && clip.text === ""
+        );
+        if (newClipsRequiringTranscription.length > 0) {
+          reportEffect({
+            type: "transcribe-clips",
+            clipIds: newClipsRequiringTranscription.map((clip) => clip.id),
+          });
+        }
         return {
           ...state,
           clips: action.clips,
         };
+      }
       case "press-space-bar":
         return {
           ...state,

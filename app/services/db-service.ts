@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
 import { generateNKeysBetween } from "fractional-indexing";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
@@ -22,6 +22,53 @@ const makeDbCall = <T>(fn: () => Promise<T>) => {
 
 export class DBService extends Effect.Service<DBService>()("DBService", {
   effect: Effect.gen(function* () {
+    const getClipById = Effect.fn("getClipById")(function* (clipId: string) {
+      const clip = yield* makeDbCall(() =>
+        db.query.clips.findFirst({
+          where: eq(clips.id, clipId),
+        })
+      );
+
+      if (!clip) {
+        return yield* new NotFoundError({
+          type: "getClipById",
+          params: { clipId },
+        });
+      }
+
+      return clip;
+    });
+
+    const getClipsByIds = Effect.fn("getClipsByIds")(function* (
+      clipIds: readonly string[]
+    ) {
+      const foundClips = yield* makeDbCall(() =>
+        db.query.clips.findMany({
+          where: inArray(clips.id, clipIds),
+        })
+      );
+
+      return foundClips;
+    });
+
+    const updateClip = Effect.fn("updateClip")(function* (
+      clipId: string,
+      updatedClip: {
+        text?: string;
+        transcribedAt?: Date;
+      }
+    ) {
+      const [clip] = yield* makeDbCall(() =>
+        db
+          .update(clips)
+          .set(updatedClip)
+          .where(eq(clips.id, clipId))
+          .returning()
+      );
+
+      return clip!;
+    });
+
     const archiveClip = Effect.fn("archiveClip")(function* (clipId: string) {
       const clipExists = yield* makeDbCall(() =>
         db.query.clips.findFirst({
@@ -209,6 +256,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
     );
 
     return {
+      getClipById,
+      getClipsByIds,
+      updateClip,
       getLessonById,
       appendClips: Effect.fn("addClips")(function* (
         videoId: string,
@@ -216,16 +266,6 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           inputVideo: string;
           startTime: number;
           endTime: number;
-          segments: readonly {
-            start: number;
-            end: number;
-            text: string;
-          }[];
-          words: readonly {
-            start: number;
-            end: number;
-            text: string;
-          }[];
         }[]
       ) {
         const lastClip = yield* makeDbCall(() =>
@@ -254,7 +294,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
                 sourceEndTime: clip.endTime,
                 order: order[index]!,
                 archived: false,
-                text: clip.segments.map((segment) => segment.text).join(" "),
+                text: "",
               }))
             )
             .returning()

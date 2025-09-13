@@ -16,32 +16,66 @@ import { makeVideoEditorReducer, type Clip } from "./reducer";
 import { TitleSection } from "./title-section";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 
+const useDebounceIdStore = (
+  fn: (ids: string[]) => Promise<void>,
+  delay: number
+) => {
+  const [ids, setIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (ids.length === 0) return;
+    const timeout = setTimeout(async () => {
+      await fn(ids);
+
+      setIds([]);
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [ids]);
+
+  return (ids: string[]) => {
+    setIds((prev) => [...prev, ...ids]);
+  };
+};
+
 const useDebounceArchiveClips = () => {
   const archiveClipFetcher = useFetcher();
 
-  const [clipsToArchive, setClipsToArchive] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (clipsToArchive.length === 0) return;
-
-    const timeout = setTimeout(() => {
+  const setClipsToArchive = useDebounceIdStore(
+    (ids) =>
       archiveClipFetcher.submit(
-        { clipIds: clipsToArchive },
+        { clipIds: ids },
         {
           method: "POST",
           action: "/clips/archive",
           encType: "application/json",
         }
-      );
-      setClipsToArchive([]);
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [clipsToArchive]);
+      ),
+    500
+  );
 
   return {
-    setClipsToArchive: (clipIds: string[]) => {
-      setClipsToArchive([...clipsToArchive, ...clipIds]);
-    },
+    setClipsToArchive,
+  };
+};
+
+const useDebounceTranscribeClips = () => {
+  const transcribeClipsFetcher = useFetcher();
+
+  const setClipsToTranscribe = useDebounceIdStore(
+    (ids) =>
+      transcribeClipsFetcher.submit(
+        { clipIds: ids },
+        {
+          method: "POST",
+          action: "/clips/transcribe",
+          encType: "application/json",
+        }
+      ),
+    500
+  );
+
+  return {
+    setClipsToTranscribe,
   };
 };
 
@@ -59,11 +93,15 @@ export const VideoEditor = (props: {
   speechDetectorState: FrontendSpeechDetectorState;
 }) => {
   const { setClipsToArchive } = useDebounceArchiveClips();
+  const { setClipsToTranscribe } = useDebounceTranscribeClips();
 
   const [state, dispatch] = useReducer(
     makeVideoEditorReducer((effect) => {
       if (effect.type === "archive-clips") {
         setClipsToArchive(effect.clipIds);
+      }
+      if (effect.type === "transcribe-clips") {
+        setClipsToTranscribe(effect.clipIds);
       }
     }),
     {
@@ -253,7 +291,7 @@ export const VideoEditor = (props: {
 
       {/* Clips Section - Shows second on mobile, first on desktop */}
       <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1">
-        <div className="flex gap-3 h-full flex-col">
+        <div className="flex gap-3 h-full flex-col w-full">
           {state.clips.map((clip) => {
             const duration = clip.sourceEndTime - clip.sourceStartTime;
 
@@ -265,7 +303,7 @@ export const VideoEditor = (props: {
               <button
                 key={clip.id}
                 className={cn(
-                  "bg-gray-800 px-4 py-2 rounded-md text-left block relative overflow-hidden",
+                  "bg-gray-800 px-4 py-2 rounded-md text-left block relative overflow-hidden w-full",
                   state.selectedClipsSet.has(clip.id) &&
                     "outline-2 outline-blue-200 bg-gray-600",
                   clip.id === currentClipId && "bg-blue-900"
@@ -307,6 +345,12 @@ export const VideoEditor = (props: {
                   </div>
                 )} */}
                 <span className="z-10 block relative text-white text-sm mr-6 leading-6">
+                  {!clip.transcribedAt && !clip.text && (
+                    <div className="flex items-center">
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
+                      <span className="text-gray-400">Transcribing...</span>
+                    </div>
+                  )}
                   {clip.text}
                 </span>
                 {/* <Button
@@ -328,7 +372,8 @@ export const VideoEditor = (props: {
                 <div
                   className={cn(
                     "absolute top-0 right-0 text-xs mt-1 mr-2 text-gray-500",
-                    clip.id === currentClipId && "text-blue-200"
+                    clip.id === currentClipId && "text-blue-200",
+                    state.selectedClipsSet.has(clip.id) && "text-gray-300"
                   )}
                 >
                   {formatSecondsToTime(
