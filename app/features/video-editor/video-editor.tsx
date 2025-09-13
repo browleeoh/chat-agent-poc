@@ -117,6 +117,7 @@ export const VideoEditor = (props: {
         )
       ),
       playbackRate: 1,
+      clipIdsBeingTranscribed: new Set<string>(),
     }
   );
 
@@ -345,12 +346,14 @@ export const VideoEditor = (props: {
                   </div>
                 )} */}
                 <span className="z-10 block relative text-white text-sm mr-6 leading-6">
-                  {!clip.transcribedAt && !clip.text && (
-                    <div className="flex items-center">
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
-                      <span className="text-gray-400">Transcribing...</span>
-                    </div>
-                  )}
+                  {state.clipIdsBeingTranscribed.has(clip.id) &&
+                    !clip.transcribedAt &&
+                    !clip.text && (
+                      <div className="flex items-center">
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-300" />
+                        <span className="text-gray-400">Transcribing...</span>
+                      </div>
+                    )}
                   {clip.text}
                 </span>
                 {/* <Button

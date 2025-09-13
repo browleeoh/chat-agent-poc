@@ -24,6 +24,7 @@ export type OBSConnectionState =
       type: "obs-recording";
       profile: string;
       latestOutputPath: string;
+      hasSpeechBeenDetected: boolean;
     };
 
 const createNotRunningListener = (
@@ -226,6 +227,7 @@ export const useOBSConnector = (props: {
             type: "obs-recording",
             profile: state.profile,
             latestOutputPath: e.outputPath,
+            hasSpeechBeenDetected: false,
           });
         } else if (e.outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") {
           setState({
@@ -244,6 +246,10 @@ export const useOBSConnector = (props: {
           type: state.type,
           profile: e.profileName,
           latestOutputPath: state.latestOutputPath!,
+          hasSpeechBeenDetected:
+            state.type === "obs-recording"
+              ? state.hasSpeechBeenDetected
+              : false,
         });
       };
 
@@ -270,10 +276,29 @@ export const useOBSConnector = (props: {
   });
 
   useWatchForSpeechDetected(speechDetectorState, () => {
-    if (state.type === "obs-recording") {
-      addToImportQueue(state.latestOutputPath!);
+    if (state.type === "obs-recording" && !state.hasSpeechBeenDetected) {
+      setState({
+        ...state,
+        hasSpeechBeenDetected: true,
+      });
     }
   });
+
+  // If speech has been detected, run an import every second
+  useEffect(() => {
+    if (state.type !== "obs-recording") return;
+    if (!state.hasSpeechBeenDetected) return;
+
+    const interval = setInterval(() => {
+      if (state.type === "obs-recording" && state.latestOutputPath) {
+        addToImportQueue(state.latestOutputPath);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [state]);
 
   return {
     state,

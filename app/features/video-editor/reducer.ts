@@ -18,6 +18,7 @@ export interface State {
   selectedClipsSet: Set<string>;
   playbackRate: number;
   forceViewTimeline: boolean;
+  clipIdsBeingTranscribed: Set<string>;
 }
 
 export type Effect =
@@ -132,23 +133,28 @@ export const makeVideoEditorReducer =
       case "keyup-v":
         return { ...state, forceViewTimeline: false };
       case "clips-updated-from-props": {
-        const existingClipIds = new Set(state.clips.map((clip) => clip.id));
-        const newClips = action.clips.filter(
-          (clip) => !existingClipIds.has(clip.id)
-        );
+        const newClipIdsRequiringTranscription = action.clips
+          .filter(
+            (clip) =>
+              clip.transcribedAt === null &&
+              clip.text === "" &&
+              !state.clipIdsBeingTranscribed.has(clip.id)
+          )
+          .map((clip) => clip.id);
 
-        const newClipsRequiringTranscription = newClips.filter(
-          (clip) => clip.transcribedAt === null && clip.text === ""
-        );
-        if (newClipsRequiringTranscription.length > 0) {
+        if (newClipIdsRequiringTranscription.length > 0) {
           reportEffect({
             type: "transcribe-clips",
-            clipIds: newClipsRequiringTranscription.map((clip) => clip.id),
+            clipIds: newClipIdsRequiringTranscription,
           });
         }
         return {
           ...state,
           clips: action.clips,
+          clipIdsBeingTranscribed: new Set([
+            ...state.clipIdsBeingTranscribed,
+            ...newClipIdsRequiringTranscription,
+          ]),
         };
       }
       case "press-space-bar":
