@@ -50,6 +50,7 @@ export const VideoEditor = (props: {
   liveMediaStream: MediaStream | null;
   speechDetectorState: FrontendSpeechDetectorState;
   clipIdsBeingTranscribed: Set<string>;
+  onClipsRemoved: (clipIds: string[]) => void;
 }) => {
   const { setClipsToArchive } = useDebounceArchiveClips();
 
@@ -58,6 +59,7 @@ export const VideoEditor = (props: {
       (effect) => {
         if (effect.type === "archive-clips") {
           setClipsToArchive(effect.clipIds);
+          props.onClipsRemoved(effect.clipIds);
         }
       },
       props.clips.map((clip) => clip.id)

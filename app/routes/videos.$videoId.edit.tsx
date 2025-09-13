@@ -169,6 +169,9 @@ export default function Component(props: Route.ComponentProps) {
 
   return (
     <VideoEditor
+      onClipsRemoved={(clipIds) => {
+        setClips((prev) => prev.filter((clip) => !clipIds.includes(clip.id)));
+      }}
       obsConnectorState={obsConnector.state}
       clips={clips}
       // waveformDataForClip={props.loaderData.waveformData ?? {}}
