@@ -5,10 +5,9 @@ import {
   useOBSConnector,
 } from "@/features/video-editor/obs-connector";
 import type {
-  Clip,
   ClipOnDatabase,
   ClipOptimisticallyAdded,
-} from "@/features/video-editor/reducer";
+} from "@/features/video-editor/clip-state-reducer";
 import { TitleSection } from "@/features/video-editor/title-section";
 import { useDebounceIdStore } from "@/features/video-editor/utils";
 import {
@@ -20,9 +19,10 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { Effect } from "effect";
 import { ChevronLeftIcon } from "lucide-react";
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useReducer, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos.$videoId.edit";
+import { clipStateReducer } from "@/features/video-editor/clip-state-reducer";
 
 // Core data model - flat array of clips
 
@@ -60,136 +60,51 @@ export const loader = async (args: Route.LoaderArgs) => {
 //   return { clips: video.clips, waveformData, video };
 // };
 
-const useDebounceTranscribeClips = (
-  onClipsUpdated: (clips: ClipOnDatabase[]) => void
-) => {
-  const transcribe = useDebounceIdStore(
-    (ids) =>
-      fetch("/clips/transcribe", {
-        method: "POST",
-        body: JSON.stringify({ clipIds: ids }),
-      })
-        .then((res) => res.json())
-        .then((clips: DB.Clip[]) => {
-          onClipsUpdated(
-            clips.map((clip) => ({
-              ...clip,
-              type: "on-database",
-            }))
-          );
-        }),
-    500
-  );
-
-  return {
-    transcribe,
-  };
-};
-
 export default function Component(props: Route.ComponentProps) {
   const { setClipsToArchive } = useDebounceArchiveClips();
 
-  const [clips, setClips] = useState<Clip[]>(
-    props.loaderData.clips.map((clip) => ({
-      ...clip,
-      type: "on-database",
-    }))
+  const [clipState, dispatch] = useReducer(
+    clipStateReducer((effect) => {
+      if (effect.type === "transcribe-clips") {
+        fetch("/clips/transcribe", {
+          method: "POST",
+          body: JSON.stringify({ clipIds: effect.clipIds }),
+        })
+          .then((res) => res.json())
+          .then((clips: DB.Clip[]) => {
+            dispatch({ type: "clips-transcribed", clips: clips });
+          });
+      } else if (effect.type === "archive-clips") {
+        setClipsToArchive(effect.clipIds);
+      } else if (effect.type === "scroll-to-bottom") {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }),
+    {
+      clips: props.loaderData.clips.map(
+        (clip): ClipOnDatabase => ({
+          ...clip,
+          type: "on-database",
+        })
+      ),
+      clipIdsBeingTranscribed: new Set() satisfies Set<string>,
+    }
   );
 
   const obsConnector = useOBSConnector({
     videoId: props.loaderData.video.id,
     onNewDatabaseClips: (databaseClips) => {
-      const toArchive = new Set<string>();
-      setClips((prev) => {
-        const newClips = [...prev];
-        for (const databaseClip of databaseClips) {
-          // Find the most recently added optimistically added clip
-          const optimisticallyAddedClipIndex = newClips.findIndex(
-            (c) => c.type === "optimistically-added"
-          );
-
-          if (optimisticallyAddedClipIndex === -1) {
-            newClips.push({
-              ...databaseClip,
-              type: "on-database",
-            });
-            continue;
-          }
-
-          const optimisticallyAddedClip = newClips[
-            optimisticallyAddedClipIndex
-          ]! as ClipOptimisticallyAdded;
-
-          // If the optimistically added clip should be archived,
-          // archive it and remove it from the list
-          if (optimisticallyAddedClip.shouldArchive) {
-            toArchive.add(databaseClip.id);
-            newClips.splice(optimisticallyAddedClipIndex, 1);
-          } else {
-            newClips[optimisticallyAddedClipIndex] = {
-              ...databaseClip,
-              type: "on-database",
-            };
-          }
-        }
-
-        return newClips;
-      });
-
-      if (toArchive.size > 0) {
-        setClipsToArchive(Array.from(toArchive));
-      }
-
-      window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth",
-      });
+      dispatch({ type: "new-database-clips", clips: databaseClips });
     },
-    onNewClipOptimisticallyAdded: (clip) => {
-      setClips((prev) => [...prev, clip]);
+    onNewClipOptimisticallyAdded: () => {
+      dispatch({ type: "new-optimistic-clip-detected" });
     },
   });
 
-  const transcribeClips = useDebounceTranscribeClips((modifiedClips) => {
-    const newClips = clips.map((clip) => {
-      const modifiedClip = modifiedClips.find((c) => c.id === clip.id);
-      if (modifiedClip) {
-        return modifiedClip;
-      }
-      return clip;
-    });
-    setClips(newClips);
-  });
-
-  const [clipIdsBeingTranscribed, setClipIdsBeingTranscribed] = useState<
-    Set<string>
-  >(new Set());
-
-  useEffect(() => {
-    if (clips.length === 0) {
-      return;
-    }
-
-    const clipIdsToTranscribe = clips
-      .filter((clip) => clip.type === "on-database")
-      .filter(
-        (clip) =>
-          !clip.transcribedAt &&
-          !clipIdsBeingTranscribed.has(clip.id) &&
-          !clip.text
-      )
-      .map((clip) => clip.id);
-
-    setClipIdsBeingTranscribed(
-      (prev) => new Set([...prev, ...clipIdsToTranscribe])
-    );
-
-    if (clipIdsToTranscribe.length > 0) {
-      transcribeClips.transcribe(clipIdsToTranscribe);
-    }
-  }, [clips]);
-
-  if (clips.length === 0) {
+  if (clipState.clips.length === 0) {
     return (
       <div className="flex p-6 w-full">
         <div className="flex-1">
@@ -230,47 +145,10 @@ export default function Component(props: Route.ComponentProps) {
   return (
     <VideoEditor
       onClipsRemoved={(clipIds) => {
-        const clipsToRemove = clips.filter((clip) => clipIds.includes(clip.id));
-
-        console.log("clipsToRemove", clipsToRemove);
-
-        const optimisticClipsToMarkForArchive = clipsToRemove.filter(
-          (clip) => clip.type === "optimistically-added"
-        );
-
-        const databaseClipsToRemoveDirectly = clipsToRemove.filter(
-          (clip) => clip.type === "on-database"
-        );
-
-        startTransition(() => {
-          setClips((prev) =>
-            prev
-              // Remove the database clips directly
-              .filter((clip) =>
-                databaseClipsToRemoveDirectly.every((c) => c.id !== clip.id)
-              )
-              // Mark the optimistic clips for archive
-              .map((clip) => {
-                if (
-                  clip.type === "optimistically-added" &&
-                  optimisticClipsToMarkForArchive.some((c) => c.id === clip.id)
-                ) {
-                  return {
-                    ...clip,
-                    shouldArchive: true,
-                  };
-                }
-                return clip;
-              })
-          );
-
-          setClipsToArchive(
-            databaseClipsToRemoveDirectly.map((clip) => clip.id)
-          );
-        });
+        dispatch({ type: "clips-deleted", clipIds: clipIds });
       }}
       obsConnectorState={obsConnector.state}
-      clips={clips.filter((clip) => {
+      clips={clipState.clips.filter((clip) => {
         if (clip.type === "optimistically-added" && clip.shouldArchive) {
           return false;
         }
@@ -285,7 +163,7 @@ export default function Component(props: Route.ComponentProps) {
       videoId={props.loaderData.video.id}
       liveMediaStream={obsConnector.mediaStream}
       speechDetectorState={obsConnector.speechDetectorState}
-      clipIdsBeingTranscribed={clipIdsBeingTranscribed}
+      clipIdsBeingTranscribed={clipState.clipIdsBeingTranscribed}
     />
   );
 }

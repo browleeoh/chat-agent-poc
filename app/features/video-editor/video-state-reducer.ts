@@ -1,30 +1,8 @@
-export type ClipOnDatabase = {
-  type: "on-database";
-  id: string;
-  videoFilename: string;
-  sourceStartTime: number; // Start time in source video (seconds)
-  sourceEndTime: number; // End time in source video (seconds)
-  text: string;
-  transcribedAt: Date | null;
-};
-
-export type ClipOptimisticallyAdded = {
-  type: "optimistically-added";
-  id: string;
-  /**
-   * If true, when the optimistically added clip is replaced with the database clip,
-   * the clip will be archived. Allows the user to delete the clip before it's transcribed.
-   */
-  shouldArchive?: boolean;
-};
-
-export type Clip = ClipOnDatabase | ClipOptimisticallyAdded;
-
-export type ClipState = "playing" | "paused";
+export type RunningState = "playing" | "paused";
 
 export interface State {
   clipIdsPreloaded: Set<string>;
-  runningState: ClipState;
+  runningState: RunningState;
   currentClipId: string;
   currentTimeInClip: number;
   selectedClipsSet: Set<string>;

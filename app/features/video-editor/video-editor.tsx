@@ -12,10 +12,11 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { OBSConnectionButton, type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
-import { makeVideoEditorReducer, type Clip } from "./reducer";
+import { makeVideoEditorReducer } from "./video-state-reducer";
 import { TitleSection } from "./title-section";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 import { useDebounceIdStore } from "./utils";
+import type { Clip } from "./clip-state-reducer";
 
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;

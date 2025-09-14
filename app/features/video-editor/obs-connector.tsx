@@ -3,7 +3,7 @@ import type { DB } from "@/db/schema";
 import { CheckIcon, Loader2, MicIcon, PauseIcon } from "lucide-react";
 import { OBSWebSocket } from "obs-websocket-js";
 import { useCallback, useEffect, useState } from "react";
-import type { ClipOptimisticallyAdded } from "./reducer";
+import type { ClipOptimisticallyAdded } from "./clip-state-reducer";
 import {
   useSpeechDetector,
   useWatchForSpeechDetected,
@@ -163,12 +163,10 @@ export const useRunOBSImportRepeatedly = (props: {
   }, [JSON.stringify(props.state)]);
 };
 
-const CLIP_DURATION_MODIFIER = 200;
-
 export const useOBSConnector = (props: {
   videoId: string;
   onNewDatabaseClips: (clips: DB.Clip[]) => void;
-  onNewClipOptimisticallyAdded: (clip: ClipOptimisticallyAdded) => void;
+  onNewClipOptimisticallyAdded: () => void;
 }) => {
   const [websocket] = useState(() => new OBSWebSocket());
 
@@ -309,10 +307,7 @@ export const useOBSConnector = (props: {
     },
     onSpeechPartStarted: () => {
       if (state.type === "obs-recording") {
-        props.onNewClipOptimisticallyAdded({
-          type: "optimistically-added",
-          id: crypto.randomUUID(),
-        });
+        props.onNewClipOptimisticallyAdded();
       }
     },
   });
