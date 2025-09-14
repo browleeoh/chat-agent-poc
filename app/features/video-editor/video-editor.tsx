@@ -157,7 +157,8 @@ export const VideoEditor = (props: {
                 className={cn(
                   "w-full h-full relative aspect-[16/9]",
                   (props.obsConnectorState.type === "obs-connected" ||
-                    props.obsConnectorState.type === "obs-recording") &&
+                    props.obsConnectorState.type === "obs-recording" ||
+                    props.obsConnectorState.type === "obs-paused") &&
                     props.obsConnectorState.profile === "TikTok" &&
                     "w-92 aspect-[9/16]",
                   shouldShowVideoPlayer && "hidden"

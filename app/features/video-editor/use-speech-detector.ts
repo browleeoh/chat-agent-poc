@@ -13,15 +13,14 @@ export type SpeechDetectorState =
     }
   | {
       type: "no-silence-detected";
-      speechStartTime: number;
       lastLongEnoughSilenceEndTime: number | null;
       isLongEnoughSpeech: boolean;
     };
 
 export type FrontendSpeechDetectorState =
   | { type: "warming-up" }
-  | { type: "speaking-detected"; speechStartTime: number }
-  | { type: "long-enough-speaking-for-clip-detected"; speechStartTime: number }
+  | { type: "speaking-detected" }
+  | { type: "long-enough-speaking-for-clip-detected" }
   | { type: "silence" };
 
 const SPEAKING_THRESHOLD = -33;
@@ -41,12 +40,10 @@ const resolveFrontendSpeechDetectorState = (
     if (state.isLongEnoughSpeech) {
       return {
         type: "long-enough-speaking-for-clip-detected",
-        speechStartTime: state.lastLongEnoughSilenceEndTime,
       };
     }
     return {
       type: "speaking-detected",
-      speechStartTime: state.lastLongEnoughSilenceEndTime,
     };
   }
 
@@ -65,7 +62,6 @@ export const useSpeechDetector = (opts: {
 }) => {
   const [state, setState] = useState<SpeechDetectorState>({
     type: "no-silence-detected",
-    speechStartTime: Date.now(),
     lastLongEnoughSilenceEndTime: null,
     isLongEnoughSpeech: false,
   });
@@ -77,7 +73,6 @@ export const useSpeechDetector = (opts: {
       recordingStartTime.current = Date.now();
       setState({
         type: "no-silence-detected",
-        speechStartTime: Date.now(),
         lastLongEnoughSilenceEndTime: null,
         isLongEnoughSpeech: false,
       });
@@ -137,7 +132,6 @@ export const useSpeechDetector = (opts: {
           if (volumeDb > SPEAKING_THRESHOLD) {
             setState({
               type: "no-silence-detected",
-              speechStartTime: e.timeStamp,
               lastLongEnoughSilenceEndTime: state.lastLongEnoughSilenceEndTime,
               isLongEnoughSpeech: state.isLongEnoughSpeech,
             });
@@ -169,7 +163,6 @@ export const useSpeechDetector = (opts: {
           if (volumeDb > SPEAKING_THRESHOLD) {
             setState({
               type: "no-silence-detected",
-              speechStartTime: e.timeStamp,
               lastLongEnoughSilenceEndTime: e.timeStamp,
               isLongEnoughSpeech: false,
             });
