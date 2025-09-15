@@ -158,7 +158,11 @@ export const makeVideoEditorReducer =
         return { ...state, runningState: "playing" };
       case "press-return":
         if (state.selectedClipsSet.size === 0) {
-          return state;
+          return {
+            ...state,
+            runningState:
+              state.runningState === "playing" ? "paused" : "playing",
+          };
         }
         const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
 
