@@ -17,6 +17,7 @@ import { PreloadableClipManager } from "./preloadable-clip";
 import { TitleSection } from "./title-section";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 import { makeVideoEditorReducer } from "./video-state-reducer";
+import { streamDeckForwarderMessageSchema } from "stream-deck-forwarder/stream-deck-forwarder-types";
 
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
@@ -117,6 +118,21 @@ export const VideoEditor = (props: {
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:5172");
+    socket.addEventListener("message", (event) => {
+      const data = streamDeckForwarderMessageSchema.parse(
+        JSON.parse(event.data)
+      );
+      if (data.type === "delete-last-clip") {
+        dispatch({ type: "delete-last-clip" });
+      }
+    });
+    return () => {
+      socket.close();
     };
   }, []);
 

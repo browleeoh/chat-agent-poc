@@ -33,6 +33,9 @@ export type Action =
       time: number;
     }
   | {
+      type: "delete-last-clip";
+    }
+  | {
       type: "clip-finished";
     }
   | {
@@ -292,6 +295,20 @@ export const makeVideoEditorReducer =
             ? newSelectedClipId!
             : state.currentClipId,
         });
+
+      case "delete-last-clip": {
+        const lastClipId = clipIds[clipIds.length - 1];
+        if (!lastClipId) {
+          return state;
+        }
+
+        reportEffect({
+          type: "archive-clips",
+          clipIds: [lastClipId],
+        });
+
+        return state;
+      }
       case "update-clip-current-time":
         return { ...state, currentTimeInClip: action.time };
       case "clip-finished": {
