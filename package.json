@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
-    "dev": "react-router dev",
+    "dev": "pnpm run \"/dev:/\"",
+    "dev:stream-deck-forwarder": "tsx watch stream-deck-forwarder/run-stream-deck-forwarder.ts",
+    "dev:react-router": "react-router dev",
     "test": "vitest",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
