@@ -15,10 +15,9 @@ describe("clipStateReducer", () => {
           clips: [],
           clipIdsBeingTranscribed: new Set(),
         },
-        {
+        fromPartial({
           type: "new-optimistic-clip-detected",
-          scene: "Unknown",
-        }
+        })
       );
 
       const clipIds = newState.clips.map((clip) => clip.frontendId);
@@ -76,10 +75,9 @@ describe("clipStateReducer", () => {
           clips: [],
           clipIdsBeingTranscribed: new Set(),
         },
-        {
+        fromPartial({
           type: "new-optimistic-clip-detected",
-          scene: "Unknown",
-        }
+        })
       );
 
       expect(stateWithOneOptimisticClip.clips[0]).toMatchObject({
@@ -120,32 +118,34 @@ describe("clipStateReducer", () => {
           clips: [],
           clipIdsBeingTranscribed: new Set(),
         },
-        {
+        fromPartial({
           type: "new-optimistic-clip-detected",
           scene: "Camera",
-        }
+          profile: "Landscape",
+        })
       );
 
       const stateWithTwoOptimisticClips = clipStateReducer(reportEffect1)(
         stateWithOneOptimisticClip,
-        {
+        fromPartial({
           type: "new-optimistic-clip-detected",
           scene: "No Face",
-        }
+          profile: "Portrait",
+        })
       );
 
       const reportEffect2 = vi.fn();
       const stateWithOneDatabaseClip = clipStateReducer(reportEffect2)(
         stateWithTwoOptimisticClips,
-        {
+        fromPartial({
           type: "new-database-clips",
           clips: [fromPartial({ id: "1" })],
-        }
+        })
       );
 
       expect(reportEffect2).toHaveBeenCalledWith({
-        type: "update-clips-scene",
-        clips: [["1", "Camera"]],
+        type: "update-clips",
+        clips: [["1", { scene: "Camera", profile: "Landscape" }]],
       });
 
       expect(stateWithOneDatabaseClip.clips.length).toBe(2);
@@ -157,15 +157,15 @@ describe("clipStateReducer", () => {
       const reportEffect3 = vi.fn();
       const stateWithTwoDatabaseClips = clipStateReducer(reportEffect3)(
         stateWithOneDatabaseClip,
-        {
+        fromPartial({
           type: "new-database-clips",
           clips: [fromPartial({ id: "2" })],
-        }
+        })
       );
 
       expect(reportEffect3).toHaveBeenCalledWith({
-        type: "update-clips-scene",
-        clips: [["2", "No Face"]],
+        type: "update-clips",
+        clips: [["2", { scene: "No Face", profile: "Portrait" }]],
       });
 
       expect(stateWithTwoDatabaseClips.clips.length).toBe(2);
@@ -186,10 +186,10 @@ describe("clipStateReducer", () => {
           clips: [],
           clipIdsBeingTranscribed: new Set(),
         },
-        {
+        fromPartial({
           type: "new-database-clips",
           clips: [fromPartial({ id: "123" })],
-        }
+        })
       );
 
       expect(stateWithASingleDatabaseClip.clips.length).toBe(1);
@@ -207,20 +207,19 @@ describe("clipStateReducer", () => {
           clips: [],
           clipIdsBeingTranscribed: new Set(),
         },
-        {
+        fromPartial({
           type: "new-optimistic-clip-detected",
-          scene: "Unknown",
-        }
+        })
       );
 
       const optimisticClipId = stateWithOneOptimisticClip.clips[0]!.frontendId;
 
       const stateWithOneOptimisticClipDeleted = clipStateReducer(reportEffect)(
         stateWithOneOptimisticClip,
-        {
+        fromPartial({
           type: "clips-deleted",
           clipIds: [optimisticClipId],
-        }
+        })
       );
 
       expect(stateWithOneOptimisticClipDeleted.clips[0]).toMatchObject({
@@ -235,10 +234,9 @@ describe("clipStateReducer", () => {
           clips: [],
           clipIdsBeingTranscribed: new Set(),
         },
-        {
+        fromPartial({
           type: "new-optimistic-clip-detected",
-          scene: "Unknown",
-        }
+        })
       );
 
       const optimisticClipId = stateWithOneOptimisticClip.clips[0]!.frontendId;

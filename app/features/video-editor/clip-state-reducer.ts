@@ -133,6 +133,7 @@ export const clipStateReducer =
                 frontendId: frontendClip.frontendId,
                 databaseId: databaseClip.id,
                 scene: frontendClip.scene,
+                profile: frontendClip.profile,
               };
               clipsToUpdateScene.set(databaseClip.id, {
                 scene: frontendClip.scene,

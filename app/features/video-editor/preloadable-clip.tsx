@@ -115,6 +115,8 @@ export const PreloadableClip = (props: {
     props.onUpdateCurrentTime,
   ]);
 
+  console.log(props.profile);
+
   return (
     <video
       key={props.clip.frontendId}

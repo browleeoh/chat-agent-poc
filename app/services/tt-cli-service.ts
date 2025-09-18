@@ -116,9 +116,15 @@ export class TotalTypeScriptCLIService extends Effect.Service<TotalTypeScriptCLI
           JSON.stringify(clips)
         );
         const result = yield* Command.string(command);
-        return yield* Schema.decodeUnknown(transcribeClipsSchema)(
-          JSON.parse(result.trim())
-        );
+        const parsed = yield* Effect.try({
+          try: () => JSON.parse(result.trim()),
+          catch: (e) =>
+            new CouldNotParseJsonError({
+              cause: e,
+              message: `Could not parse JSON from transcribe-clips: ${result}`,
+            }),
+        });
+        return yield* Schema.decodeUnknown(transcribeClipsSchema)(parsed);
       });
 
       const getLastFrame = Effect.fn("getLastFrame")(function* (

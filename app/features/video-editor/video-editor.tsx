@@ -98,7 +98,8 @@ export const VideoEditor = (props: {
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
-        e.target instanceof HTMLButtonElement
+        (e.target instanceof HTMLButtonElement &&
+          !e.target.classList.contains("allow-keydown"))
       ) {
         return;
       }
@@ -361,7 +362,7 @@ export const VideoEditor = (props: {
               <button
                 key={clip.frontendId}
                 className={cn(
-                  "bg-gray-800 px-4 py-2 rounded-md text-left block relative overflow-hidden w-full",
+                  "bg-gray-800 px-4 py-2 rounded-md text-left block relative overflow-hidden w-full allow-keydown",
                   state.selectedClipsSet.has(clip.frontendId) &&
                     "outline-2 outline-gray-200 bg-gray-700",
                   clip.frontendId === currentClipId && "bg-blue-900"
