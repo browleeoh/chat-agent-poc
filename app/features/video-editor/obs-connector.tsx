@@ -251,7 +251,7 @@ const obsConnectorReducer: EffectReducer<
       };
     case "trigger-reconnect":
       exec({
-        type: "wait-before-reconnecting",
+        type: "attempt-to-connect",
       });
       return {
         type: "checking-obs-connection-status",
