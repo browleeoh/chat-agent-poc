@@ -31,7 +31,6 @@ import { useEffectReducer } from "use-effect-reducer";
 import type { Clip, FrontendId } from "./clip-state-reducer";
 import { OBSConnectionButton, type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
-import { TitleSection } from "./title-section";
 import { type FrontendSpeechDetectorState } from "./use-speech-detector";
 import {
   makeVideoEditorReducer,
@@ -224,6 +223,13 @@ export const VideoEditor = (props: {
     [props.clips]
   );
 
+  const areAnyClipsDangerous = clipsWithTimecodeAndLevenshtein.some((clip) => {
+    return (
+      clip.type === "on-database" &&
+      clip.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD
+    );
+  });
+
   return (
     <div className="flex flex-col lg:flex-row p-6 gap-6 gap-y-10">
       {/* Video Player Section - Shows first on mobile, second on desktop */}
@@ -231,16 +237,21 @@ export const VideoEditor = (props: {
         <div className="sticky top-6">
           <div className="">
             <div className="mb-4">
-              <TitleSection
-                videoPath={
-                  props.videoPath +
-                  " (" +
-                  formatSecondsToTimeCode(totalDuration) +
-                  ")"
-                }
-                lessonPath={props.lessonPath}
-                repoName={props.repoName}
-              />
+              <h1 className="text-2xl font-bold mb-1 flex items-center">
+                {props.videoPath}
+                {" (" + formatSecondsToTimeCode(totalDuration) + ")"}
+                {areAnyClipsDangerous && (
+                  <span className="text-orange-500 ml-4 text-base font-medium inline-flex items-center">
+                    <AlertTriangleIcon className="size-6 mr-2" />
+                    Possible duplicate clips
+                  </span>
+                )}
+              </h1>
+              <h2 className="text-sm font-medium mb-1">
+                {props.repoName}
+                {" - "}
+                {props.lessonPath}
+              </h2>
             </div>
 
             {props.liveMediaStream && (
