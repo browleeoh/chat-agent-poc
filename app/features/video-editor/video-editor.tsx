@@ -18,10 +18,12 @@ import {
   CircleQuestionMarkIcon,
   Columns2,
   DownloadIcon,
+  EditIcon,
   Loader2,
   MicIcon,
   MicOffIcon,
   MonitorIcon,
+  PencilIcon,
   UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -313,10 +315,14 @@ export const VideoEditor = (props: {
             </div>
 
             <div className="flex gap-2 mt-4">
-              <Button asChild variant="secondary">
+              <Button asChild variant="secondary" aria-label="Go Back">
                 <Link to={`/?repoId=${props.repoId}#${props.lessonId}`}>
                   <ChevronLeftIcon className="w-4 h-4 mr-1" />
-                  Go Back
+                </Link>
+              </Button>
+              <Button asChild variant="secondary" aria-label="Write Article">
+                <Link to={`/videos/${props.videoId}/write`}>
+                  <PencilIcon className="w-4 h-4 mr-1" />
                 </Link>
               </Button>
 
@@ -325,9 +331,8 @@ export const VideoEditor = (props: {
                 onOpenChange={setIsExportModalOpen}
               >
                 <DialogTrigger asChild>
-                  <Button variant="default">
+                  <Button variant="default" aria-label="Export">
                     <DownloadIcon className="w-4 h-4 mr-1" />
-                    Export
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
