@@ -459,9 +459,9 @@ export default function Component(props: Route.ComponentProps) {
                                 >
                                   <div className="flex items-center">
                                     {data.hasExportedVideoMap[video.id] ? (
-                                      <VideoIcon className="w-4 h-4 mr-2" />
+                                      <VideoIcon className="w-4 h-4 mr-2 flex-shrink-0" />
                                     ) : (
-                                      <VideoOffIcon className="w-4 h-4 mr-2 text-red-500" />
+                                      <VideoOffIcon className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
                                     )}
                                     <span className="tracking-wide">
                                       {video.path} (
@@ -486,7 +486,7 @@ export default function Component(props: Route.ComponentProps) {
                                       asChild
                                     >
                                       <Link to={`/videos/${video.id}/write`}>
-                                        <PencilIcon className="w-4 h-4" />
+                                        <PencilIcon className="w-4 h-4 flex-shrink-0" />
                                       </Link>
                                     </Button>
                                     <Button

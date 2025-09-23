@@ -74,7 +74,7 @@ export const useConnectToOBSVirtualCamera = (props: {
       try {
         await props.websocket.call("StartVirtualCam");
       } catch (e) {
-        console.error(e);
+        console.error("Error starting virtual cam", e);
       }
 
       if (unmounted) return;
@@ -111,8 +111,18 @@ export const useConnectToOBSVirtualCamera = (props: {
       }
     })();
 
+    const onBeforeUnload = () => {
+      props.websocket.call("StopVirtualCam").catch((e) => {
+        console.error(e);
+      });
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+
     return () => {
       unmounted = true;
+      onBeforeUnload();
+      window.removeEventListener("beforeunload", onBeforeUnload);
     };
   }, [shouldShowMediaStream, props.websocket]);
 
