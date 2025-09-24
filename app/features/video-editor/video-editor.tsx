@@ -17,6 +17,7 @@ import {
   ChevronLeftIcon,
   CircleQuestionMarkIcon,
   Columns2,
+  CopyIcon,
   DownloadIcon,
   Loader2,
   MicIcon,
@@ -171,6 +172,23 @@ export const VideoEditor = (props: {
 
   const exportVideoClipsFetcher = useFetcher();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyTranscriptToClipboard = async () => {
+    try {
+      // Get all clips with text and concatenate them
+      const transcript = props.clips
+        .filter((clip) => clip.type === "on-database")
+        .map((clip) => clip.text)
+        .join(" ");
+
+      await navigator.clipboard.writeText(transcript);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy transcript to clipboard:", error);
+    }
+  };
 
   const totalDuration = props.clips.reduce((acc, clip) => {
     if (clip.type === "on-database") {
@@ -323,6 +341,18 @@ export const VideoEditor = (props: {
                 <Link to={`/videos/${props.videoId}/write`}>
                   <PencilIcon className="w-4 h-4 mr-1" />
                 </Link>
+              </Button>
+
+              <Button
+                variant="secondary"
+                aria-label="Copy Transcript"
+                onClick={copyTranscriptToClipboard}
+              >
+                {isCopied ? (
+                  <CheckIcon className="w-4 h-4 mr-1" />
+                ) : (
+                  <CopyIcon className="w-4 h-4 mr-1" />
+                )}
               </Button>
 
               <Dialog
