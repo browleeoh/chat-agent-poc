@@ -77,10 +77,6 @@ export const loader = async (args: Route.LoaderArgs) => {
 
                 return {
                   ...repo,
-                  name: path.relative(
-                    path.join(homedir(), "repos"),
-                    repo.filePath
-                  ),
                   sections: repo.sections
                     .filter((section) => {
                       return !section.path.endsWith("ARCHIVE");
