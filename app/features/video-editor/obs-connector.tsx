@@ -378,7 +378,7 @@ export const useOBSConnector = (props: {
       "attempt-to-connect": (_state, _effect, dispatch) => {
         console.log("Attempting to reconnect");
         websocket
-          .connect("ws://192.168.1.55:4455")
+          .connect("ws://localhost:4455")
           .then(async () => {
             const profile = await websocket.call("GetProfileList");
             const scene = await websocket.call("GetSceneList");
@@ -451,6 +451,8 @@ export const useOBSConnector = (props: {
       },
     }
   );
+
+  console.log("state", state);
 
   useRunOBSImportRepeatedly({
     videoId: props.videoId,
