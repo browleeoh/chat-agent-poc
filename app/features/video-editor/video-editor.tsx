@@ -458,6 +458,10 @@ export const VideoEditor = (props: {
                   <Columns2 className="size-5 flex-shrink-0 text-gray-300" />
                   <span>Close the blinds</span>
                 </li>
+                <li className="flex items-center gap-3">
+                  <UserRound className="size-5 flex-shrink-0 text-gray-300" />
+                  <span>Check bookshelf books are standing up properly</span>
+                </li>
               </ol>
             </div>
           )}
