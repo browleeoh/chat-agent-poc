@@ -256,6 +256,11 @@ export default function Component(props: Route.ComponentProps) {
             <FolderGit2 className="w-5 h-5" />
             Repos
           </h2>
+          <Link to="/diagram-playground">
+            <Button variant="outline" className="w-full mb-4">
+              Diagram Playground
+            </Button>
+          </Link>
           <ScrollArea className="h-[calc(100vh-120px)]">
             <div className="space-y-2">
               {repos.map((repo) => (
