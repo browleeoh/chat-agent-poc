@@ -442,9 +442,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       updateLesson: Effect.fn("updateLesson")(function* (
         lessonId: string,
         lesson: {
-          path: string;
-          sectionId: string;
-          lessonNumber: number;
+          path?: string;
+          sectionId?: string;
+          lessonNumber?: number;
         }
       ) {
         const lessonResult = yield* makeDbCall(() =>

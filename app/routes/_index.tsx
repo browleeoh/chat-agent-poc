@@ -2,6 +2,7 @@
 
 import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
+import { EditLessonModal } from "@/components/edit-lesson-modal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -140,6 +141,7 @@ export default function Component(props: Route.ComponentProps) {
   const [addVideoToLessonId, setAddVideoToLessonId] = useState<string | null>(
     null
   );
+  const [editLessonId, setEditLessonId] = useState<string | null>(null);
   const [videoPlayerState, setVideoPlayerState] = useState<{
     isOpen: boolean;
     videoId: string;
@@ -410,6 +412,23 @@ export default function Component(props: Route.ComponentProps) {
                                     setAddVideoToLessonId(
                                       open ? lesson.id : null
                                     );
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-xs"
+                                  onClick={() => setEditLessonId(lesson.id)}
+                                >
+                                  <PencilIcon className="w-4 h-4" />
+                                </Button>
+                                <EditLessonModal
+                                  lessonId={lesson.id}
+                                  currentPath={lesson.path}
+                                  open={editLessonId === lesson.id}
+                                  onOpenChange={(open) => {
+                                    setEditLessonId(open ? lesson.id : null);
                                   }}
                                 />
                                 <deleteLessonFetcher.Form
