@@ -89,7 +89,7 @@ export const VideoEditor = (props: {
   >(
     makeVideoEditorReducer(props.clips.map((clip) => clip.frontendId)),
     {
-      showLastFrameOfVideo: false,
+      showLastFrameOfVideo: true,
       runningState: "paused",
       currentClipId: props.clips[0]?.frontendId,
       currentTimeInClip: 0,

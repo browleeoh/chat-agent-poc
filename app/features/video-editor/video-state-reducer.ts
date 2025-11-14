@@ -11,6 +11,9 @@ export namespace videoStateReducer {
     currentTimeInClip: number;
     selectedClipsSet: Set<FrontendId>;
     playbackRate: number;
+    /**
+     * Whether to show the last frame of the video.
+     */
     showLastFrameOfVideo: boolean;
   }
 
