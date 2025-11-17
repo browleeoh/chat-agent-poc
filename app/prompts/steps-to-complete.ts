@@ -4,9 +4,16 @@ Steps to complete should be in the format of checkboxes. Only the top level step
 
 Each top-level step should be separated by two newlines.
 
+Subheadings can group multiple steps together.
+
 <steps-output-example>
 
 ## Steps To Complete
+
+- [ ] <Some intro description if needed>
+  - <some substep>
+
+### <Some subheading>
 
 - [ ] <A description of the step to take>
   - <some substep>

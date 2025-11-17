@@ -188,18 +188,6 @@ export const AIResponse = memo(
   ({ className, options, children, ...props }: AIResponseProps) => {
     const [isCopied, setIsCopied] = useState(false);
 
-    const copyToClipboard = async () => {
-      try {
-        // Convert the markdown content to plain text for copying
-        const textContent = typeof children === "string" ? children : "";
-        await navigator.clipboard.writeText(textContent);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      } catch (error) {
-        console.error("Failed to copy to clipboard:", error);
-      }
-    };
-
     const components = useMemo(
       () => getComponents(props.imageBasePath),
       [props.imageBasePath]
@@ -213,24 +201,6 @@ export const AIResponse = memo(
         )}
         {...props}
       >
-        <Button
-          variant="ghost"
-          className="w-24 absolute bottom-2 -right-24 z-10 opacity-0 group-hover:opacity-100 transition-opacity text-left"
-          onClick={copyToClipboard}
-          title="Copy to clipboard"
-        >
-          {isCopied ? (
-            <div className="flex items-center gap-2">
-              <CheckIcon className="h-4 w-4" />
-              <span>Copied</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <CopyIcon className="h-4 w-4" />
-              <span>Copy</span>
-            </div>
-          )}
-        </Button>
         <ReactMarkdown
           components={components}
           rehypePlugins={[rehypeKatex]}

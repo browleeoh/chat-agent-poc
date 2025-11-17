@@ -149,8 +149,10 @@ const Video = (props: { src: string }) => {
 };
 
 type Mode = "article" | "project" | "skill-building";
+type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
 
 const MODE_STORAGE_KEY = "article-writer-mode";
+const MODEL_STORAGE_KEY = "article-writer-model";
 
 export function InnerComponent(props: Route.ComponentProps) {
   const { videoId } = props.params;
@@ -173,6 +175,13 @@ export function InnerComponent(props: Route.ComponentProps) {
     }
     return "article";
   });
+  const [model, setModel] = useState<Model>(() => {
+    if (typeof localStorage !== "undefined") {
+      const saved = localStorage.getItem(MODEL_STORAGE_KEY);
+      return (saved as Model) || "claude-haiku-4-5";
+    }
+    return "claude-haiku-4-5";
+  });
   const [enabledFiles, setEnabledFiles] = useState<Set<string>>(() => {
     return new Set(files.filter((f) => f.defaultEnabled).map((f) => f.path));
   });
@@ -186,6 +195,13 @@ export function InnerComponent(props: Route.ComponentProps) {
     setMode(newMode);
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(MODE_STORAGE_KEY, newMode);
+    }
+  };
+
+  const handleModelChange = (newModel: Model) => {
+    setModel(newModel);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(MODEL_STORAGE_KEY, newModel);
     }
   };
 
@@ -232,7 +248,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     e.preventDefault();
     sendMessage(
       { text: text.trim() || "Go" },
-      { body: { enabledFiles: Array.from(enabledFiles), mode } }
+      { body: { enabledFiles: Array.from(enabledFiles), mode, model } }
     );
 
     setText("");
@@ -352,11 +368,37 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                <Select
+                  value={model}
+                  onValueChange={(value) => handleModelChange(value as Model)}
+                >
+                  <SelectTrigger>
+                    {model === "claude-sonnet-4-5" ? "Sonnet 4.5" : "Haiku 4.5"}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="claude-haiku-4-5">
+                      <div>
+                        <div>Haiku 4.5</div>
+                        <div className="text-xs text-muted-foreground">
+                          Fast and cost-effective
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="claude-sonnet-4-5">
+                      <div>
+                        <div>Sonnet 4.5</div>
+                        <div className="text-xs text-muted-foreground">
+                          More capable and thorough
+                        </div>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={copyToClipboard}
-                  disabled={status === "streaming"}
+                  disabled={status === "streaming" || !lastAssistantMessageText}
                 >
                   {isCopied ? (
                     <>
@@ -382,7 +424,8 @@ export function InnerComponent(props: Route.ComponentProps) {
                             !hasExplainerOrProblem ||
                             status === "streaming" ||
                             writeToReadmeFetcher.state === "submitting" ||
-                            writeToReadmeFetcher.state === "loading"
+                            writeToReadmeFetcher.state === "loading" ||
+                            !lastAssistantMessageText
                           }
                         >
                           <SaveIcon className="h-4 w-4 mr-1" />

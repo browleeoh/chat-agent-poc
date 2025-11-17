@@ -22,6 +22,7 @@ const chatSchema = Schema.Struct({
   messages: Schema.Any,
   enabledFiles: Schema.Array(Schema.String),
   mode: Schema.String,
+  model: Schema.String,
 });
 
 const NOT_A_FILE = Symbol("NOT_A_FILE");
@@ -83,6 +84,7 @@ export const action = async (args: Route.ActionArgs) => {
     const messages: UIMessage[] = parsed.messages;
     const enabledFiles: string[] = [...parsed.enabledFiles];
     const mode: string = parsed.mode;
+    const model: string = parsed.model;
 
     const video = yield* db.getVideoWithClipsById(videoId);
 
@@ -223,7 +225,7 @@ export const action = async (args: Route.ActionArgs) => {
     })();
 
     const result = streamText({
-      model: anthropic("claude-sonnet-4-5"),
+      model: anthropic(model),
       messages: modelMessages,
       system: systemPrompt,
       // experimental_transform: xmlTagTransform({

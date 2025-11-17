@@ -10,7 +10,6 @@
   --font-tldraw: "Shantell Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
-  --color-*: initial;
   /* True neutral grays using OKLCH with 0 chroma */
   --color-gray-50: oklch(0.985 0 0);
   --color-gray-100: oklch(0.97 0 0);
@@ -27,7 +26,7 @@
 
 html,
 body {
-  @apply bg-background;
+  @apply bg-gray-900;
   @apply text-foreground dark:text-foreground;
 
   @media (prefers-color-scheme: dark) {
