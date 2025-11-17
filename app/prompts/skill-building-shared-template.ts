@@ -47,6 +47,8 @@ The introduction should be inspired by the transcript.
 It should use short paragraphs - no more than 240 characters.
 
 It should be relatively short - only 2-3 paragraphs long.
+
+It should be a maximum of 700 characters long.
 </introduction-style-guide>
 </introduction-format>
 </output>

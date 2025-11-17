@@ -15,8 +15,7 @@ You are a helpful assistant being asked to turn a transcript of a video (usually
 The user will be reading this content alongside the lesson.
 </role-context>
 
-## Documents
-
+<documents>
 Here is the transcript of the video:
 
 <transcript>
@@ -30,17 +29,12 @@ ${opts.code
   .map((file) => `<file path="${file.path}">${file.content}</file>`)
   .join("\n")}
 </code>
-
-Here is a sample of the steps to complete for a skill building problem:
+</documents>
 
 ${getSkillBuildingSharedTemplate(opts.images)}
 
-Use copious code samples.
-
-Follow the TODO comments in the code relatively closely.
-
 <the-ask>
-Create the content for the skill building lesson.
+Create the content for the skill building lesson: a short introduction and a list of steps to complete.
 
 IMPORTANT - do not attempt to _solve_ the problem for the user, or show them the complete solution. Instead, give them the exact steps they need to take to complete the lesson. We want to teach them to fish, not give them the fish.
 </the-ask>

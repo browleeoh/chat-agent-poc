@@ -10,6 +10,7 @@ import { evalite } from "evalite";
 import { wrapAISDKModel } from "evalite/ai-sdk";
 
 const lessons = [
+  // 01-retrieval-day-1
   {
     videoId: "7793e2c8-7e11-45bc-88a2-de44e297535b",
   },
@@ -25,16 +26,24 @@ const lessons = [
   {
     videoId: "57994701-0e93-4bf4-846c-dba3bfe6e2b3",
   },
+  // 03-retrieval-day-2
+  {
+    videoId: "76a50e00-e8c0-4b31-881e-323853bc0a1e",
+  },
+  {
+    videoId: "8397bd25-5d5b-4665-8bbd-08144adbc11e",
+  },
 ];
 
-const EVALS_TO_RUN = 5;
+const EVALS_TO_RUN = 6;
 const STEPS_TO_COMPLETE_SIGIL = "\n## Steps To Complete\n";
-const INTRO_MAX_LENGTH_IN_CHARS = 700;
+const INTRO_MAX_LENGTH_IN_CHARS = 1000;
 
 evalite.each([
   {
     name: "Haiku 4.5",
     input: anthropic("claude-haiku-4-5"),
+    only: true,
   },
   {
     name: "Sonnet 4.5",
@@ -54,7 +63,7 @@ evalite.each([
         })
       )
     ).pipe(
-      Effect.map(Array.take(EVALS_TO_RUN)),
+      Effect.map(Array.takeRight(EVALS_TO_RUN)),
       Effect.provide(layerLive),
       Effect.runPromise
     );
