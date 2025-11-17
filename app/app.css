@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "tailwind-scrollbar";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,11 +9,25 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-tldraw: "Shantell Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-*: initial;
+  /* True neutral grays using OKLCH with 0 chroma */
+  --color-gray-50: oklch(0.985 0 0);
+  --color-gray-100: oklch(0.97 0 0);
+  --color-gray-200: oklch(0.922 0 0);
+  --color-gray-300: oklch(0.85 0 0);
+  --color-gray-400: oklch(0.708 0 0);
+  --color-gray-500: oklch(0.556 0 0);
+  --color-gray-600: oklch(0.398 0 0);
+  --color-gray-700: oklch(0.269 0 0);
+  --color-gray-800: oklch(0.205 0 0);
+  --color-gray-900: oklch(0.145 0 0);
+  --color-gray-950: oklch(0.089 0 0);
 }
 
 html,
 body {
-  @apply bg-gray-950;
+  @apply bg-background;
   @apply text-foreground dark:text-foreground;
 
   @media (prefers-color-scheme: dark) {

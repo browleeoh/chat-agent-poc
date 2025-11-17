@@ -46,7 +46,7 @@ export const DEFAULT_CHECKED_EXTENSIONS = [
 
 export const ALWAYS_EXCLUDED_DIRECTORIES = ["node_modules", ".vite"];
 
-export const DEFAULT_UNCHECKED_PATHS = ["readme.md"];
+export const DEFAULT_UNCHECKED_PATHS = ["readme.md", "speaker-notes.md"];
 
 const transcriptSchema = Schema.Struct({
   clips: Schema.Array(

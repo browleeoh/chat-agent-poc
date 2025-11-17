@@ -474,6 +474,123 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return sectionResult;
       }),
+      getNextVideoId: Effect.fn("getNextVideoId")(function* (
+        currentVideoId: string
+      ) {
+        const currentVideo = yield* getVideoWithClipsById(currentVideoId);
+        const currentLesson = currentVideo.lesson;
+        const currentSection = currentLesson.section;
+        const repo = currentSection.repo;
+
+        // Get all videos in current lesson sorted by path
+        const videosInLesson = currentLesson.videos.sort((a, b) =>
+          a.path.localeCompare(b.path)
+        );
+        const currentVideoIndex = videosInLesson.findIndex(
+          (v) => v.id === currentVideoId
+        );
+
+        // Try next video in current lesson
+        if (currentVideoIndex < videosInLesson.length - 1) {
+          return videosInLesson[currentVideoIndex + 1]?.id ?? null;
+        }
+
+        // Need to get all sections and lessons to find next
+        const repoWithSections = yield* getRepoWithSectionsById(repo.id);
+
+        // Find current lesson in the structure
+        for (let sIdx = 0; sIdx < repoWithSections.sections.length; sIdx++) {
+          const section = repoWithSections.sections[sIdx]!;
+          for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
+            const lesson = section.lessons[lIdx]!;
+            if (lesson.id === currentLesson.id) {
+              // Try next lesson in current section
+              if (lIdx < section.lessons.length - 1) {
+                const nextLesson = section.lessons[lIdx + 1]!;
+                const firstVideo = nextLesson.videos.sort((a, b) =>
+                  a.path.localeCompare(b.path)
+                )[0];
+                return firstVideo?.id ?? null;
+              }
+
+              // Try first lesson of next section
+              if (sIdx < repoWithSections.sections.length - 1) {
+                const nextSection = repoWithSections.sections[sIdx + 1]!;
+                const firstLesson = nextSection.lessons[0];
+                const firstVideo = firstLesson?.videos.sort((a, b) =>
+                  a.path.localeCompare(b.path)
+                )[0];
+                return firstVideo?.id ?? null;
+              }
+
+              // No more videos
+              return null;
+            }
+          }
+        }
+
+        return null;
+      }),
+      getPreviousVideoId: Effect.fn("getPreviousVideoId")(function* (
+        currentVideoId: string
+      ) {
+        const currentVideo = yield* getVideoWithClipsById(currentVideoId);
+        const currentLesson = currentVideo.lesson;
+        const currentSection = currentLesson.section;
+        const repo = currentSection.repo;
+
+        // Get all videos in current lesson sorted by path
+        const videosInLesson = currentLesson.videos.sort((a, b) =>
+          a.path.localeCompare(b.path)
+        );
+        const currentVideoIndex = videosInLesson.findIndex(
+          (v) => v.id === currentVideoId
+        );
+
+        // Try previous video in current lesson
+        if (currentVideoIndex > 0) {
+          return videosInLesson[currentVideoIndex - 1]?.id ?? null;
+        }
+
+        // Need to get all sections and lessons to find previous
+        const repoWithSections = yield* getRepoWithSectionsById(repo.id);
+
+        // Find current lesson in the structure
+        for (let sIdx = 0; sIdx < repoWithSections.sections.length; sIdx++) {
+          const section = repoWithSections.sections[sIdx]!;
+          for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
+            const lesson = section.lessons[lIdx]!;
+            if (lesson.id === currentLesson.id) {
+              // Try previous lesson in current section
+              if (lIdx > 0) {
+                const prevLesson = section.lessons[lIdx - 1]!;
+                const videos = prevLesson.videos.sort((a, b) =>
+                  a.path.localeCompare(b.path)
+                );
+                const lastVideo = videos[videos.length - 1];
+                return lastVideo?.id ?? null;
+              }
+
+              // Try last lesson of previous section
+              if (sIdx > 0) {
+                const prevSection = repoWithSections.sections[sIdx - 1]!;
+                const lastLesson =
+                  prevSection.lessons[prevSection.lessons.length - 1];
+                const videos = lastLesson?.videos.sort((a, b) =>
+                  a.path.localeCompare(b.path)
+                );
+                const lastVideo = videos?.[videos.length - 1];
+                return lastVideo?.id ?? null;
+              }
+
+              // No more videos
+              return null;
+            }
+          }
+        }
+
+        return null;
+      }),
     };
   }),
 }) {}

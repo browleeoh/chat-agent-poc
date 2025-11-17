@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Array as EffectArray, Effect } from "effect";
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
@@ -104,6 +104,9 @@ export const loader = async (args: Route.LoaderArgs) => {
       });
     }).pipe(Effect.map(EffectArray.filter((f) => f !== null)));
 
+    const nextVideoId = yield* db.getNextVideoId(videoId);
+    const previousVideoId = yield* db.getPreviousVideoId(videoId);
+
     return {
       videoPath: video.path,
       lessonPath: lesson.path,
@@ -112,6 +115,8 @@ export const loader = async (args: Route.LoaderArgs) => {
       lessonId: video.lesson.id,
       fullPath: lessonPath,
       files: filesWithMetadata,
+      nextVideoId,
+      previousVideoId,
     };
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };
@@ -135,7 +140,7 @@ const MODE_STORAGE_KEY = "article-writer-mode";
 
 export default function Component(props: Route.ComponentProps) {
   const { videoId } = props.params;
-  const { videoPath, lessonPath, sectionPath, repoId, lessonId, fullPath, files } =
+  const { videoPath, lessonPath, sectionPath, repoId, lessonId, fullPath, files, nextVideoId, previousVideoId } =
     props.loaderData;
   const [text, setText] = useState<string>("");
   const [mode, setMode] = useState<Mode>(() => {
@@ -174,19 +179,39 @@ export default function Component(props: Route.ComponentProps) {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex items-center gap-2 p-4 border-b">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to={`/?repoId=${repoId}#${lessonId}`}>
-            <ChevronLeftIcon className="size-6" />
-          </Link>
-        </Button>
-        <h1 className="text-lg">
-          {sectionPath}/{lessonPath}/{videoPath}
-        </h1>
+      <div className="flex items-center gap-2 p-4 border-b justify-between">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to={`/?repoId=${repoId}#${lessonId}`}>
+              <ChevronLeftIcon className="size-6" />
+            </Link>
+          </Button>
+          <h1 className="text-lg">
+            {sectionPath}/{lessonPath}/{videoPath}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {previousVideoId ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to={`/videos/${previousVideoId}/write`}>
+                <ChevronLeftIcon className="size-4 mr-1" />
+                Previous
+              </Link>
+            </Button>
+          ) : null}
+          {nextVideoId ? (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to={`/videos/${nextVideoId}/write`}>
+                Next
+                <ChevronRightIcon className="size-4 ml-1" />
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
       <div className="flex-1 flex overflow-hidden">
         {/* Left column: Video and Files */}
-        <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4">
+        <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4 scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
           <Video src={`/videos/${videoId}`} />
           <FileTree
             files={files}
@@ -197,7 +222,7 @@ export default function Component(props: Route.ComponentProps) {
 
         {/* Right column: Chat */}
         <div className="w-3/4 flex flex-col">
-          <AIConversation className="flex-1 overflow-y-auto">
+          <AIConversation className="flex-1 overflow-y-auto scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
             <AIConversationContent className="max-w-2xl mx-auto">
               {messages.map((message) => {
                 if (message.role === "system") {
@@ -225,7 +250,7 @@ export default function Component(props: Route.ComponentProps) {
             </AIConversationContent>
             <AIConversationScrollButton />
           </AIConversation>
-          <div className="border-t p-4">
+          <div className="border-t p-4 bg-background">
             <div className="max-w-2xl mx-auto">
               <div className="mb-4">
                 <Select value={mode} onValueChange={(value) => handleModeChange(value as Mode)}>
