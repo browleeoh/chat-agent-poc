@@ -183,6 +183,14 @@ export function InnerComponent(props: Route.ComponentProps) {
     return "claude-haiku-4-5";
   });
   const [enabledFiles, setEnabledFiles] = useState<Set<string>>(() => {
+    // If mode is style-guide-skill-building, only enable README.md files
+    if (mode === "style-guide-skill-building") {
+      return new Set(
+        files
+          .filter((f) => f.path.toLowerCase().endsWith("readme.md"))
+          .map((f) => f.path)
+      );
+    }
     return new Set(files.filter((f) => f.defaultEnabled).map((f) => f.path));
   });
 
@@ -195,6 +203,17 @@ export function InnerComponent(props: Route.ComponentProps) {
     setMode(newMode);
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(MODE_STORAGE_KEY, newMode);
+    }
+
+    // If switching to style-guide mode, only enable README.md files
+    if (newMode === "style-guide-skill-building") {
+      setEnabledFiles(
+        new Set(
+          files
+            .filter((f) => f.path.toLowerCase().endsWith("readme.md"))
+            .map((f) => f.path)
+        )
+      );
     }
   };
 
