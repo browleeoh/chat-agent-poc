@@ -79,30 +79,33 @@ export const loader = async (args: Route.LoaderArgs) => {
       );
     });
 
-    const filesWithMetadata = yield* Effect.forEach(filteredFiles, (filePath) => {
-      return Effect.gen(function* () {
-        const stat = yield* fs.stat(filePath);
+    const filesWithMetadata = yield* Effect.forEach(
+      filteredFiles,
+      (filePath) => {
+        return Effect.gen(function* () {
+          const stat = yield* fs.stat(filePath);
 
-        if (stat.type !== "File") {
-          return null;
-        }
+          if (stat.type !== "File") {
+            return null;
+          }
 
-        const relativePath = path.relative(lessonPath, filePath);
-        const extension = path.extname(filePath).slice(1);
+          const relativePath = path.relative(lessonPath, filePath);
+          const extension = path.extname(filePath).slice(1);
 
-        const defaultEnabled =
-          DEFAULT_CHECKED_EXTENSIONS.includes(extension) &&
-          !DEFAULT_UNCHECKED_PATHS.some((uncheckedPath) =>
-            relativePath.toLowerCase().includes(uncheckedPath.toLowerCase())
-          );
+          const defaultEnabled =
+            DEFAULT_CHECKED_EXTENSIONS.includes(extension) &&
+            !DEFAULT_UNCHECKED_PATHS.some((uncheckedPath) =>
+              relativePath.toLowerCase().includes(uncheckedPath.toLowerCase())
+            );
 
-        return {
-          path: relativePath,
-          size: Number(stat.size),
-          defaultEnabled,
-        };
-      });
-    }).pipe(Effect.map(EffectArray.filter((f) => f !== null)));
+          return {
+            path: relativePath,
+            size: Number(stat.size),
+            defaultEnabled,
+          };
+        });
+      }
+    ).pipe(Effect.map(EffectArray.filter((f) => f !== null)));
 
     const nextVideoId = yield* db.getNextVideoId(videoId);
     const previousVideoId = yield* db.getPreviousVideoId(videoId);
@@ -121,7 +124,6 @@ export const loader = async (args: Route.LoaderArgs) => {
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };
 
-
 const Video = (props: { src: string }) => {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -138,10 +140,19 @@ type Mode = "article" | "project" | "skill-building";
 
 const MODE_STORAGE_KEY = "article-writer-mode";
 
-export default function Component(props: Route.ComponentProps) {
+export function InnerComponent(props: Route.ComponentProps) {
   const { videoId } = props.params;
-  const { videoPath, lessonPath, sectionPath, repoId, lessonId, fullPath, files, nextVideoId, previousVideoId } =
-    props.loaderData;
+  const {
+    videoPath,
+    lessonPath,
+    sectionPath,
+    repoId,
+    lessonId,
+    fullPath,
+    files,
+    nextVideoId,
+    previousVideoId,
+  } = props.loaderData;
   const [text, setText] = useState<string>("");
   const [mode, setMode] = useState<Mode>(() => {
     if (typeof localStorage !== "undefined") {
@@ -253,14 +264,19 @@ export default function Component(props: Route.ComponentProps) {
           <div className="border-t p-4 bg-background">
             <div className="max-w-2xl mx-auto">
               <div className="mb-4">
-                <Select value={mode} onValueChange={(value) => handleModeChange(value as Mode)}>
+                <Select
+                  value={mode}
+                  onValueChange={(value) => handleModeChange(value as Mode)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select mode" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="article">Article</SelectItem>
                     <SelectItem value="project">Project Steps</SelectItem>
-                    <SelectItem value="skill-building">Skill Building Steps</SelectItem>
+                    <SelectItem value="skill-building">
+                      Skill Building Steps
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -280,4 +296,8 @@ export default function Component(props: Route.ComponentProps) {
       </div>
     </div>
   );
+}
+
+export default function Component(props: Route.ComponentProps) {
+  return <InnerComponent {...props} key={props.params.videoId} />;
 }

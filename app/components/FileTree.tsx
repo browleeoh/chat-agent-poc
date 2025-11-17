@@ -21,6 +21,16 @@ type TreeNode = {
   children?: TreeNode[];
 };
 
+const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
+  return nodes.sort((a, b) => {
+    // Directories come before files
+    if (a.type === "directory" && b.type === "file") return -1;
+    if (a.type === "file" && b.type === "directory") return 1;
+    // Within same type, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
+};
+
 const buildTree = (files: FileMetadata[]): TreeNode[] => {
   const root: TreeNode[] = [];
 
@@ -52,7 +62,18 @@ const buildTree = (files: FileMetadata[]): TreeNode[] => {
     }
   }
 
-  return root;
+  // Sort all levels of the tree
+  const sortTree = (nodes: TreeNode[]): TreeNode[] => {
+    const sorted = sortNodes(nodes);
+    for (const node of sorted) {
+      if (node.children) {
+        node.children = sortTree(node.children);
+      }
+    }
+    return sorted;
+  };
+
+  return sortTree(root);
 };
 
 const formatFileSize = (bytes: number): string => {
@@ -96,7 +117,7 @@ const FileTreeNode = ({
     return (
       <div
         className="flex items-center gap-2 py-1 hover:bg-accent/50 rounded px-2"
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        style={{ paddingLeft: `${depth * 24 + 8}px` }}
       >
         <Checkbox
           checked={isChecked}
@@ -128,7 +149,7 @@ const FileTreeNode = ({
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
         className="flex items-center gap-2 py-1 hover:bg-accent/50 rounded px-2"
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        style={{ paddingLeft: `${depth * 24 + 8}px` }}
       >
         <Checkbox
           checked={checkboxState}
@@ -138,11 +159,11 @@ const FileTreeNode = ({
         />
         <CollapsibleTrigger asChild>
           <button className="flex items-center gap-1 flex-1 min-w-0">
-            <ChevronRightIcon
+            {/* <ChevronRightIcon
               className={`size-4 text-muted-foreground flex-shrink-0 transition-transform ${
                 isOpen ? "rotate-90" : ""
               }`}
-            />
+            /> */}
             <span className="text-sm truncate">{node.name}</span>
           </button>
         </CollapsibleTrigger>
