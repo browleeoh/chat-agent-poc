@@ -23,12 +23,19 @@ import {
   AISuggestion,
   AISuggestions,
 } from "components/ui/kibo-ui/ai/suggestion";
-import { Effect } from "effect";
+import { Array as EffectArray, Effect } from "effect";
 import { ChevronLeftIcon } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
 import path from "path";
+import { FileSystem } from "@effect/platform";
+import {
+  ALWAYS_EXCLUDED_DIRECTORIES,
+  DEFAULT_CHECKED_EXTENSIONS,
+  DEFAULT_UNCHECKED_PATHS,
+} from "./videos.$videoId.completions";
+import { FileTree } from "@/components/FileTree";
 
 const partsToText = (parts: UIMessage["parts"]) => {
   return parts
@@ -46,18 +53,62 @@ export const loader = async (args: Route.LoaderArgs) => {
   const { videoId } = args.params;
   return Effect.gen(function* () {
     const db = yield* DBService;
+    const fs = yield* FileSystem.FileSystem;
     const video = yield* db.getVideoById(videoId);
+
+    const repo = video.lesson.section.repo;
+    const section = video.lesson.section;
+    const lesson = video.lesson;
+
+    const lessonPath = path.join(repo.filePath, section.path, lesson.path);
+
+    const allFilesInDirectory = yield* fs
+      .readDirectory(lessonPath, {
+        recursive: true,
+      })
+      .pipe(
+        Effect.map((files) => files.map((file) => path.join(lessonPath, file)))
+      );
+
+    const filteredFiles = allFilesInDirectory.filter((filePath) => {
+      return !ALWAYS_EXCLUDED_DIRECTORIES.some((excludedDir) =>
+        filePath.includes(excludedDir)
+      );
+    });
+
+    const filesWithMetadata = yield* Effect.forEach(filteredFiles, (filePath) => {
+      return Effect.gen(function* () {
+        const stat = yield* fs.stat(filePath);
+
+        if (stat.type !== "File") {
+          return null;
+        }
+
+        const relativePath = path.relative(lessonPath, filePath);
+        const extension = path.extname(filePath).slice(1);
+
+        const defaultEnabled =
+          DEFAULT_CHECKED_EXTENSIONS.includes(extension) &&
+          !DEFAULT_UNCHECKED_PATHS.some((uncheckedPath) =>
+            relativePath.toLowerCase().includes(uncheckedPath.toLowerCase())
+          );
+
+        return {
+          path: relativePath,
+          size: Number(stat.size),
+          defaultEnabled,
+        };
+      });
+    }).pipe(Effect.map(EffectArray.filter((f) => f !== null)));
+
     return {
       videoPath: video.path,
-      lessonPath: video.lesson.path,
-      sectionPath: video.lesson.section.path,
+      lessonPath: lesson.path,
+      sectionPath: section.path,
       repoId: video.lesson.section.repoId,
       lessonId: video.lesson.id,
-      fullPath: path.join(
-        video.lesson.section.repo.filePath,
-        video.lesson.section.path,
-        video.lesson.path
-      ),
+      fullPath: lessonPath,
+      files: filesWithMetadata,
     };
   }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };
@@ -153,9 +204,12 @@ const Video = (props: { src: string }) => {
 
 export default function Component(props: Route.ComponentProps) {
   const { videoId } = props.params;
-  const { videoPath, lessonPath, sectionPath, repoId, lessonId, fullPath } =
+  const { videoPath, lessonPath, sectionPath, repoId, lessonId, fullPath, files } =
     props.loaderData;
   const [text, setText] = useState<string>("");
+  const [enabledFiles, setEnabledFiles] = useState<Set<string>>(() => {
+    return new Set(files.filter((f) => f.defaultEnabled).map((f) => f.path));
+  });
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -165,16 +219,17 @@ export default function Component(props: Route.ComponentProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    sendMessage({
-      text,
-    });
+    sendMessage(
+      { text },
+      { body: { enabledFiles: Array.from(enabledFiles) } }
+    );
 
     setText("");
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 h-screen flex flex-col">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="h-screen flex flex-col">
+      <div className="flex items-center gap-2 p-4 border-b">
         <Button variant="ghost" size="icon" asChild>
           <Link to={`/?repoId=${repoId}#${lessonId}`}>
             <ChevronLeftIcon className="size-6" />
@@ -184,72 +239,91 @@ export default function Component(props: Route.ComponentProps) {
           {sectionPath}/{lessonPath}/{videoPath}
         </h1>
       </div>
-      <AIConversation className="flex-1 overflow-y-auto">
-        <AIConversationContent>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left column: Video and Files */}
+        <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4">
           <Video src={`/videos/${videoId}`} />
-          {messages.map((message) => {
-            if (message.role === "system") {
-              return null;
-            }
-
-            if (message.role === "user") {
-              return (
-                <AIMessage from={message.role} key={message.id}>
-                  <AIMessageContent>
-                    {partsToText(message.parts)}
-                  </AIMessageContent>
-                </AIMessage>
-              );
-            }
-
-            return (
-              <AIMessage from={message.role} key={message.id}>
-                <AIResponse imageBasePath={fullPath}>
-                  {partsToText(message.parts)}
-                </AIResponse>
-              </AIMessage>
-            );
-          })}
-        </AIConversationContent>
-        <AIConversationScrollButton />
-      </AIConversation>
-      <div>
-        <AISuggestions className="mb-4">
-          <AISuggestion
-            suggestion="Problem Description"
-            onClick={() => {
-              sendMessage({
-                text: PROBLEM_PROMPT(),
-              });
-            }}
-          ></AISuggestion>
-          <AISuggestion
-            suggestion="Code Tip"
-            onClick={() => {
-              sendMessage({
-                text: CODE_TIP_PROMPT(),
-              });
-            }}
-          ></AISuggestion>
-          <AISuggestion
-            suggestion="Diagram Tip"
-            onClick={() => {
-              sendMessage({
-                text: DIAGRAM_TIP_PROMPT(),
-              });
-            }}
-          ></AISuggestion>
-        </AISuggestions>
-        <AIInput onSubmit={handleSubmit}>
-          <AIInputTextarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="What would you like to create?"
+          <FileTree
+            files={files}
+            enabledFiles={enabledFiles}
+            onEnabledFilesChange={setEnabledFiles}
           />
-          <AIInputToolbar>
-            <AIInputSubmit status={status} />
-          </AIInputToolbar>
-        </AIInput>
+        </div>
+
+        {/* Right column: Chat */}
+        <div className="w-3/4 flex flex-col">
+          <AIConversation className="flex-1 overflow-y-auto">
+            <AIConversationContent className="max-w-2xl mx-auto">
+              {messages.map((message) => {
+                if (message.role === "system") {
+                  return null;
+                }
+
+                if (message.role === "user") {
+                  return (
+                    <AIMessage from={message.role} key={message.id}>
+                      <AIMessageContent>
+                        {partsToText(message.parts)}
+                      </AIMessageContent>
+                    </AIMessage>
+                  );
+                }
+
+                return (
+                  <AIMessage from={message.role} key={message.id}>
+                    <AIResponse imageBasePath={fullPath}>
+                      {partsToText(message.parts)}
+                    </AIResponse>
+                  </AIMessage>
+                );
+              })}
+            </AIConversationContent>
+            <AIConversationScrollButton />
+          </AIConversation>
+          <div className="border-t p-4">
+            <div className="max-w-2xl mx-auto">
+              <AISuggestions className="mb-4">
+                <AISuggestion
+                  suggestion="Problem Description"
+                  onClick={() => {
+                    sendMessage(
+                      { text: PROBLEM_PROMPT() },
+                      { body: { enabledFiles: Array.from(enabledFiles) } }
+                    );
+                  }}
+                ></AISuggestion>
+                <AISuggestion
+                  suggestion="Code Tip"
+                  onClick={() => {
+                    sendMessage(
+                      { text: CODE_TIP_PROMPT() },
+                      { body: { enabledFiles: Array.from(enabledFiles) } }
+                    );
+                  }}
+                ></AISuggestion>
+                <AISuggestion
+                  suggestion="Diagram Tip"
+                  onClick={() => {
+                    sendMessage(
+                      { text: DIAGRAM_TIP_PROMPT() },
+                      { body: { enabledFiles: Array.from(enabledFiles) } }
+                    );
+                  }}
+                ></AISuggestion>
+              </AISuggestions>
+              <AIInput onSubmit={handleSubmit}>
+                <AIInputTextarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="What would you like to create?"
+                />
+                <AIInputToolbar>
+                  <AIInputSubmit status={status} />
+                </AIInputToolbar>
+              </AIInput>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

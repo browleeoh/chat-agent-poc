@@ -18,6 +18,7 @@ import type { Route } from "./+types/videos.$videoId.completions";
 
 const chatSchema = Schema.Struct({
   messages: Schema.Any,
+  enabledFiles: Schema.Array(Schema.String),
 });
 
 const NOT_A_FILE = Symbol("NOT_A_FILE");
@@ -28,7 +29,7 @@ class CouldNotFindTranscript extends Data.TaggedError(
   readonly originalFootagePath: string;
 }> {}
 
-const ALLOWED_FILE_EXTENSIONS = [
+export const DEFAULT_CHECKED_EXTENSIONS = [
   "ts",
   "tsx",
   "js",
@@ -40,12 +41,9 @@ const ALLOWED_FILE_EXTENSIONS = [
   "csv",
 ];
 
-const DISALLOWED_FILE_DIRECTORIES = [
-  "node_modules",
-  ".vite",
-  "readme.md",
-  "solution",
-];
+export const ALWAYS_EXCLUDED_DIRECTORIES = ["node_modules", ".vite"];
+
+export const DEFAULT_UNCHECKED_PATHS = ["readme.md", "solution"];
 
 const transcriptSchema = Schema.Struct({
   clips: Schema.Array(
@@ -78,9 +76,9 @@ export const action = async (args: Route.ActionArgs) => {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
 
-    const { messages }: { messages: UIMessage[] } = yield* Schema.decodeUnknown(
-      chatSchema
-    )(body);
+    const parsed = yield* Schema.decodeUnknown(chatSchema)(body);
+    const messages: UIMessage[] = parsed.messages;
+    const enabledFiles: string[] = [...parsed.enabledFiles];
 
     const video = yield* db.getVideoWithClipsById(videoId);
 
@@ -98,19 +96,16 @@ export const action = async (args: Route.ActionArgs) => {
         Effect.map((files) => files.map((file) => path.join(lessonPath, file)))
       );
 
-    const filteredTextFiles = allFilesInDirectory.filter((filePath) => {
+    const filteredFiles = allFilesInDirectory.filter((filePath) => {
+      const relativePath = path.relative(lessonPath, filePath);
       return (
-        !DISALLOWED_FILE_DIRECTORIES.some((disallowedPath) =>
-          filePath.includes(disallowedPath)
-        ) && ALLOWED_FILE_EXTENSIONS.includes(path.extname(filePath).slice(1))
+        !ALWAYS_EXCLUDED_DIRECTORIES.some((excludedDir) =>
+          filePath.includes(excludedDir)
+        ) && enabledFiles.includes(relativePath)
       );
     });
 
-    const filteredDiagramFiles = allFilesInDirectory.filter((filePath) => {
-      return filePath.includes("diagram") && filePath.endsWith(".png");
-    });
-
-    const textFiles = yield* Effect.forEach(filteredTextFiles, (filePath) => {
+    const allFiles = yield* Effect.forEach(filteredFiles, (filePath) => {
       return Effect.gen(function* () {
         const stat = yield* fs.stat(filePath);
 
@@ -118,34 +113,36 @@ export const action = async (args: Route.ActionArgs) => {
           return NOT_A_FILE;
         }
 
-        const fileContent = yield* fs.readFileString(filePath);
-        return {
-          filePath,
-          fileContent,
-        };
+        const relativePath = path.relative(lessonPath, filePath);
+        const isDiagram = filePath.includes("diagram") && filePath.endsWith(".png");
+
+        if (isDiagram) {
+          const fileContent = yield* fs.readFile(filePath);
+          return {
+            type: "diagram" as const,
+            path: relativePath,
+            content: fileContent,
+          };
+        } else {
+          const fileContent = yield* fs.readFileString(filePath);
+          return {
+            type: "text" as const,
+            filePath,
+            fileContent,
+          };
+        }
       });
     }).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
 
-    const diagramFiles = yield* Effect.forEach(
-      filteredDiagramFiles,
-      (filePath) => {
-        return Effect.gen(function* () {
-          const stat = yield* fs.stat(filePath);
+    const textFiles = allFiles.filter((f) => f.type === "text").map((f) => ({
+      filePath: f.filePath,
+      fileContent: f.fileContent,
+    }));
 
-          if (stat.type !== "File") {
-            return NOT_A_FILE;
-          }
-
-          const fileContent = yield* fs.readFile(filePath);
-
-          const relativeFilePath = path.relative(lessonPath, filePath);
-          return {
-            path: relativeFilePath,
-            content: fileContent,
-          };
-        });
-      }
-    ).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
+    const diagramFiles = allFiles.filter((f) => f.type === "diagram").map((f) => ({
+      path: f.path,
+      content: f.content,
+    }));
 
     let transcript = video.clips
       .map((clip) => clip.text)
