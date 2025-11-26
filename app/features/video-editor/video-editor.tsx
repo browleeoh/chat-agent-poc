@@ -35,6 +35,7 @@ import {
   CheckIcon,
   ChevronDown,
   ChevronLeftIcon,
+  ChevronRightIcon,
   CircleQuestionMarkIcon,
   Columns2,
   CopyIcon,
@@ -46,6 +47,7 @@ import {
   MonitorIcon,
   PencilIcon,
   Plus,
+  PlusIcon,
   RefreshCwIcon,
   Trash2Icon,
   UserRound,
@@ -91,7 +93,7 @@ export const VideoEditor = (props: {
   hasExplainerFolder: boolean;
   videoCount: number;
   insertionPointClipId: FrontendId | null;
-  onSetInsertionPoint: (clipId: FrontendId) => void;
+  onSetInsertionPoint: (mode: "after" | "before", clipId: FrontendId) => void;
   onDeleteLatestInsertedClip: () => void;
 }) => {
   const [state, dispatch] = useEffectReducer<
@@ -585,8 +587,8 @@ export const VideoEditor = (props: {
       />
 
       {/* Clips Section - Shows second on mobile, first on desktop */}
-      <div className="lg:flex-1 flex-wrap flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-4 w-full p-2">
+      <div className="lg:flex-1 flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
+        <div className="grid gap-4 w-full p-2">
           {props.clips.length === 0 && (
             <div className="bg-gray-800 rounded-lg p-6">
               <h2 className="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2">
@@ -628,147 +630,176 @@ export const VideoEditor = (props: {
               (clip.profile === "TikTok" || clip.profile === "Portrait");
 
             return (
-              <ContextMenu key={clip.frontendId}>
-                <ContextMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex",
-                      state.selectedClipsSet.has(clip.frontendId) &&
-                        "outline-2 outline-gray-200 bg-gray-700",
-                      clip.frontendId === currentClipId && "bg-blue-900"
-                    )}
-                    onClick={(e) => {
-                      dispatch({
-                        type: "click-clip",
-                        clipId: clip.frontendId,
-                        ctrlKey: e.ctrlKey,
-                        shiftKey: e.shiftKey,
-                      });
-                    }}
-                  >
-                    {/* Thumbnail image */}
-                    {clip.type === "on-database" ? (
-                      <div className="flex-shrink-0 relative">
-                        <img
-                          src={`/clips/${clip.databaseId}/first-frame`}
-                          alt="First frame"
-                          className={cn(
-                            "rounded object-cover h-full object-center",
-                            isPortrait
-                              ? "w-24 aspect-[9/16]"
-                              : "w-32 aspect-[16/9]",
-                            props.clipIdsBeingTranscribed.has(
-                              clip.frontendId
-                            ) && "opacity-50 grayscale"
+              <>
+                <ContextMenu key={clip.frontendId}>
+                  <ContextMenuTrigger asChild>
+                    <button
+                      className={cn(
+                        "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex",
+                        state.selectedClipsSet.has(clip.frontendId) &&
+                          "outline-2 outline-gray-200 bg-gray-700",
+                        clip.frontendId === currentClipId && "bg-blue-900"
+                      )}
+                      onClick={(e) => {
+                        dispatch({
+                          type: "click-clip",
+                          clipId: clip.frontendId,
+                          ctrlKey: e.ctrlKey,
+                          shiftKey: e.shiftKey,
+                        });
+                      }}
+                    >
+                      {/* Thumbnail image */}
+                      {clip.type === "on-database" ? (
+                        <div className="flex-shrink-0 relative">
+                          <img
+                            src={`/clips/${clip.databaseId}/first-frame`}
+                            alt="First frame"
+                            className={cn(
+                              "rounded object-cover h-full object-center",
+                              isPortrait
+                                ? "w-24 aspect-[9/16]"
+                                : "w-32 aspect-[16/9]",
+                              props.clipIdsBeingTranscribed.has(
+                                clip.frontendId
+                              ) && "opacity-50 grayscale"
+                            )}
+                          />
+                          {/* Loading spinner overlay */}
+                          {props.clipIdsBeingTranscribed.has(
+                            clip.frontendId
+                          ) && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Loader2 className="w-6 h-6 animate-spin text-white" />
+                            </div>
                           )}
-                        />
-                        {/* Loading spinner overlay */}
-                        {props.clipIdsBeingTranscribed.has(clip.frontendId) && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Loader2 className="w-6 h-6 animate-spin text-white" />
+                          {/* Timecode overlay on image */}
+                          <div
+                            className={cn(
+                              "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100",
+                              clip.frontendId === currentClipId &&
+                                "text-blue-100",
+                              state.selectedClipsSet.has(clip.frontendId) &&
+                                "text-white"
+                            )}
+                          >
+                            {clip.timecode}
                           </div>
-                        )}
-                        {/* Timecode overlay on image */}
-                        <div
-                          className={cn(
-                            "absolute top-1 right-1 text-xs px-1.5 py-0.5 rounded bg-black/60 text-gray-100",
-                            clip.frontendId === currentClipId &&
-                              "text-blue-100",
-                            state.selectedClipsSet.has(clip.frontendId) &&
-                              "text-white"
-                          )}
-                        >
-                          {clip.timecode}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex-shrink-0 relative w-32 aspect-[16/9] bg-gray-700 rounded flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                      </div>
-                    )}
-
-                    {/* Content area */}
-                    <div className="flex-1 flex flex-col min-w-0 relative p-3">
-                      {/* Progress bar overlay on text */}
-                      {clip.frontendId === currentClipId && (
-                        <div
-                          className="absolute top-0 left-0 h-full bg-blue-700 z-0 rounded"
-                          style={{
-                            width: `${percentComplete * 100}%`,
-                          }}
-                        />
+                      ) : (
+                        <div className="flex-shrink-0 relative w-32 aspect-[16/9] bg-gray-700 rounded flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                        </div>
                       )}
 
-                      {/* Transcript text */}
-                      <div className="z-10 relative text-white text-sm leading-6">
-                        {props.clipIdsBeingTranscribed.has(clip.frontendId) ? (
-                          clip.type === "on-database" &&
-                          !clip.transcribedAt &&
-                          !clip.text && (
-                            <span className="text-gray-400">
-                              Transcribing...
-                            </span>
-                          )
-                        ) : clip.type === "on-database" ? (
-                          <>
-                            {clip.nextLevenshtein >
-                              DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
-                              <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
-                                <AlertTriangleIcon className="w-4 h-4 mr-2" />
-                                {clip.nextLevenshtein.toFixed(0)}%
-                              </span>
-                            )}
-                            <span
-                              className={cn(
-                                "text-gray-100",
-                                clip.frontendId === currentClipId &&
-                                  "text-white"
-                              )}
-                            >
-                              {clip.text}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-gray-400">
-                            Detecting silence...
-                          </span>
+                      {/* Content area */}
+                      <div className="flex-1 flex flex-col min-w-0 relative p-3">
+                        {/* Progress bar overlay on text */}
+                        {clip.frontendId === currentClipId && (
+                          <div
+                            className="absolute top-0 left-0 h-full bg-blue-700 z-0 rounded"
+                            style={{
+                              width: `${percentComplete * 100}%`,
+                            }}
+                          />
                         )}
+
+                        {/* Transcript text */}
+                        <div className="z-10 relative text-white text-sm leading-6">
+                          {props.clipIdsBeingTranscribed.has(
+                            clip.frontendId
+                          ) ? (
+                            clip.type === "on-database" &&
+                            !clip.transcribedAt &&
+                            !clip.text && (
+                              <span className="text-gray-400">
+                                Transcribing...
+                              </span>
+                            )
+                          ) : clip.type === "on-database" ? (
+                            <>
+                              {clip.nextLevenshtein >
+                                DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
+                                <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
+                                  <AlertTriangleIcon className="w-4 h-4 mr-2" />
+                                  {clip.nextLevenshtein.toFixed(0)}%
+                                </span>
+                              )}
+                              <span
+                                className={cn(
+                                  "text-gray-100",
+                                  clip.frontendId === currentClipId &&
+                                    "text-white"
+                                )}
+                              >
+                                {clip.text}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-gray-400">
+                              Detecting silence...
+                            </span>
+                          )}
+                        </div>
                       </div>
+                    </button>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem
+                      onSelect={() => {
+                        props.onSetInsertionPoint("before", clip.frontendId);
+                      }}
+                    >
+                      <ChevronLeftIcon />
+                      Insert Before
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      onSelect={() => {
+                        props.onSetInsertionPoint("after", clip.frontendId);
+                      }}
+                    >
+                      <ChevronRightIcon />
+                      Insert After
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      disabled={clip.type !== "on-database"}
+                      onSelect={() => {
+                        dispatch({
+                          type: "retranscribe-clip",
+                          clipId: clip.frontendId,
+                        });
+                      }}
+                    >
+                      <RefreshCwIcon />
+                      Re-transcribe
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      variant="destructive"
+                      onSelect={() => {
+                        dispatch({
+                          type: "delete-clip",
+                          clipId: clip.frontendId,
+                        });
+                      }}
+                    >
+                      <Trash2Icon />
+                      Delete
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
+                {clip.frontendId === props.insertionPointClipId && (
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="border-t-2 w-full border-blue-200 border-dashed flex-1" />
+                    <div className="flex items-center justify-center">
+                      <PlusIcon className="size-5 text-blue-200 mr-2" />
+                      <span className="text-blue-200 text-sm">
+                        Insert Point
+                      </span>
                     </div>
-                  </button>
-                </ContextMenuTrigger>
-                <ContextMenuContent>
-                  <ContextMenuItem
-                    onSelect={() => {
-                      props.onSetInsertionPoint(clip.frontendId);
-                    }}
-                  >
-                    <PencilIcon />
-                    Set as Insertion Point
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    disabled={clip.type !== "on-database"}
-                    onSelect={() => {
-                      dispatch({
-                        type: "retranscribe-clip",
-                        clipId: clip.frontendId,
-                      });
-                    }}
-                  >
-                    <RefreshCwIcon />
-                    Re-transcribe
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    variant="destructive"
-                    onSelect={() => {
-                      dispatch({ type: "delete-clip", clipId: clip.frontendId });
-                    }}
-                  >
-                    <Trash2Icon />
-                    Delete
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
+                    <div className="border-t-2 w-full border-blue-200 border-dashed flex-1" />
+                  </div>
+                )}
+              </>
             );
           })}
         </div>

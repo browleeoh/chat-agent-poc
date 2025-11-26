@@ -1,5 +1,13 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import "katex/dist/katex.min.css";
+import type { HTMLAttributes } from "react";
+import { memo, useMemo } from "react";
+import ReactMarkdown, { type Options } from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import {
   type BundledLanguage,
   CodeBlock,
@@ -17,16 +25,6 @@ import {
   CodeBlockSelectTrigger,
   CodeBlockSelectValue,
 } from "../code-block";
-import type { HTMLAttributes } from "react";
-import { memo, useMemo, useState } from "react";
-import ReactMarkdown, { type Options } from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { CheckIcon, CopyIcon } from "lucide-react";
-import "katex/dist/katex.min.css";
 
 export type AIResponseProps = HTMLAttributes<HTMLDivElement> & {
   options?: Options;
@@ -186,8 +184,6 @@ const getComponents = (imageBasePath: string): Options["components"] => ({
 
 export const AIResponse = memo(
   ({ className, options, children, ...props }: AIResponseProps) => {
-    const [isCopied, setIsCopied] = useState(false);
-
     const components = useMemo(
       () => getComponents(props.imageBasePath),
       [props.imageBasePath]

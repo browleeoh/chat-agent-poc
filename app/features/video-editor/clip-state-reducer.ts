@@ -1,6 +1,7 @@
 import type { DB } from "@/db/schema";
 import type { EffectReducer } from "use-effect-reducer";
 import type { Brand } from "./utils";
+import { INSERTION_POINT_START } from "./constants";
 
 export type DatabaseId = Brand<string, "DatabaseId">;
 export type FrontendId = Brand<string, "FrontendId">;
@@ -41,8 +42,9 @@ export namespace clipStateReducer {
     clips: Clip[];
     clipIdsBeingTranscribed: Set<FrontendId>;
     insertionPointClipId: FrontendId | null;
+    insertionPointMode: "insert-after" | "insert-before";
     lastInsertedClipId: FrontendId | null;
-    insertionPointDatabaseId: DatabaseId | null;
+    insertionPointDatabaseId: DatabaseId | null | typeof INSERTION_POINT_START;
   };
 
   export type Action =
@@ -67,7 +69,11 @@ export namespace clipStateReducer {
         }[];
       }
     | {
-        type: "set-insertion-point";
+        type: "set-insertion-point-after";
+        clipId: FrontendId;
+      }
+    | {
+        type: "set-insertion-point-before";
         clipId: FrontendId;
       }
     | {
@@ -116,7 +122,7 @@ export const clipStateReducer: EffectReducer<
         // Append to end
         newClips = [...state.clips, newClip];
       } else {
-        // Insert after insertion point
+        // Insert at insertion point
         const insertionPointIndex = state.clips.findIndex(
           (c) => c.frontendId === state.insertionPointClipId
         );
@@ -124,11 +130,21 @@ export const clipStateReducer: EffectReducer<
           // Insertion point not found, append to end
           newClips = [...state.clips, newClip];
         } else {
-          newClips = [
-            ...state.clips.slice(0, insertionPointIndex + 1),
-            newClip,
-            ...state.clips.slice(insertionPointIndex + 1),
-          ];
+          if (state.insertionPointMode === "insert-before") {
+            // Insert before insertion point
+            newClips = [
+              ...state.clips.slice(0, insertionPointIndex),
+              newClip,
+              ...state.clips.slice(insertionPointIndex),
+            ];
+          } else {
+            // Insert after insertion point
+            newClips = [
+              ...state.clips.slice(0, insertionPointIndex + 1),
+              newClip,
+              ...state.clips.slice(insertionPointIndex + 1),
+            ];
+          }
         }
       }
 
@@ -304,7 +320,7 @@ export const clipStateReducer: EffectReducer<
         clipIdsBeingTranscribed: set,
       };
     }
-    case "set-insertion-point": {
+    case "set-insertion-point-after": {
       const clip = state.clips.find((c) => c.frontendId === action.clipId);
       if (!clip) {
         return state;
@@ -313,8 +329,44 @@ export const clipStateReducer: EffectReducer<
       return {
         ...state,
         insertionPointClipId: action.clipId,
+        insertionPointMode: "insert-after",
         insertionPointDatabaseId:
           clip.type === "on-database" ? clip.databaseId : null,
+      };
+    }
+    case "set-insertion-point-before": {
+      const clip = state.clips.find((c) => c.frontendId === action.clipId);
+      if (!clip) {
+        return state;
+      }
+
+      // If inserting before, we need to find the previous clip's database ID
+      // to use as insertAfterId, OR use INSERTION_POINT_START if this is first clip
+      const clipIndex = state.clips.findIndex(
+        (c) => c.frontendId === action.clipId
+      );
+
+      let insertionPointDatabaseId:
+        | DatabaseId
+        | null
+        | typeof INSERTION_POINT_START;
+      if (clipIndex === 0) {
+        // First clip - use magic constant
+        insertionPointDatabaseId = INSERTION_POINT_START;
+      } else {
+        // Not first clip - use previous clip's database ID
+        const previousClip = state.clips[clipIndex - 1];
+        insertionPointDatabaseId =
+          previousClip && previousClip.type === "on-database"
+            ? previousClip.databaseId
+            : null;
+      }
+
+      return {
+        ...state,
+        insertionPointClipId: action.clipId,
+        insertionPointMode: "insert-before",
+        insertionPointDatabaseId,
       };
     }
     case "delete-latest-inserted-clip": {
@@ -361,7 +413,9 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: state.clips.filter((c) => c.frontendId !== state.lastInsertedClipId),
+        clips: state.clips.filter(
+          (c) => c.frontendId !== state.lastInsertedClipId
+        ),
         insertionPointClipId: newInsertionPointClipId,
         insertionPointDatabaseId: newInsertionPointDatabaseId,
         lastInsertedClipId: null,

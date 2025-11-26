@@ -59,6 +59,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       ),
       clipIdsBeingTranscribed: new Set() satisfies Set<FrontendId>,
       insertionPointClipId: null,
+      insertionPointMode: "insert-after",
       lastInsertedClipId: null,
       insertionPointDatabaseId: null,
     },
@@ -147,8 +148,12 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           });
       }}
       insertionPointClipId={clipState.insertionPointClipId}
-      onSetInsertionPoint={(clipId) => {
-        dispatch({ type: "set-insertion-point", clipId });
+      onSetInsertionPoint={(mode, clipId) => {
+        if (mode === "after") {
+          dispatch({ type: "set-insertion-point-after", clipId });
+        } else {
+          dispatch({ type: "set-insertion-point-before", clipId });
+        }
       }}
       onDeleteLatestInsertedClip={() => {
         dispatch({ type: "delete-latest-inserted-clip" });

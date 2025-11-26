@@ -15,6 +15,7 @@ const createInitialState = (
   clipIdsBeingTranscribed: new Set(),
   clips: [],
   insertionPointClipId: null,
+  insertionPointMode: "insert-after",
   lastInsertedClipId: null,
   insertionPointDatabaseId: null,
   ...overrides,

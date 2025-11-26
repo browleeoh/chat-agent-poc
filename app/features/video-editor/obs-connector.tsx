@@ -7,6 +7,7 @@ import {
 } from "./use-speech-detector";
 import { useEffectReducer, type EffectReducer } from "use-effect-reducer";
 import type { DatabaseId } from "./clip-state-reducer";
+import { INSERTION_POINT_START } from "./constants";
 
 export type OBSConnectionState =
   | {
@@ -164,7 +165,7 @@ export const useConnectToOBSVirtualCamera = (props: {
 
 export const useRunOBSImportRepeatedly = (props: {
   videoId: string;
-  insertionPointDatabaseId: DatabaseId | null;
+  insertionPointDatabaseId: DatabaseId | null | typeof INSERTION_POINT_START;
   state:
     | {
         type: "should-run";
@@ -378,7 +379,7 @@ const obsConnectorReducer: EffectReducer<
 
 export const useOBSConnector = (props: {
   videoId: string;
-  insertionPointDatabaseId: DatabaseId | null;
+  insertionPointDatabaseId: DatabaseId | null | typeof INSERTION_POINT_START;
   onNewDatabaseClips: (clips: DB.Clip[]) => void;
   onNewClipOptimisticallyAdded: (opts: {
     scene: string;

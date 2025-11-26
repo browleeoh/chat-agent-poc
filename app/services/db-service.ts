@@ -1,5 +1,6 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
+import { INSERTION_POINT_START } from "@/features/video-editor/constants";
 import { generateNKeysBetween } from "fractional-indexing";
 import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
@@ -302,7 +303,18 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         let afterOrder: string | null | undefined = null;
         let beforeOrder: string | null | undefined = null;
 
-        if (insertAfterId) {
+        if (insertAfterId === INSERTION_POINT_START) {
+          // Insert before all clips
+          afterOrder = null;
+          const firstClip = yield* makeDbCall(() =>
+            db.query.clips.findFirst({
+              where: eq(clips.videoId, videoId),
+              orderBy: asc(clips.order),
+            })
+          );
+          beforeOrder = firstClip?.order;
+        } else if (insertAfterId) {
+          // Insert after specific clip
           const insertAfterClip = yield* makeDbCall(() =>
             db.query.clips.findFirst({
               where: eq(clips.id, insertAfterId),
@@ -321,6 +333,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           );
           beforeOrder = nextClip?.order;
         } else {
+          // Append to end
           const lastClip = yield* makeDbCall(() =>
             db.query.clips.findFirst({
               where: eq(clips.videoId, videoId),

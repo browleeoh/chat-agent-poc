@@ -8,9 +8,7 @@ import type { Route } from "./+types/api.write-readme";
 const writeReadmeSchema = Schema.Struct({
   lessonId: Schema.String,
   content: Schema.String,
-  mode: Schema.optional(Schema.Literal("write", "append"), {
-    default: () => "write" as const,
-  }),
+  mode: Schema.optional(Schema.Literal("write", "append")),
 });
 
 export const action = async (args: Route.ActionArgs) => {
@@ -54,7 +52,10 @@ export const action = async (args: Route.ActionArgs) => {
       const fileExists = yield* fs.exists(targetPath);
       if (fileExists) {
         const existingContent = yield* fs.readFileString(targetPath);
-        yield* fs.writeFileString(targetPath, existingContent + "\n\n" + content);
+        yield* fs.writeFileString(
+          targetPath,
+          existingContent + "\n\n" + content
+        );
       } else {
         // If file doesn't exist, just create it
         yield* fs.writeFileString(targetPath, content);
