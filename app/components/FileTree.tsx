@@ -4,7 +4,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 
 type FileMetadata = {

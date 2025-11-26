@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { clips, lessons, repos, sections, videos } from "@/db/schema";
 import { generateNKeysBetween } from "fractional-indexing";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 class NotFoundError extends Data.TaggedError("NotFoundError")<{
@@ -292,22 +292,47 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       getLessonWithHierarchyById,
       appendClips: Effect.fn("addClips")(function* (
         videoId: string,
+        insertAfterId: string | null,
         inputClips: readonly {
           inputVideo: string;
           startTime: number;
           endTime: number;
         }[]
       ) {
-        const lastClip = yield* makeDbCall(() =>
-          db.query.clips.findFirst({
-            where: eq(clips.videoId, videoId),
-            orderBy: desc(clips.order),
-          })
-        );
+        let afterOrder: string | null | undefined = null;
+        let beforeOrder: string | null | undefined = null;
+
+        if (insertAfterId) {
+          const insertAfterClip = yield* makeDbCall(() =>
+            db.query.clips.findFirst({
+              where: eq(clips.id, insertAfterId),
+            })
+          );
+          afterOrder = insertAfterClip?.order;
+
+          const nextClip = yield* makeDbCall(() =>
+            db.query.clips.findFirst({
+              where: and(
+                eq(clips.videoId, videoId),
+                gt(clips.order, afterOrder!)
+              ),
+              orderBy: asc(clips.order),
+            })
+          );
+          beforeOrder = nextClip?.order;
+        } else {
+          const lastClip = yield* makeDbCall(() =>
+            db.query.clips.findFirst({
+              where: eq(clips.videoId, videoId),
+              orderBy: desc(clips.order),
+            })
+          );
+          afterOrder = lastClip?.order;
+        }
 
         const order = generateNKeysBetween(
-          lastClip?.order,
-          null,
+          afterOrder ?? null,
+          beforeOrder ?? null,
           inputClips.length,
           digits
         );

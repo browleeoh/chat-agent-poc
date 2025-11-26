@@ -40,6 +40,9 @@ export namespace clipStateReducer {
   export type State = {
     clips: Clip[];
     clipIdsBeingTranscribed: Set<FrontendId>;
+    insertionPointClipId: FrontendId | null;
+    lastInsertedClipId: FrontendId | null;
+    insertionPointDatabaseId: DatabaseId | null;
   };
 
   export type Action =
@@ -62,6 +65,13 @@ export namespace clipStateReducer {
           databaseId: DatabaseId;
           text: string;
         }[];
+      }
+    | {
+        type: "set-insertion-point";
+        clipId: FrontendId;
+      }
+    | {
+        type: "delete-latest-inserted-clip";
       };
 
   export type Effect =
@@ -93,20 +103,45 @@ export const clipStateReducer: EffectReducer<
 ): clipStateReducer.State => {
   switch (action.type) {
     case "new-optimistic-clip-detected": {
+      const newFrontendId = createFrontendId();
+      const newClip = {
+        type: "optimistically-added" as const,
+        frontendId: newFrontendId,
+        scene: action.scene,
+        profile: action.profile,
+      };
+
+      let newClips: Clip[];
+      if (state.insertionPointClipId === null) {
+        // Append to end
+        newClips = [...state.clips, newClip];
+      } else {
+        // Insert after insertion point
+        const insertionPointIndex = state.clips.findIndex(
+          (c) => c.frontendId === state.insertionPointClipId
+        );
+        if (insertionPointIndex === -1) {
+          // Insertion point not found, append to end
+          newClips = [...state.clips, newClip];
+        } else {
+          newClips = [
+            ...state.clips.slice(0, insertionPointIndex + 1),
+            newClip,
+            ...state.clips.slice(insertionPointIndex + 1),
+          ];
+        }
+      }
+
       exec({
         type: "scroll-to-bottom",
       });
+
       return {
         ...state,
-        clips: [
-          ...state.clips,
-          {
-            type: "optimistically-added",
-            frontendId: createFrontendId(),
-            scene: action.scene,
-            profile: action.profile,
-          },
-        ],
+        clips: newClips,
+        insertionPointClipId: newFrontendId,
+        lastInsertedClipId: newFrontendId,
+        insertionPointDatabaseId: null,
       };
     }
     case "new-database-clips": {
@@ -122,6 +157,10 @@ export const clipStateReducer: EffectReducer<
         { scene: string; profile: string }
       >();
 
+      let newInsertionPointClipId = state.insertionPointClipId;
+      let newInsertionPointDatabaseId = state.insertionPointDatabaseId;
+      let newLastInsertedClipId = state.lastInsertedClipId;
+
       for (const databaseClip of action.clips) {
         // Find the first optimistically added clip
         const index = clips.findIndex(
@@ -136,7 +175,7 @@ export const clipStateReducer: EffectReducer<
             clipsToArchive.add(databaseClip.id);
             clips[index] = undefined;
           } else if (frontendClip.type === "optimistically-added") {
-            clips[index] = {
+            const newDatabaseClip: ClipOnDatabase = {
               ...databaseClip,
               type: "on-database",
               frontendId: frontendClip.frontendId,
@@ -144,12 +183,19 @@ export const clipStateReducer: EffectReducer<
               scene: frontendClip.scene,
               profile: frontendClip.profile,
             };
+            clips[index] = newDatabaseClip;
             clipsToUpdateScene.set(databaseClip.id, {
               scene: frontendClip.scene,
               profile: frontendClip.profile,
             });
             frontendClipIdsToTranscribe.add(frontendClip.frontendId);
             databaseClipIdsToTranscribe.add(databaseClip.id);
+
+            // Update insertion point to database ID if this was the insertion point
+            if (newInsertionPointClipId === frontendClip.frontendId) {
+              newInsertionPointDatabaseId = databaseClip.id;
+            }
+            newLastInsertedClipId = frontendClip.frontendId;
           }
         } else {
           const newFrontendId = createFrontendId();
@@ -162,6 +208,9 @@ export const clipStateReducer: EffectReducer<
           });
           frontendClipIdsToTranscribe.add(newFrontendId);
           databaseClipIdsToTranscribe.add(databaseClip.id);
+          newInsertionPointClipId = newFrontendId;
+          newInsertionPointDatabaseId = databaseClip.id;
+          newLastInsertedClipId = newFrontendId;
           shouldScrollToBottom = true;
         }
       }
@@ -200,6 +249,9 @@ export const clipStateReducer: EffectReducer<
           ...Array.from(frontendClipIdsToTranscribe),
         ]),
         clips: clips.filter((c) => c !== undefined),
+        insertionPointClipId: newInsertionPointClipId,
+        insertionPointDatabaseId: newInsertionPointDatabaseId,
+        lastInsertedClipId: newLastInsertedClipId,
       };
     }
     case "clips-deleted": {
@@ -250,6 +302,69 @@ export const clipStateReducer: EffectReducer<
           return clip;
         }),
         clipIdsBeingTranscribed: set,
+      };
+    }
+    case "set-insertion-point": {
+      const clip = state.clips.find((c) => c.frontendId === action.clipId);
+      if (!clip) {
+        return state;
+      }
+
+      return {
+        ...state,
+        insertionPointClipId: action.clipId,
+        insertionPointDatabaseId:
+          clip.type === "on-database" ? clip.databaseId : null,
+      };
+    }
+    case "delete-latest-inserted-clip": {
+      if (!state.lastInsertedClipId) {
+        return state;
+      }
+
+      const clipIndex = state.clips.findIndex(
+        (c) => c.frontendId === state.lastInsertedClipId
+      );
+      if (clipIndex === -1) {
+        return state;
+      }
+
+      const clipToDelete = state.clips[clipIndex]!;
+
+      // Archive if it's a database clip
+      if (clipToDelete.type === "on-database") {
+        exec({
+          type: "archive-clips",
+          clipIds: [clipToDelete.databaseId],
+        });
+      }
+
+      // Update insertion point if we're deleting it
+      let newInsertionPointClipId = state.insertionPointClipId;
+      let newInsertionPointDatabaseId = state.insertionPointDatabaseId;
+
+      if (state.insertionPointClipId === state.lastInsertedClipId) {
+        // Fall back to previous clip in array
+        const previousClip = state.clips[clipIndex - 1];
+        if (previousClip) {
+          newInsertionPointClipId = previousClip.frontendId;
+          newInsertionPointDatabaseId =
+            previousClip.type === "on-database"
+              ? previousClip.databaseId
+              : null;
+        } else {
+          // No previous clip, append to end
+          newInsertionPointClipId = null;
+          newInsertionPointDatabaseId = null;
+        }
+      }
+
+      return {
+        ...state,
+        clips: state.clips.filter((c) => c.frontendId !== state.lastInsertedClipId),
+        insertionPointClipId: newInsertionPointClipId,
+        insertionPointDatabaseId: newInsertionPointDatabaseId,
+        lastInsertedClipId: null,
       };
     }
   }

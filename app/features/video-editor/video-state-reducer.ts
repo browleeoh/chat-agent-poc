@@ -45,9 +45,6 @@ export namespace videoStateReducer {
         time: number;
       }
     | {
-        type: "delete-last-clip";
-      }
-    | {
         type: "clip-finished";
       }
     | {
@@ -340,19 +337,6 @@ export const makeVideoEditorReducer =
             : state.currentClipId,
         });
 
-      case "delete-last-clip": {
-        const lastClipId = clipIds[clipIds.length - 1];
-        if (!lastClipId) {
-          return state;
-        }
-
-        exec({
-          type: "archive-clips",
-          clipIds: [lastClipId],
-        });
-
-        return state;
-      }
       case "update-clip-current-time":
         return { ...state, currentTimeInClip: action.time };
       case "clip-finished": {

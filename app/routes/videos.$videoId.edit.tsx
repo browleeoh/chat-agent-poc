@@ -1,6 +1,7 @@
 import type { DB } from "@/db/schema";
 import type {
   ClipOnDatabase,
+  DatabaseId,
   FrontendId,
 } from "@/features/video-editor/clip-state-reducer";
 import {
@@ -57,6 +58,9 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         })
       ),
       clipIdsBeingTranscribed: new Set() satisfies Set<FrontendId>,
+      insertionPointClipId: null,
+      lastInsertedClipId: null,
+      insertionPointDatabaseId: null,
     },
     {
       "archive-clips": (_state, effect, _dispatch) => {
@@ -102,6 +106,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
 
   const obsConnector = useOBSConnector({
     videoId: props.loaderData.video.id,
+    insertionPointDatabaseId: clipState.insertionPointDatabaseId,
     onNewDatabaseClips: (databaseClips) => {
       dispatch({ type: "new-database-clips", clips: databaseClips });
     },
@@ -123,9 +128,30 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             );
             return clip?.type === "on-database" ? clip.databaseId : null;
           })
-          .filter((id): id is string => id !== null);
+          .filter((id): id is DatabaseId => id !== null);
 
-        dispatch({ type: "transcribe-clips", clipIds: databaseIds });
+        // This will trigger the transcribe-clips effect handler above
+        fetch("/clips/transcribe", {
+          method: "POST",
+          body: JSON.stringify({ clipIds: databaseIds }),
+        })
+          .then((res) => res.json())
+          .then((clips: DB.Clip[]) => {
+            dispatch({
+              type: "clips-transcribed",
+              clips: clips.map((clip) => ({
+                databaseId: clip.id,
+                text: clip.text,
+              })),
+            });
+          });
+      }}
+      insertionPointClipId={clipState.insertionPointClipId}
+      onSetInsertionPoint={(clipId) => {
+        dispatch({ type: "set-insertion-point", clipId });
+      }}
+      onDeleteLatestInsertedClip={() => {
+        dispatch({ type: "delete-latest-inserted-clip" });
       }}
       obsConnectorState={obsConnector.state}
       clips={clipState.clips.filter((clip) => {

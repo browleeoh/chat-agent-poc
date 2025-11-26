@@ -7,6 +7,7 @@ import type { Route } from "./+types/videos.$videoId.append-from-obs";
 
 const appendFromOBSSchema = Schema.Struct({
   filePath: Schema.String.pipe(Schema.optional),
+  insertAfterId: Schema.String.pipe(Schema.NullOr, Schema.optional),
 });
 
 function windowsToWSL(windowsPath: string) {
@@ -78,7 +79,11 @@ export const action = async (args: Route.ActionArgs) => {
       return [];
     }
 
-    const clips = yield* db.appendClips(videoId, clipsToAdd);
+    const clips = yield* db.appendClips(
+      videoId,
+      result.insertAfterId ?? null,
+      clipsToAdd
+    );
 
     return clips;
   }).pipe(

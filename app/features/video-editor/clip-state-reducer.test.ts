@@ -1,9 +1,6 @@
 import { fromPartial } from "@total-typescript/shoehorn";
 import { describe, expect, it, vi } from "vitest";
-import {
-  clipStateReducer,
-  type DatabaseId,
-} from "./clip-state-reducer";
+import { clipStateReducer, type DatabaseId } from "./clip-state-reducer";
 
 const createMockExec = () => {
   const fn = vi.fn() as any;
@@ -12,15 +9,23 @@ const createMockExec = () => {
   return fn;
 };
 
+const createInitialState = (
+  overrides: Partial<clipStateReducer.State> = {}
+): clipStateReducer.State => ({
+  clipIdsBeingTranscribed: new Set(),
+  clips: [],
+  insertionPointClipId: null,
+  lastInsertedClipId: null,
+  insertionPointDatabaseId: null,
+  ...overrides,
+});
+
 describe("clipStateReducer", () => {
   describe("Transcribing", () => {
     it("should not transcribe when a new optimistic clip is added", () => {
       const reportEffect = createMockExec();
       const newState = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
         }),
@@ -38,10 +43,7 @@ describe("clipStateReducer", () => {
     it("Should transcribe when a new database clip is added", () => {
       const reportEffect = createMockExec();
       const newState = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         {
           type: "new-database-clips",
           clips: [
@@ -61,12 +63,16 @@ describe("clipStateReducer", () => {
 
       expect(newState.clipIdsBeingTranscribed.size).toBe(1);
 
-      const stateAfterTranscribe = clipStateReducer(newState, {
-        type: "clips-transcribed",
-        clips: [
-          fromPartial({ databaseId: "123" as DatabaseId, text: "Hello" }),
-        ],
-      }, reportEffect);
+      const stateAfterTranscribe = clipStateReducer(
+        newState,
+        {
+          type: "clips-transcribed",
+          clips: [
+            fromPartial({ databaseId: "123" as DatabaseId, text: "Hello" }),
+          ],
+        },
+        reportEffect
+      );
 
       expect(stateAfterTranscribe.clipIdsBeingTranscribed.size).toBe(0);
       expect(stateAfterTranscribe.clips[0]).toMatchObject({
@@ -79,10 +85,7 @@ describe("clipStateReducer", () => {
     it("Should handle a single optimistic clip which gets replaced with a database clip", () => {
       const reportEffect1 = createMockExec();
       const stateWithOneOptimisticClip = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
         }),
@@ -124,10 +127,7 @@ describe("clipStateReducer", () => {
     it("Should handle two optimistic clips which get replaced with a database clip", () => {
       const reportEffect1 = createMockExec();
       const stateWithOneOptimisticClip = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
           scene: "Camera",
@@ -196,10 +196,7 @@ describe("clipStateReducer", () => {
     it("If there are no optimistic clips, a new database clip should be added", () => {
       const reportEffect = createMockExec();
       const stateWithASingleDatabaseClip = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         fromPartial({
           type: "new-database-clips",
           clips: [fromPartial({ id: "123" })],
@@ -218,10 +215,7 @@ describe("clipStateReducer", () => {
     it("Should archive an optimistically added clip when it is deleted", () => {
       const reportEffect = createMockExec();
       const stateWithOneOptimisticClip = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
         }),
@@ -248,10 +242,7 @@ describe("clipStateReducer", () => {
     it("Optimistically added clips that have been archived will archive database clips that replace them", () => {
       const mockExec1 = createMockExec();
       const stateWithOneOptimisticClip = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         fromPartial({
           type: "new-optimistic-clip-detected",
         }),
@@ -296,10 +287,7 @@ describe("clipStateReducer", () => {
     it("Should archive a database clip when it is deleted", () => {
       const reportEffect1 = createMockExec();
       const stateWithOneDatabaseClip = clipStateReducer(
-        {
-          clips: [],
-          clipIdsBeingTranscribed: new Set(),
-        },
+        createInitialState(),
         {
           type: "new-database-clips",
           clips: [fromPartial({ id: "123" })],

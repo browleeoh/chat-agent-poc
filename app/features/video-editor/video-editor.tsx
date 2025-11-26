@@ -90,6 +90,9 @@ export const VideoEditor = (props: {
   onClipsRetranscribe: (clipIds: FrontendId[]) => void;
   hasExplainerFolder: boolean;
   videoCount: number;
+  insertionPointClipId: FrontendId | null;
+  onSetInsertionPoint: (clipId: FrontendId) => void;
+  onDeleteLatestInsertedClip: () => void;
 }) => {
   const [state, dispatch] = useEffectReducer<
     videoStateReducer.State,
@@ -190,7 +193,7 @@ export const VideoEditor = (props: {
         JSON.parse(event.data)
       );
       if (data.type === "delete-last-clip") {
-        dispatch({ type: "delete-last-clip" });
+        props.onDeleteLatestInsertedClip();
       } else if (data.type === "toggle-last-frame-of-video") {
         dispatch({ type: "toggle-last-frame-of-video" });
       }
@@ -735,6 +738,14 @@ export const VideoEditor = (props: {
                   </button>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
+                  <ContextMenuItem
+                    onSelect={() => {
+                      props.onSetInsertionPoint(clip.frontendId);
+                    }}
+                  >
+                    <PencilIcon />
+                    Set as Insertion Point
+                  </ContextMenuItem>
                   <ContextMenuItem
                     disabled={clip.type !== "on-database"}
                     onSelect={() => {
