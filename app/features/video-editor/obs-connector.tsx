@@ -495,8 +495,6 @@ export const useOBSConnector = (props: {
     }
   );
 
-  console.log("state", state);
-
   useRunOBSImportRepeatedly({
     videoId: props.videoId,
     insertionPoint: props.insertionPoint,
