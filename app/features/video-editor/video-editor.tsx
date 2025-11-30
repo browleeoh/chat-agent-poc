@@ -58,6 +58,7 @@ import { streamDeckForwarderMessageSchema } from "stream-deck-forwarder/stream-d
 import { useEffectReducer } from "use-effect-reducer";
 import type {
   Clip,
+  ClipOnDatabase,
   FrontendId,
   FrontendInsertionPoint,
 } from "./clip-state-reducer";
@@ -249,8 +250,9 @@ export const VideoEditor = (props: {
     viewMode = "live-stream";
   }
 
-  const lastDatabaseClip = props.clips.findLast(
-    (clip) => clip.type === "on-database"
+  const databaseClipToShowLastFrameOf = getDatabaseClipBeforeInsertionPoint(
+    props.clips,
+    props.insertionPoint
   );
 
   const currentClip = props.clips.find(
@@ -340,22 +342,26 @@ export const VideoEditor = (props: {
                   <RecordingSignalIndicator />
                 )}
 
-                <LiveMediaStream
-                  mediaStream={props.liveMediaStream}
-                  obsConnectorState={props.obsConnectorState}
-                  speechDetectorState={props.speechDetectorState}
-                />
-                {lastDatabaseClip && viewMode === "last-frame" && (
+                {(props.obsConnectorState.type === "obs-recording" ||
+                  props.obsConnectorState.type === "obs-connected") && (
+                  <LiveMediaStream
+                    mediaStream={props.liveMediaStream}
+                    obsConnectorState={props.obsConnectorState}
+                    speechDetectorState={props.speechDetectorState}
+                    showCenterLine={props.obsConnectorState.scene === "Camera"}
+                  />
+                )}
+                {databaseClipToShowLastFrameOf && viewMode === "last-frame" && (
                   <div
                     className={cn(
                       "absolute top-0 left-0 rounded-lg",
-                      lastDatabaseClip.profile === "TikTok" &&
+                      databaseClipToShowLastFrameOf.profile === "TikTok" &&
                         "w-92 aspect-[9/16]"
                     )}
                   >
                     <img
                       className="w-full h-full rounded-lg opacity-50"
-                      src={`/clips/${lastDatabaseClip.databaseId}/last-frame`}
+                      src={`/clips/${databaseClipToShowLastFrameOf.databaseId}/last-frame`}
                     />
                   </div>
                 )}
@@ -839,6 +845,7 @@ export const LiveMediaStream = (props: {
   mediaStream: MediaStream;
   obsConnectorState: OBSConnectionState;
   speechDetectorState: FrontendSpeechDetectorState;
+  showCenterLine: boolean;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -881,6 +888,11 @@ export const LiveMediaStream = (props: {
           <MicOffIcon className="size-4 text-gray-900" />
         </div>
       )}
+      {props.showCenterLine && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="border-l-2 border-dashed border-gray-300/50 h-full"></div>
+        </div>
+      )}
 
       <video
         ref={videoRef}
@@ -917,3 +929,24 @@ export const RecordingSignalIndicator = () => {
 };
 
 const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
+
+export const getDatabaseClipBeforeInsertionPoint = (
+  clips: Clip[],
+  insertionPoint: FrontendInsertionPoint
+): ClipOnDatabase | undefined => {
+  if (insertionPoint.type === "start") {
+    return undefined;
+  }
+
+  if (insertionPoint.type === "end") {
+    return clips.findLast((clip) => clip.type === "on-database");
+  }
+
+  if (insertionPoint.type === "after-clip") {
+    return clips.find(
+      (clip) =>
+        clip.frontendId === insertionPoint.frontendClipId &&
+        clip.type === "on-database"
+    ) as ClipOnDatabase | undefined;
+  }
+};
