@@ -1,4 +1,8 @@
 import { getVideoPath } from "@/lib/get-video";
+import { DBService } from "@/services/db-service";
+import { layerLive } from "@/services/layer";
+import { FileSystem } from "@effect/platform";
+import { Effect } from "effect";
 import { createReadStream, statSync } from "fs";
 import type { Route } from "./+types/videos.$videoId";
 
@@ -44,4 +48,38 @@ export const loader = async (args: Route.LoaderArgs) => {
       status: 404,
     });
   }
+};
+
+export const action = async (args: Route.ActionArgs) => {
+  if (args.request.method !== "DELETE") {
+    return new Response(
+      JSON.stringify({ success: false, error: "Method not allowed" }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const { videoId } = args.params;
+
+  return Effect.gen(function* () {
+    const db = yield* DBService;
+    const fs = yield* FileSystem.FileSystem;
+
+    // Verify video exists in DB
+    yield* db.getVideoById(videoId);
+
+    const videoPath = getVideoPath(videoId);
+
+    const exists = yield* fs.exists(videoPath);
+    if (!exists) {
+      return { success: true, deletedPath: videoPath };
+    }
+
+    // Delete file (handle ENOENT as success)
+    yield* fs.remove(videoPath);
+
+    return { success: true, deletedPath: videoPath };
+  }).pipe(Effect.provide(layerLive), Effect.runPromise);
 };

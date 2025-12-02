@@ -5,6 +5,12 @@ import { AddVideoModal } from "@/components/add-video-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
 import { Button } from "@/components/ui/button";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -23,6 +29,7 @@ import { Effect } from "effect";
 import {
   ChevronDown,
   Download,
+  FileX,
   FolderGit2,
   Loader2,
   PencilIcon,
@@ -199,6 +206,7 @@ export default function Component(props: Route.ComponentProps) {
   }, [selectedRepoId]);
 
   const deleteVideoFetcher = useFetcher();
+  const deleteVideoFileFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
 
   const data = poller.data ?? props.loaderData;
@@ -398,74 +406,65 @@ export default function Component(props: Route.ComponentProps) {
                                 : "border"
                             )}
                           >
-                            <div className="flex items-center justify-between px-3 py-2">
-                              <h3 className="text-sm tracking-wide">
-                                {lesson.path}
-                              </h3>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  type="submit"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-xs"
-                                  onClick={() =>
+                            <ContextMenu>
+                              <ContextMenuTrigger asChild>
+                                <div className="flex items-center justify-between px-3 py-2 cursor-context-menu hover:bg-muted/50 transition-colors">
+                                  <h3 className="text-sm tracking-wide">
+                                    {lesson.path}
+                                  </h3>
+                                </div>
+                              </ContextMenuTrigger>
+                              <ContextMenuContent>
+                                <ContextMenuItem
+                                  onSelect={() =>
                                     setAddVideoToLessonId(lesson.id)
                                   }
                                 >
                                   <Plus className="w-4 h-4" />
-                                </Button>
-                                <AddVideoModal
-                                  lessonId={lesson.id}
-                                  videoCount={lesson.videos.length}
-                                  hasExplainerFolder={
-                                    data.hasExplainerFolderMap[lesson.id] ??
-                                    false
-                                  }
-                                  open={addVideoToLessonId === lesson.id}
-                                  onOpenChange={(open) => {
-                                    setAddVideoToLessonId(
-                                      open ? lesson.id : null
-                                    );
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-xs"
-                                  onClick={() => setEditLessonId(lesson.id)}
+                                  Add Video
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  onSelect={() => setEditLessonId(lesson.id)}
                                 >
                                   <PencilIcon className="w-4 h-4" />
-                                </Button>
-                                <EditLessonModal
-                                  lessonId={lesson.id}
-                                  currentPath={lesson.path}
-                                  open={editLessonId === lesson.id}
-                                  onOpenChange={(open) => {
-                                    setEditLessonId(open ? lesson.id : null);
+                                  Edit Lesson
+                                </ContextMenuItem>
+                                <ContextMenuItem
+                                  variant="destructive"
+                                  onSelect={() => {
+                                    deleteLessonFetcher.submit(
+                                      { lessonId: lesson.id },
+                                      {
+                                        method: "post",
+                                        action: "/api/lessons/delete",
+                                      }
+                                    );
                                   }}
-                                />
-                                <deleteLessonFetcher.Form
-                                  method="post"
-                                  action="/api/lessons/delete"
-                                  className="block"
                                 >
-                                  <input
-                                    type="hidden"
-                                    name="lessonId"
-                                    value={lesson.id}
-                                  />
-                                  <Button
-                                    type="submit"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-xs"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </deleteLessonFetcher.Form>
-                              </div>
-                            </div>
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </ContextMenuItem>
+                              </ContextMenuContent>
+                            </ContextMenu>
+                            <AddVideoModal
+                              lessonId={lesson.id}
+                              videoCount={lesson.videos.length}
+                              hasExplainerFolder={
+                                data.hasExplainerFolderMap[lesson.id] ?? false
+                              }
+                              open={addVideoToLessonId === lesson.id}
+                              onOpenChange={(open) => {
+                                setAddVideoToLessonId(open ? lesson.id : null);
+                              }}
+                            />
+                            <EditLessonModal
+                              lessonId={lesson.id}
+                              currentPath={lesson.path}
+                              open={editLessonId === lesson.id}
+                              onOpenChange={(open) => {
+                                setEditLessonId(open ? lesson.id : null);
+                              }}
+                            />
                           </div>
                           {lesson.videos.length > 0 && (
                             <div className="ml-8 text-foreground">
@@ -482,51 +481,46 @@ export default function Component(props: Route.ComponentProps) {
                                 );
 
                                 return (
-                                  <div
-                                    key={video.id}
-                                    className={cn(
-                                      "flex items-center justify-between text-sm border-x px-3 py-2",
-                                      index !== 0 ? "border-t" : ""
-                                    )}
-                                  >
-                                    <div className="flex items-center">
-                                      {data.hasExportedVideoMap[video.id] ? (
-                                        <VideoIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                                      ) : (
-                                        <VideoOffIcon className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                                      )}
-                                      <span className="tracking-wide">
-                                        {video.path} (
-                                        {formatSecondsToTimeCode(totalDuration)}
-                                        )
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0"
-                                        asChild
+                                  <ContextMenu key={video.id}>
+                                    <ContextMenuTrigger asChild>
+                                      <Link
+                                        to={`/videos/${video.id}/edit`}
+                                        className={cn(
+                                          "flex items-center justify-between text-sm border-x px-3 py-2 cursor-context-menu hover:bg-muted/50 transition-colors",
+                                          index !== 0 ? "border-t" : ""
+                                        )}
                                       >
+                                        <div className="flex items-center">
+                                          {data.hasExportedVideoMap[video.id] ? (
+                                            <VideoIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                                          ) : (
+                                            <VideoOffIcon className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                                          )}
+                                          <span className="tracking-wide">
+                                            {video.path} (
+                                            {formatSecondsToTimeCode(
+                                              totalDuration
+                                            )}
+                                            )
+                                          </span>
+                                        </div>
+                                      </Link>
+                                    </ContextMenuTrigger>
+                                    <ContextMenuContent>
+                                      <ContextMenuItem asChild>
                                         <Link to={`/videos/${video.id}/edit`}>
                                           <VideotapeIcon className="w-4 h-4" />
+                                          Edit Video
                                         </Link>
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0"
-                                        asChild
-                                      >
+                                      </ContextMenuItem>
+                                      <ContextMenuItem asChild>
                                         <Link to={`/videos/${video.id}/write`}>
-                                          <PencilIcon className="w-4 h-4 flex-shrink-0" />
+                                          <PencilIcon className="w-4 h-4" />
+                                          Write Article
                                         </Link>
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0"
-                                        onClick={() => {
+                                      </ContextMenuItem>
+                                      <ContextMenuItem
+                                        onSelect={() => {
                                           setVideoPlayerState({
                                             isOpen: true,
                                             videoId: video.id,
@@ -535,28 +529,40 @@ export default function Component(props: Route.ComponentProps) {
                                         }}
                                       >
                                         <Play className="w-4 h-4" />
-                                      </Button>
-                                      <deleteVideoFetcher.Form
-                                        method="post"
-                                        action="/api/videos/delete"
-                                        className="inline"
+                                        Play Video
+                                      </ContextMenuItem>
+                                      <ContextMenuItem
+                                        variant="destructive"
+                                        onSelect={() => {
+                                          deleteVideoFileFetcher.submit(
+                                            null,
+                                            {
+                                              method: "DELETE",
+                                              action: `/videos/${video.id}`,
+                                            }
+                                          );
+                                        }}
                                       >
-                                        <input
-                                          type="hidden"
-                                          name="videoId"
-                                          value={video.id}
-                                        />
-                                        <Button
-                                          type="submit"
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      </deleteVideoFetcher.Form>
-                                    </div>
-                                  </div>
+                                        <FileX className="w-4 h-4" />
+                                        Delete from File System
+                                      </ContextMenuItem>
+                                      <ContextMenuItem
+                                        variant="destructive"
+                                        onSelect={() => {
+                                          deleteVideoFetcher.submit(
+                                            { videoId: video.id },
+                                            {
+                                              method: "post",
+                                              action: "/api/videos/delete",
+                                            }
+                                          );
+                                        }}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete
+                                      </ContextMenuItem>
+                                    </ContextMenuContent>
+                                  </ContextMenu>
                                 );
                               })}
                             </div>
