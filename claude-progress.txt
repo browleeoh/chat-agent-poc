@@ -1,0 +1,6 @@
+## 2026-01-01: Create Version visibility based on latest version
+
+Added `isLatestVersion` flag to loader that compares selected version ID with the first (latest) version in the list. The "Create New Version" dropdown option now only shows when viewing the latest version.
+
+Changes:
+- app/routes/_index.tsx: Added isLatestVersion calculation in loader, conditional render of Create New Version menu item

@@ -89,12 +89,11 @@ export const loader = async (args: Route.LoaderArgs) => {
     > extends Effect.Effect<infer R, any, any>
       ? R
       : never = [];
-    let selectedVersion:
-      | Awaited<
-          ReturnType<typeof db.getLatestRepoVersion>
-        > extends Effect.Effect<infer R, any, any>
-        ? R
-        : never = undefined;
+    let selectedVersion: Awaited<
+      ReturnType<typeof db.getLatestRepoVersion>
+    > extends Effect.Effect<infer R, any, any>
+      ? R
+      : never = undefined;
 
     if (selectedRepoId) {
       versions = yield* db.getRepoVersions(selectedRepoId);
@@ -103,13 +102,15 @@ export const loader = async (args: Route.LoaderArgs) => {
       if (selectedVersionId) {
         selectedVersion = yield* db
           .getRepoVersionById(selectedVersionId)
-          .pipe(Effect.catchTag("NotFoundError", () => Effect.succeed(undefined)));
+          .pipe(
+            Effect.catchTag("NotFoundError", () => Effect.succeed(undefined))
+          );
       } else {
         selectedVersion = yield* db.getLatestRepoVersion(selectedRepoId);
       }
     }
 
-    const selectedRepo = yield* (!selectedRepoId
+    const selectedRepo = yield* !selectedRepoId
       ? Effect.succeed(undefined)
       : db.getRepoWithSectionsById(selectedRepoId).pipe(
           Effect.andThen((repo) => {
@@ -133,7 +134,7 @@ export const loader = async (args: Route.LoaderArgs) => {
                 .filter((section) => section.lessons.length > 0),
             };
           })
-        ));
+        );
 
     const hasExportedVideoMap: Record<string, boolean> = {};
 
@@ -169,7 +170,23 @@ export const loader = async (args: Route.LoaderArgs) => {
       });
     });
 
-    return { repos, selectedRepo, versions, selectedVersion, hasExportedVideoMap, hasExplainerFolderMap };
+    // Determine if selected version is the latest
+    const latestVersion = versions[0];
+    const isLatestVersion = !!(
+      selectedVersion &&
+      latestVersion &&
+      selectedVersion.id === latestVersion.id
+    );
+
+    return {
+      repos,
+      selectedRepo,
+      versions,
+      selectedVersion,
+      isLatestVersion,
+      hasExportedVideoMap,
+      hasExplainerFolderMap,
+    };
   }).pipe(
     Effect.catchTag("NotFoundError", (_e) => {
       return Effect.succeed(new Response("Not Found", { status: 404 }));
@@ -196,7 +213,8 @@ export default function Component(props: Route.ComponentProps) {
     videoId: "",
     videoPath: "",
   });
-  const [isCreateVersionModalOpen, setIsCreateVersionModalOpen] = useState(false);
+  const [isCreateVersionModalOpen, setIsCreateVersionModalOpen] =
+    useState(false);
 
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
@@ -335,7 +353,8 @@ export default function Component(props: Route.ComponentProps) {
                   <SelectContent>
                     {data.versions.map((version) => (
                       <SelectItem key={version.id} value={version.id}>
-                        {version.name} ({new Date(version.createdAt).toLocaleDateString()})
+                        {version.name} (
+                        {new Date(version.createdAt).toLocaleDateString()})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -363,7 +382,8 @@ export default function Component(props: Route.ComponentProps) {
                   </h1>
                   <div className="flex items-center gap-2 mb-8">
                     <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
-                      {totalLessonsWithVideos} / {totalLessons} lessons ({percentageComplete}%)
+                      {totalLessonsWithVideos} / {totalLessons} lessons (
+                      {percentageComplete}%)
                     </span>
                     <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
                       {totalVideos} videos
@@ -427,13 +447,15 @@ export default function Component(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
-                      {data.selectedVersion && (
+                      {data.selectedVersion && data.isLatestVersion && (
                         <DropdownMenuItem
                           onSelect={() => setIsCreateVersionModalOpen(true)}
                         >
                           <Copy className="w-4 h-4 mr-2" />
                           <div className="flex flex-col">
-                            <span className="font-medium">Create New Version</span>
+                            <span className="font-medium">
+                              Create New Version
+                            </span>
                             <span className="text-xs text-muted-foreground">
                               Copy structure from current version
                             </span>
@@ -570,7 +592,9 @@ export default function Component(props: Route.ComponentProps) {
                                         )}
                                       >
                                         <div className="flex items-center">
-                                          {data.hasExportedVideoMap[video.id] ? (
+                                          {data.hasExportedVideoMap[
+                                            video.id
+                                          ] ? (
                                             <VideoIcon className="w-4 h-4 mr-2 flex-shrink-0" />
                                           ) : (
                                             <VideoOffIcon className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
@@ -613,13 +637,10 @@ export default function Component(props: Route.ComponentProps) {
                                       <ContextMenuItem
                                         variant="destructive"
                                         onSelect={() => {
-                                          deleteVideoFileFetcher.submit(
-                                            null,
-                                            {
-                                              method: "DELETE",
-                                              action: `/videos/${video.id}`,
-                                            }
-                                          );
+                                          deleteVideoFileFetcher.submit(null, {
+                                            method: "DELETE",
+                                            action: `/videos/${video.id}`,
+                                          });
                                         }}
                                       >
                                         <FileX className="w-4 h-4" />

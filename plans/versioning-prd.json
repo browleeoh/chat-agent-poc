@@ -39,6 +39,31 @@
   },
   {
     "category": "functional",
+    "description": "Create Version option only visible when viewing latest version",
+    "steps": [
+      "Select a repo with multiple versions",
+      "Select the latest version",
+      "Open Actions dropdown",
+      "Verify 'Create New Version' option is visible",
+      "Select an older version (not latest)",
+      "Open Actions dropdown",
+      "Verify 'Create New Version' option is NOT visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Backend rejects creating version from non-latest version",
+    "steps": [
+      "Create repo with v1.0 and v2.0",
+      "Call createVersion API with v1.0's versionId",
+      "Verify API returns error",
+      "Verify no new version created"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
     "description": "New version tracks references to previous version entities",
     "steps": [
       "Create a new version from existing version",
