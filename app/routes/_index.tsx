@@ -57,7 +57,7 @@ import {
   VideotapeIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link, useFetcher, useSearchParams } from "react-router";
+import { Link, useFetcher, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/_index";
 import { toast } from "sonner";
 
@@ -204,7 +204,8 @@ export const loader = async (args: Route.LoaderArgs) => {
 };
 
 export default function Component(props: Route.ComponentProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const selectedRepoId = searchParams.get("repoId");
   const [isAddRepoModalOpen, setIsAddRepoModalOpen] = useState(false);
   const [addVideoToLessonId, setAddVideoToLessonId] = useState<string | null>(
@@ -342,7 +343,9 @@ export default function Component(props: Route.ComponentProps) {
                       "bg-muted text-foreground/90 hover:bg-muted/90"
                   )}
                   onClick={() => {
-                    setSearchParams({ repoId: repo.id });
+                    navigate(`?repoId=${repo.id}`, {
+                      preventScrollReset: true,
+                    });
                   }}
                 >
                   {repo.name}
@@ -880,7 +883,9 @@ export default function Component(props: Route.ComponentProps) {
           isOpen={isVersionSelectorModalOpen}
           onOpenChange={setIsVersionSelectorModalOpen}
           onSelectVersion={(versionId) => {
-            setSearchParams({ repoId: selectedRepoId, versionId });
+            navigate(`?repoId=${selectedRepoId}&versionId=${versionId}`, {
+              preventScrollReset: true,
+            });
           }}
         />
       )}

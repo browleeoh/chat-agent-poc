@@ -82,5 +82,33 @@
       "Run pnpm typecheck to verify no errors"
     ],
     "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Migrate all API route actions AND loaders to Effect.die(data(...)) pattern",
+    "steps": [
+      "Pattern: replace Effect.succeed(new Response(...)) with Effect.die(data(..., { status: xxx }))",
+      "Import { data } from 'react-router' in each route",
+      "Update api.repos.add.ts",
+      "Update api.repos.$repoId.create-version.ts",
+      "Update api.repos.$repoId.delete-version.ts",
+      "Update api.repos.$repoId.rename-version.ts",
+      "Update api.repos.$repoId.rename-repo.ts",
+      "Update api.repos.$repoId.export-all.ts",
+      "Update api.repos.$repoId.export-unexported.ts",
+      "Update api.repos.$repoId.clear-video-files.ts",
+      "Update api.repos.update.ts",
+      "Update api.repos.migrate-to-versions.ts",
+      "Update api.videos.delete.ts",
+      "Update api.videos.$videoId.export.ts",
+      "Update api.videos.edit-latest-obs-video.ts",
+      "Update api.lessons.delete.ts",
+      "Update api.lessons.$lessonId.add-video.ts",
+      "Update api.lessons.$lessonId.update-name.ts",
+      "Update api.write-readme.ts",
+      "Update _index.tsx loader error handling",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
   }
 ]
