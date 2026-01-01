@@ -219,7 +219,7 @@
       "Verify name updated in sidebar",
       "Verify name persisted after page refresh"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

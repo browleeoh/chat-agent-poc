@@ -4,6 +4,7 @@ import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
 import { CreateVersionModal } from "@/components/create-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
+import { RenameRepoModal } from "@/components/rename-repo-modal";
 import { RenameVersionModal } from "@/components/rename-version-modal";
 import { VersionSelectorModal } from "@/components/version-selector-modal";
 import { Button } from "@/components/ui/button";
@@ -214,6 +215,7 @@ export default function Component(props: Route.ComponentProps) {
     useState(false);
   const [isRenameVersionModalOpen, setIsRenameVersionModalOpen] =
     useState(false);
+  const [isRenameRepoModalOpen, setIsRenameRepoModalOpen] = useState(false);
 
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
@@ -454,6 +456,17 @@ export default function Component(props: Route.ComponentProps) {
                           </div>
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem
+                        onSelect={() => setIsRenameRepoModalOpen(true)}
+                      >
+                        <PencilIcon className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Rename Course</span>
+                          <span className="text-xs text-muted-foreground">
+                            Change course name
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -748,6 +761,15 @@ export default function Component(props: Route.ComponentProps) {
           currentName={data.selectedVersion.name}
           open={isRenameVersionModalOpen}
           onOpenChange={setIsRenameVersionModalOpen}
+        />
+      )}
+
+      {currentRepo && (
+        <RenameRepoModal
+          repoId={currentRepo.id}
+          currentName={currentRepo.name}
+          open={isRenameRepoModalOpen}
+          onOpenChange={setIsRenameRepoModalOpen}
         />
       )}
 

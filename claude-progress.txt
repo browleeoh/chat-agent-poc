@@ -72,3 +72,13 @@ Changes:
 - app/routes/api.repos.$repoId.rename-version.ts: New API route for version renaming
 - app/components/rename-version-modal.tsx: New modal component with form
 - app/routes/_index.tsx: Added Rename Version action to dropdown, integrated modal
+
+## 2026-01-01: Rename Course via Actions dropdown
+
+Implemented "Rename Course" feature accessible from Actions dropdown. Opens modal with current repo name pre-filled, saves via API. Name updates in top bar and sidebar after refresh.
+
+Changes:
+- app/services/db-service.ts: Added `updateRepoName` method
+- app/routes/api.repos.$repoId.rename-repo.ts: New API route for repo renaming
+- app/components/rename-repo-modal.tsx: New modal component with form
+- app/routes/_index.tsx: Added Rename Course action to dropdown, integrated modal

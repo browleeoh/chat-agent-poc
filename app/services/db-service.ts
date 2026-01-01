@@ -778,6 +778,27 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return updated;
       }),
+      updateRepoName: Effect.fn("updateRepoName")(function* (
+        repoId: string,
+        name: string
+      ) {
+        const [updated] = yield* makeDbCall(() =>
+          db
+            .update(repos)
+            .set({ name })
+            .where(eq(repos.id, repoId))
+            .returning()
+        );
+
+        if (!updated) {
+          return yield* new NotFoundError({
+            type: "updateRepoName",
+            params: { repoId },
+          });
+        }
+
+        return updated;
+      }),
       deleteRepo: Effect.fn("deleteRepo")(function* (repoId: string) {
         yield* makeDbCall(() => db.delete(repos).where(eq(repos.id, repoId)));
       }),

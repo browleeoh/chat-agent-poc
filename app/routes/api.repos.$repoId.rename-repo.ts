@@ -1,0 +1,29 @@
+import { Effect, Schema } from "effect";
+import type { Route } from "./+types/api.repos.$repoId.rename-repo";
+import { DBService } from "@/services/db-service";
+import { layerLive } from "@/services/layer";
+import { withDatabaseDump } from "@/services/dump-service";
+
+const renameRepoSchema = Schema.Struct({
+  name: Schema.String.pipe(
+    Schema.minLength(1, { message: () => "Course name cannot be empty" })
+  ),
+});
+
+export const action = async (args: Route.ActionArgs) => {
+  const formData = await args.request.formData();
+  const formDataObject = Object.fromEntries(formData);
+  const repoId = args.params.repoId;
+
+  return Effect.gen(function* () {
+    const { name } = yield* Schema.decodeUnknown(renameRepoSchema)(
+      formDataObject
+    );
+
+    const db = yield* DBService;
+
+    yield* db.updateRepoName(repoId, name.trim());
+
+    return { success: true };
+  }).pipe(withDatabaseDump, Effect.provide(layerLive), Effect.runPromise);
+};
