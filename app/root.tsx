@@ -6,9 +6,19 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { AlertTriangle, Home, RefreshCw, ServerCrash } from "lucide-react";
 
 import type { Route } from "./+types/root";
 import { Toaster } from "@/components/ui/sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -52,30 +62,62 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let status = 500;
+  let title = "Something went wrong";
+  let description = "An unexpected error occurred. Please try again.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
+    status = error.status;
+    if (error.status === 404) {
+      title = "Page not found";
+      description = "The page you're looking for doesn't exist or has been moved.";
+    } else if (error.status === 500) {
+      title = "Server error";
+      description = "Something went wrong on our end. Please try again later.";
+    } else {
+      title = `Error ${error.status}`;
+      description = error.statusText || description;
+    }
+  } else if (error && error instanceof Error) {
+    description = error.message;
+    if (import.meta.env.DEV) {
+      stack = error.stack;
+    }
   }
 
+  const Icon = status === 404 ? AlertTriangle : ServerCrash;
+
   return (
-    <main className="pt-16 p-4 container mx-auto dark">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <Card className="w-full max-w-lg">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+            <Icon className="h-8 w-8 text-destructive" />
+          </div>
+          <CardTitle className="text-2xl">{title}</CardTitle>
+          <CardDescription className="text-base">{description}</CardDescription>
+        </CardHeader>
+        {stack && (
+          <CardContent>
+            <div className="rounded-md bg-muted p-4 overflow-x-auto max-h-64 overflow-y-auto">
+              <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-words">
+                {stack}
+              </pre>
+            </div>
+          </CardContent>
+        )}
+        <CardFooter className="flex justify-center gap-3">
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try again
+          </Button>
+          <Button onClick={() => (window.location.href = "/")}>
+            <Home className="h-4 w-4 mr-2" />
+            Go home
+          </Button>
+        </CardFooter>
+      </Card>
     </main>
   );
 }
