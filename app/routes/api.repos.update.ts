@@ -8,6 +8,10 @@ import {
 } from "@/services/repo-parser";
 import { withDatabaseDump } from "@/services/dump-service";
 
+class NotLatestVersionError extends Data.TaggedError("NotLatestVersionError")<{
+  message: string;
+}> {}
+
 const lessonPathSchema = Schema.String.pipe(
   Schema.filter((path) => {
     const result = getSectionAndLessonNumberFromPath(path);
@@ -71,8 +75,23 @@ export const action = async (args: Route.ActionArgs) => {
 
     const db = yield* DBService;
 
-    // Fetch the current repo, including all sections and lessons
-    const repo = yield* db.getRepoWithSectionsByFilePath(decoded.filePath);
+    // Fetch the current repo
+    const baseRepo = yield* db.getRepoByFilePath(decoded.filePath);
+
+    // Get the latest version - updates should only affect latest version
+    const latestVersion = yield* db.getLatestRepoVersion(baseRepo.id);
+
+    if (!latestVersion) {
+      return yield* new NotLatestVersionError({
+        message: `No version found for repo at path '${decoded.filePath}'`,
+      });
+    }
+
+    // Fetch the repo with sections for only the latest version
+    const repo = yield* db.getRepoWithSectionsByVersion(
+      baseRepo.id,
+      latestVersion.id
+    );
 
     const lessonPathToLessonId = new Map<string, string>();
 
@@ -92,9 +111,11 @@ export const action = async (args: Route.ActionArgs) => {
         return sectionId;
       }
 
-      const [section] = yield* db.createSections(repo.id, [
-        { sectionPathWithNumber: sectionPath, sectionNumber },
-      ]);
+      const [section] = yield* db.createSections(
+        repo.id,
+        [{ sectionPathWithNumber: sectionPath, sectionNumber }],
+        latestVersion.id
+      );
 
       sectionPathToSectionId.set(sectionPath, section!.id);
 
@@ -233,9 +254,12 @@ export const action = async (args: Route.ActionArgs) => {
     }
 
     // 5. After all updates, check for any sections that have no lessons left
-    //    - Delete or archive empty sections as needed
+    //    - Delete or archive empty sections as needed (only for the latest version)
 
-    const repoAfterUpdates = yield* db.getRepoWithSectionsById(repo.id);
+    const repoAfterUpdates = yield* db.getRepoWithSectionsByVersion(
+      repo.id,
+      latestVersion.id
+    );
 
     const sectionsWithNoLessons = repoAfterUpdates.sections.filter(
       (section) => section.lessons.length === 0

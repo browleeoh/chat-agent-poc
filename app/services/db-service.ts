@@ -697,6 +697,50 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return version;
       }),
+      getRepoWithSectionsByVersion: Effect.fn("getRepoWithSectionsByVersion")(
+        function* (repoId: string, versionId: string) {
+          const repo = yield* makeDbCall(() =>
+            db.query.repos.findFirst({
+              where: eq(repos.id, repoId),
+            })
+          );
+
+          if (!repo) {
+            return yield* new NotFoundError({
+              type: "getRepoWithSectionsByVersion",
+              params: { repoId, versionId },
+            });
+          }
+
+          const versionSections = yield* makeDbCall(() =>
+            db.query.sections.findMany({
+              where: eq(sections.repoVersionId, versionId),
+              orderBy: asc(sections.order),
+              with: {
+                lessons: {
+                  orderBy: asc(lessons.order),
+                  with: {
+                    videos: {
+                      orderBy: asc(videos.path),
+                      with: {
+                        clips: {
+                          orderBy: asc(clips.order),
+                          where: eq(clips.archived, false),
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            })
+          );
+
+          return {
+            ...repo,
+            sections: versionSections,
+          };
+        }
+      ),
       createRepoVersion: Effect.fn("createRepoVersion")(function* (input: {
         repoId: string;
         name: string;
