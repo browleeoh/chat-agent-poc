@@ -4,6 +4,7 @@ import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
 import { CreateVersionModal } from "@/components/create-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
+import { RenameVersionModal } from "@/components/rename-version-modal";
 import { VersionSelectorModal } from "@/components/version-selector-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -210,6 +211,8 @@ export default function Component(props: Route.ComponentProps) {
   const [isCreateVersionModalOpen, setIsCreateVersionModalOpen] =
     useState(false);
   const [isVersionSelectorModalOpen, setIsVersionSelectorModalOpen] =
+    useState(false);
+  const [isRenameVersionModalOpen, setIsRenameVersionModalOpen] =
     useState(false);
 
   const publishRepoFetcher = useFetcher();
@@ -434,6 +437,19 @@ export default function Component(props: Route.ComponentProps) {
                             </span>
                             <span className="text-xs text-muted-foreground">
                               Copy structure from current version
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
+                      {data.selectedVersion && (
+                        <DropdownMenuItem
+                          onSelect={() => setIsRenameVersionModalOpen(true)}
+                        >
+                          <PencilIcon className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">Rename Version</span>
+                            <span className="text-xs text-muted-foreground">
+                              Change version name
                             </span>
                           </div>
                         </DropdownMenuItem>
@@ -722,6 +738,16 @@ export default function Component(props: Route.ComponentProps) {
           sourceVersionId={data.selectedVersion.id}
           isOpen={isCreateVersionModalOpen}
           onOpenChange={setIsCreateVersionModalOpen}
+        />
+      )}
+
+      {currentRepo && data.selectedVersion && (
+        <RenameVersionModal
+          repoId={currentRepo.id}
+          versionId={data.selectedVersion.id}
+          currentName={data.selectedVersion.name}
+          open={isRenameVersionModalOpen}
+          onOpenChange={setIsRenameVersionModalOpen}
         />
       )}
 

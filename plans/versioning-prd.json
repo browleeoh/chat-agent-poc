@@ -204,6 +204,38 @@
       "Submit and verify name updated in top bar",
       "Verify name persisted after page refresh"
     ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Update repo name via Actions dropdown",
+    "steps": [
+      "Select a repo",
+      "Open Actions dropdown",
+      "Click 'Rename Course'",
+      "Verify modal opens with current repo name",
+      "Enter new repo name",
+      "Submit and verify name updated in top bar",
+      "Verify name updated in sidebar",
+      "Verify name persisted after page refresh"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Clear all videos from file system via Actions dropdown",
+    "steps": [
+      "Select a repo with multiple versions, each with videos",
+      "Select a specific version",
+      "Open Actions dropdown",
+      "Click 'Clear Video Files'",
+      "Verify confirmation dialog appears",
+      "Confirm deletion",
+      "Verify video files for selected version deleted from file system",
+      "Verify video files for other versions remain on file system",
+      "Verify database entries remain intact",
+      "Verify UI still shows video metadata"
+    ],
     "passes": false
   },
   {

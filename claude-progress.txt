@@ -62,3 +62,13 @@ Added conditional check to only show version badge in top bar when repo has more
 
 Changes:
 - app/routes/_index.tsx: Added `data.versions.length > 1` check to version badge render condition
+
+## 2026-01-01: Rename Version via Actions dropdown
+
+Implemented "Rename Version" feature accessible from Actions dropdown. Opens modal with current version name pre-filled, saves via API.
+
+Changes:
+- app/services/db-service.ts: Added `updateRepoVersionName` method
+- app/routes/api.repos.$repoId.rename-version.ts: New API route for version renaming
+- app/components/rename-version-modal.tsx: New modal component with form
+- app/routes/_index.tsx: Added Rename Version action to dropdown, integrated modal
