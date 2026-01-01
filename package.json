@@ -11,7 +11,8 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:clone-local": "./scripts/clone-db-to-local.sh"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "2.0.44",

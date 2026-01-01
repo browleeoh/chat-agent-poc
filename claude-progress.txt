@@ -1,3 +1,23 @@
+## 2026-01-01: Clone database to local Docker script
+
+Created script to clone production database to a local Docker container for migration testing. This allows safe testing of migrations before running on production.
+
+Changes:
+- scripts/clone-db-to-local.sh: New script that creates/starts Docker PostgreSQL container, dumps prod, restores to local
+- package.json: Added db:clone-local script
+
+Usage:
+- pnpm db:clone-local
+- Clones to localhost:5433 with password "localpassword"
+
+## 2026-01-01: Repo updates only affect latest version
+
+Modified the repo update API to only modify sections/lessons in the latest version. When a repo is updated via /api/repos/update, the system now fetches only the latest version's sections and creates new sections with the correct repoVersionId. Older versions remain untouched.
+
+Changes:
+- app/services/db-service.ts: Added getRepoWithSectionsByVersion to fetch repo sections filtered by version
+- app/routes/api.repos.update.ts: Get latest version first, filter sections by version, pass repoVersionId to createSections
+
 ## 2026-01-01: Backend rejects creating version from non-latest version
 
 Added backend validation to prevent creating new versions from non-latest versions. This ensures data integrity even if the UI fails to hide the option.

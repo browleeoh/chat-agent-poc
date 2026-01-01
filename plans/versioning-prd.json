@@ -49,7 +49,7 @@
       "Open Actions dropdown",
       "Verify 'Create New Version' option is NOT visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -83,7 +83,7 @@
       "Verify changes applied to v2.0 only",
       "Verify v1.0 remains unchanged"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -188,7 +188,7 @@
       "Run migration on local clone first",
       "Verify migration succeeded before running on prod"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "data",
