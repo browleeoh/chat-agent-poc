@@ -45,6 +45,23 @@ export const repos = createTable("repo", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const repoVersions = createTable("repo_version", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  repoId: varchar("repo_id", { length: 255 })
+    .references(() => repos.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const sections = createTable("section", {
   id: varchar("id", { length: 255 })
     .notNull()
@@ -53,6 +70,13 @@ export const sections = createTable("section", {
   repoId: varchar("repo_id", { length: 255 })
     .references(() => repos.id, { onDelete: "cascade" })
     .notNull(),
+  repoVersionId: varchar("repo_version_id", { length: 255 }).references(
+    () => repoVersions.id,
+    { onDelete: "cascade" }
+  ),
+  previousVersionSectionId: varchar("previous_version_section_id", {
+    length: 255,
+  }),
   path: text("path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
@@ -71,6 +95,9 @@ export const lessons = createTable("lesson", {
   sectionId: varchar("section_id", { length: 255 })
     .references(() => sections.id, { onDelete: "cascade" })
     .notNull(),
+  previousVersionLessonId: varchar("previous_version_lesson_id", {
+    length: 255,
+  }),
   path: text("path").notNull(),
   createdAt: timestamp("created_at", {
     mode: "date",
@@ -149,11 +176,27 @@ export const lessonsRelations = relations(lessons, ({ one, many }) => ({
 
 export const sectionsRelations = relations(sections, ({ one, many }) => ({
   repo: one(repos, { fields: [sections.repoId], references: [repos.id] }),
+  repoVersion: one(repoVersions, {
+    fields: [sections.repoVersionId],
+    references: [repoVersions.id],
+  }),
   lessons: many(lessons),
 }));
 
+export const repoVersionsRelations = relations(
+  repoVersions,
+  ({ one, many }) => ({
+    repo: one(repos, {
+      fields: [repoVersions.repoId],
+      references: [repos.id],
+    }),
+    sections: many(sections),
+  })
+);
+
 export const reposRelations = relations(repos, ({ many }) => ({
   sections: many(sections),
+  versions: many(repoVersions),
 }));
 
 // export const chats = createTable("chat", {

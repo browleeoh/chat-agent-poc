@@ -6,10 +6,7 @@ import {
   TotalTypeScriptCLIService,
   type BeatType,
 } from "@/services/tt-cli-service";
-import {
-  FINAL_VIDEO_PADDING,
-  BEAT_DURATION,
-} from "@/features/video-editor/constants";
+import { FINAL_VIDEO_PADDING } from "@/features/video-editor/constants";
 import { withDatabaseDump } from "@/services/dump-service";
 
 const exportVideoSchema = Schema.Struct({
