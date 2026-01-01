@@ -15,6 +15,11 @@ class UnknownDBServiceError extends Data.TaggedError("UnknownDBServiceError")<{
   cause: unknown;
 }> {}
 
+class NotLatestVersionError extends Data.TaggedError("NotLatestVersionError")<{
+  sourceVersionId: string;
+  latestVersionId: string;
+}> {}
+
 const makeDbCall = <T>(fn: () => Promise<T>) => {
   return Effect.tryPromise({
     try: fn,
@@ -721,6 +726,21 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         repoId: string;
         newVersionName: string;
       }) {
+        // Verify sourceVersionId is the latest version for this repo
+        const latestVersion = yield* makeDbCall(() =>
+          db.query.repoVersions.findFirst({
+            where: eq(repoVersions.repoId, input.repoId),
+            orderBy: desc(repoVersions.createdAt),
+          })
+        );
+
+        if (!latestVersion || latestVersion.id !== input.sourceVersionId) {
+          return yield* new NotLatestVersionError({
+            sourceVersionId: input.sourceVersionId,
+            latestVersionId: latestVersion?.id ?? "none",
+          });
+        }
+
         // Create the new version
         const newVersion = yield* makeDbCall(() =>
           db.insert(repoVersions).values({

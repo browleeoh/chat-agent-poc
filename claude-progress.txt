@@ -1,3 +1,11 @@
+## 2026-01-01: Backend rejects creating version from non-latest version
+
+Added backend validation to prevent creating new versions from non-latest versions. This ensures data integrity even if the UI fails to hide the option.
+
+Changes:
+- app/services/db-service.ts: Added NotLatestVersionError, validation in copyVersionStructure that checks sourceVersionId is latest
+- app/routes/api.repos.$repoId.create-version.ts: Handle NotLatestVersionError with 400 response
+
 ## 2026-01-01: Create Version visibility based on latest version
 
 Added `isLatestVersion` flag to loader that compares selected version ID with the first (latest) version in the list. The "Create New Version" dropdown option now only shows when viewing the latest version.

@@ -60,7 +60,7 @@
       "Verify API returns error",
       "Verify no new version created"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -175,6 +175,18 @@
       "Select a version",
       "Verify no delete option exists in UI",
       "Verify no delete endpoint exists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "data",
+    "description": "Clone database to local Docker for migration testing",
+    "steps": [
+      "Create script to clone prod database to local Docker container",
+      "Script creates new PostgreSQL container if not exists",
+      "Script dumps prod database and restores to local",
+      "Run migration on local clone first",
+      "Verify migration succeeded before running on prod"
     ],
     "passes": false
   },

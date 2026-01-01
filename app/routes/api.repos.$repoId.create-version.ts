@@ -30,6 +30,9 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
     Effect.catchTag("ParseError", () =>
       Effect.succeed(new Response("Invalid request - version name required", { status: 400 }))
     ),
+    Effect.catchTag("NotLatestVersionError", () =>
+      Effect.succeed(new Response("Can only create new version from latest version", { status: 400 }))
+    ),
     Effect.catchAll(() =>
       Effect.succeed(new Response("Internal server error", { status: 500 }))
     ),
