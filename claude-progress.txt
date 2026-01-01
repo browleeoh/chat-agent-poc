@@ -186,3 +186,16 @@ Features:
 Changes:
 - app/services/db-service.ts: copyVersionStructure now returns { version, videoIdMappings } instead of just version
 - app/routes/api.repos.$repoId.create-version.ts: After copying structure, iterates through videoIdMappings and renames files in FINISHED_VIDEOS_DIRECTORY
+
+## 2026-01-01: Actions menu organized into subsections
+
+Reorganized the Actions dropdown menu into logical subsections with labels and separators for better UX.
+
+Sections:
+- Export/Publish actions at top (no label)
+- **Course** section: Rename Course
+- **Version** section: Create New Version, Rename Version, Delete Version
+- **Storage** section: Clear Video Files
+
+Changes:
+- app/routes/_index.tsx: Added DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator imports; reorganized menu items into labeled groups with separators between them

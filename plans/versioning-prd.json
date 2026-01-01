@@ -391,5 +391,17 @@
       "Verify top bar shows latest version in brackets"
     ],
     "passes": true
+  },
+  {
+    "category": "ui",
+    "description": "Actions menu organized into subsections",
+    "steps": [
+      "Open Actions dropdown",
+      "Verify 'Course' section contains: Rename Course",
+      "Verify 'Version' section contains: Create New Version, Rename Version, Delete Version",
+      "Verify 'Storage' section contains: Clear Video Files",
+      "Verify sections have visual separators between them"
+    ],
+    "passes": true
   }
 ]

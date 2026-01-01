@@ -18,7 +18,10 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -445,103 +448,124 @@ export default function Component(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
-                      {data.selectedVersion && data.isLatestVersion && (
+
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Course</DropdownMenuLabel>
+                      <DropdownMenuGroup>
                         <DropdownMenuItem
-                          onSelect={() => setIsCreateVersionModalOpen(true)}
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              Create New Version
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              Copy structure from current version
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
-                      )}
-                      {data.selectedVersion && (
-                        <DropdownMenuItem
-                          onSelect={() => setIsRenameVersionModalOpen(true)}
+                          onSelect={() => setIsRenameRepoModalOpen(true)}
                         >
                           <PencilIcon className="w-4 h-4 mr-2" />
                           <div className="flex flex-col">
-                            <span className="font-medium">Rename Version</span>
+                            <span className="font-medium">Rename Course</span>
                             <span className="text-xs text-muted-foreground">
-                              Change version name
+                              Change course name
                             </span>
                           </div>
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onSelect={() => setIsRenameRepoModalOpen(true)}
-                      >
-                        <PencilIcon className="w-4 h-4 mr-2" />
-                        <div className="flex flex-col">
-                          <span className="font-medium">Rename Course</span>
-                          <span className="text-xs text-muted-foreground">
-                            Change course name
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                      {data.selectedVersion &&
-                        data.versions.length > 1 &&
-                        (() => {
-                          const canDelete = data.isLatestVersion;
-                          const disabledReason = !data.isLatestVersion
-                            ? "Can only delete latest version"
-                            : null;
+                      </DropdownMenuGroup>
 
-                          const menuItem = (
+                      {data.selectedVersion && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>Version</DropdownMenuLabel>
+                          <DropdownMenuGroup>
+                            {data.isLatestVersion && (
+                              <DropdownMenuItem
+                                onSelect={() =>
+                                  setIsCreateVersionModalOpen(true)
+                                }
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    Create New Version
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Copy structure from current version
+                                  </span>
+                                </div>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem
-                              onSelect={() =>
-                                canDelete && setIsDeleteVersionModalOpen(true)
-                              }
-                              disabled={!canDelete}
-                              className="text-destructive focus:text-destructive"
+                              onSelect={() => setIsRenameVersionModalOpen(true)}
                             >
-                              <Trash2 className="w-4 h-4 mr-2" />
+                              <PencilIcon className="w-4 h-4 mr-2" />
                               <div className="flex flex-col">
                                 <span className="font-medium">
-                                  Delete Version
+                                  Rename Version
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  Remove current version permanently
+                                  Change version name
                                 </span>
                               </div>
                             </DropdownMenuItem>
-                          );
+                            {data.versions.length > 1 &&
+                              (() => {
+                                const canDelete = data.isLatestVersion;
+                                const disabledReason = !data.isLatestVersion
+                                  ? "Can only delete latest version"
+                                  : null;
 
-                          if (disabledReason) {
-                            return (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div>{menuItem}</div>
-                                </TooltipTrigger>
-                                <TooltipContent side="left">
-                                  {disabledReason}
-                                </TooltipContent>
-                              </Tooltip>
-                            );
-                          }
+                                const menuItem = (
+                                  <DropdownMenuItem
+                                    onSelect={() =>
+                                      canDelete &&
+                                      setIsDeleteVersionModalOpen(true)
+                                    }
+                                    disabled={!canDelete}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">
+                                        Delete Version
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        Remove current version permanently
+                                      </span>
+                                    </div>
+                                  </DropdownMenuItem>
+                                );
 
-                          return menuItem;
-                        })()}
-                      {data.selectedVersion && (
-                        <DropdownMenuItem
-                          onSelect={() => setIsClearVideoFilesModalOpen(true)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <FileX className="w-4 h-4 mr-2" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              Clear Video Files
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              Delete exported videos from file system
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
+                                if (disabledReason) {
+                                  return (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div>{menuItem}</div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="left">
+                                        {disabledReason}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  );
+                                }
+
+                                return menuItem;
+                              })()}
+                          </DropdownMenuGroup>
+
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>Storage</DropdownMenuLabel>
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem
+                              onSelect={() =>
+                                setIsClearVideoFilesModalOpen(true)
+                              }
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <FileX className="w-4 h-4 mr-2" />
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  Clear Video Files
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  Delete exported videos from file system
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </DropdownMenuGroup>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
