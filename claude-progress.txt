@@ -82,3 +82,17 @@ Changes:
 - app/routes/api.repos.$repoId.rename-repo.ts: New API route for repo renaming
 - app/components/rename-repo-modal.tsx: New modal component with form
 - app/routes/_index.tsx: Added Rename Course action to dropdown, integrated modal
+
+## 2026-01-01: Delete Version via Actions dropdown
+
+Implemented "Delete Version" feature accessible from Actions dropdown. Only visible when viewing the latest version of a repo with multiple versions. Shows confirmation dialog, then deletes version and all associated data (sections, lessons, videos, clips) via cascade. After deletion, UI refreshes to show the previous version.
+
+Backend validation:
+- Cannot delete non-latest version (returns error)
+- Cannot delete the only version of a repo (returns error)
+
+Changes:
+- app/services/db-service.ts: Added `CannotDeleteOnlyVersionError`, `CannotDeleteNonLatestVersionError` error types and `deleteRepoVersion` method
+- app/routes/api.repos.$repoId.delete-version.ts: New API route for version deletion with validation
+- app/components/delete-version-modal.tsx: New confirmation modal component
+- app/routes/_index.tsx: Added Delete Version action to dropdown (conditional visibility), integrated modal

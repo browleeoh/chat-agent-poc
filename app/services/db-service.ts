@@ -20,6 +20,20 @@ class NotLatestVersionError extends Data.TaggedError("NotLatestVersionError")<{
   latestVersionId: string;
 }> {}
 
+class CannotDeleteOnlyVersionError extends Data.TaggedError(
+  "CannotDeleteOnlyVersionError"
+)<{
+  versionId: string;
+  repoId: string;
+}> {}
+
+class CannotDeleteNonLatestVersionError extends Data.TaggedError(
+  "CannotDeleteNonLatestVersionError"
+)<{
+  versionId: string;
+  latestVersionId: string;
+}> {}
+
 const makeDbCall = <T>(fn: () => Promise<T>) => {
   return Effect.tryPromise({
     try: fn,
@@ -801,6 +815,61 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       }),
       deleteRepo: Effect.fn("deleteRepo")(function* (repoId: string) {
         yield* makeDbCall(() => db.delete(repos).where(eq(repos.id, repoId)));
+      }),
+      /**
+       * Delete a repo version. Only the latest version can be deleted,
+       * and a repo must have at least one version remaining.
+       */
+      deleteRepoVersion: Effect.fn("deleteRepoVersion")(function* (
+        versionId: string
+      ) {
+        // Get the version to find its repoId
+        const version = yield* makeDbCall(() =>
+          db.query.repoVersions.findFirst({
+            where: eq(repoVersions.id, versionId),
+          })
+        );
+
+        if (!version) {
+          return yield* new NotFoundError({
+            type: "deleteRepoVersion",
+            params: { versionId },
+          });
+        }
+
+        // Get all versions for this repo
+        const allVersions = yield* makeDbCall(() =>
+          db.query.repoVersions.findMany({
+            where: eq(repoVersions.repoId, version.repoId),
+            orderBy: desc(repoVersions.createdAt),
+          })
+        );
+
+        // Cannot delete the only version
+        if (allVersions.length <= 1) {
+          return yield* new CannotDeleteOnlyVersionError({
+            versionId,
+            repoId: version.repoId,
+          });
+        }
+
+        // Can only delete the latest version
+        const latestVersion = allVersions[0];
+        if (!latestVersion || latestVersion.id !== versionId) {
+          return yield* new CannotDeleteNonLatestVersionError({
+            versionId,
+            latestVersionId: latestVersion?.id ?? "none",
+          });
+        }
+
+        // Delete the version (cascades to sections, lessons, videos, clips)
+        yield* makeDbCall(() =>
+          db.delete(repoVersions).where(eq(repoVersions.id, versionId))
+        );
+
+        // Return the new latest version (second in the original list)
+        const newLatestVersion = allVersions[1];
+        return newLatestVersion;
       }),
       /**
        * Copy structure from an existing version to a new version.

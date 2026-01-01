@@ -3,6 +3,7 @@
 import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
 import { CreateVersionModal } from "@/components/create-version-modal";
+import { DeleteVersionModal } from "@/components/delete-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
 import { RenameRepoModal } from "@/components/rename-repo-modal";
 import { RenameVersionModal } from "@/components/rename-version-modal";
@@ -216,6 +217,8 @@ export default function Component(props: Route.ComponentProps) {
   const [isRenameVersionModalOpen, setIsRenameVersionModalOpen] =
     useState(false);
   const [isRenameRepoModalOpen, setIsRenameRepoModalOpen] = useState(false);
+  const [isDeleteVersionModalOpen, setIsDeleteVersionModalOpen] =
+    useState(false);
 
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
@@ -467,6 +470,22 @@ export default function Component(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
+                      {data.selectedVersion &&
+                        data.isLatestVersion &&
+                        data.versions.length > 1 && (
+                          <DropdownMenuItem
+                            onSelect={() => setIsDeleteVersionModalOpen(true)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            <div className="flex flex-col">
+                              <span className="font-medium">Delete Version</span>
+                              <span className="text-xs text-muted-foreground">
+                                Remove current version permanently
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -782,6 +801,16 @@ export default function Component(props: Route.ComponentProps) {
           onSelectVersion={(versionId) => {
             setSearchParams({ repoId: selectedRepoId, versionId });
           }}
+        />
+      )}
+
+      {currentRepo && data.selectedVersion && data.versions.length > 1 && (
+        <DeleteVersionModal
+          repoId={currentRepo.id}
+          versionId={data.selectedVersion.id}
+          versionName={data.selectedVersion.name}
+          open={isDeleteVersionModalOpen}
+          onOpenChange={setIsDeleteVersionModalOpen}
         />
       )}
     </div>

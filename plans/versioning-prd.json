@@ -184,11 +184,49 @@
   },
   {
     "category": "functional",
-    "description": "Versions cannot be deleted",
+    "description": "Latest version can be deleted via Actions dropdown",
     "steps": [
-      "Select a version",
-      "Verify no delete option exists in UI",
-      "Verify no delete endpoint exists"
+      "Select a repo with multiple versions",
+      "Select the latest version",
+      "Open Actions dropdown",
+      "Click 'Delete Version'",
+      "Verify confirmation dialog appears",
+      "Confirm deletion",
+      "Verify version deleted from database",
+      "Verify UI redirects to previous version"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Delete Version option hidden for non-latest versions",
+    "steps": [
+      "Select a repo with multiple versions",
+      "Select an older version (not latest)",
+      "Open Actions dropdown",
+      "Verify 'Delete Version' option is NOT visible"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Backend rejects deleting non-latest version",
+    "steps": [
+      "Create repo with v1.0 and v2.0",
+      "Call deleteVersion API with v1.0's versionId",
+      "Verify API returns error",
+      "Verify v1.0 still exists in database"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Cannot delete the only version of a repo",
+    "steps": [
+      "Select a repo with only one version",
+      "Open Actions dropdown",
+      "Verify 'Delete Version' option is NOT visible",
+      "Verify backend rejects delete attempt for sole version"
     ],
     "passes": true
   },
