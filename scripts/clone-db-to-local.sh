@@ -58,7 +58,7 @@ else
         -e POSTGRES_PASSWORD="$LOCAL_PASSWORD" \
         -e POSTGRES_DB="$LOCAL_DB" \
         -p "${LOCAL_PORT}:5432" \
-        postgres:16
+        postgres:17
 
     echo -e "${YELLOW}Waiting for PostgreSQL to be ready...${NC}"
     sleep 5
@@ -79,9 +79,9 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Dump production database
+# Dump production database (using pg_dump from container to match server version)
 echo -e "${YELLOW}Dumping production database...${NC}"
-pg_dump "$DATABASE_URL" --no-owner --no-acl > "$DUMP_FILE"
+docker exec "$CONTAINER_NAME" pg_dump "$DATABASE_URL" --no-owner --no-acl > "$DUMP_FILE"
 echo -e "${GREEN}✓ Production database dumped to ${DUMP_FILE}${NC}"
 
 # Drop and recreate database in local container
