@@ -151,3 +151,17 @@ Tests now passing:
 - Changelog detects renamed sections/lessons per version
 - Changelog detects content changes via transcript comparison
 - Initial version shows as 'Initial version' in changelog
+
+## 2026-01-01: Publish errors displayed via sonner toast
+
+Added toast notifications for publish action feedback. Success and error states now show user-friendly toasts.
+
+Features:
+- Error toasts display failure reason from API response
+- Success toast confirms publish completed
+- Toasts are dismissible
+
+Changes:
+- app/components/ui/sonner.tsx: Simplified Toaster to use dark theme directly (removed next-themes dependency)
+- app/root.tsx: Added Toaster component to app layout
+- app/routes/_index.tsx: Added useEffect to handle publishRepoFetcher response and show toast

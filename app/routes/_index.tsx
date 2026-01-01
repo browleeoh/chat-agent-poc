@@ -55,6 +55,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useFetcher, useSearchParams } from "react-router";
+import { toast } from "sonner";
 import type { Route } from "./+types/_index";
 
 export const meta: Route.MetaFunction = ({ data }) => {
@@ -230,6 +231,39 @@ export default function Component(props: Route.ComponentProps) {
 
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
+
+  // Handle publish response with toast notifications
+  useEffect(() => {
+    if (publishRepoFetcher.state !== "idle" || !publishRepoFetcher.data) {
+      return;
+    }
+
+    const response = publishRepoFetcher.data;
+
+    // Check if it's an error Response
+    if (response instanceof Response) {
+      response
+        .clone()
+        .json()
+        .then((json: { message?: string }) => {
+          toast.error(json.message || "Publish failed");
+        })
+        .catch(() => {
+          response
+            .clone()
+            .text()
+            .then((text: string) => {
+              toast.error(text || "Publish failed");
+            });
+        });
+    } else if (
+      typeof response === "object" &&
+      Object.keys(response).length === 0
+    ) {
+      // Empty object {} means success
+      toast.success("Published successfully");
+    }
+  }, [publishRepoFetcher.state, publishRepoFetcher.data]);
 
   const poller = useFetcher<typeof props.loaderData>();
 
@@ -478,45 +512,52 @@ export default function Component(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
-                      {data.selectedVersion && (() => {
-                        const canDelete = data.isLatestVersion && data.versions.length > 1;
-                        const disabledReason = data.versions.length <= 1
-                          ? "Cannot delete only version"
-                          : !data.isLatestVersion
-                            ? "Can only delete latest version"
-                            : null;
+                      {data.selectedVersion &&
+                        (() => {
+                          const canDelete =
+                            data.isLatestVersion && data.versions.length > 1;
+                          const disabledReason =
+                            data.versions.length <= 1
+                              ? "Cannot delete only version"
+                              : !data.isLatestVersion
+                              ? "Can only delete latest version"
+                              : null;
 
-                        const menuItem = (
-                          <DropdownMenuItem
-                            onSelect={() => canDelete && setIsDeleteVersionModalOpen(true)}
-                            disabled={!canDelete}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            <div className="flex flex-col">
-                              <span className="font-medium">Delete Version</span>
-                              <span className="text-xs text-muted-foreground">
-                                Remove current version permanently
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        );
-
-                        if (disabledReason) {
-                          return (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>{menuItem}</div>
-                              </TooltipTrigger>
-                              <TooltipContent side="left">
-                                {disabledReason}
-                              </TooltipContent>
-                            </Tooltip>
+                          const menuItem = (
+                            <DropdownMenuItem
+                              onSelect={() =>
+                                canDelete && setIsDeleteVersionModalOpen(true)
+                              }
+                              disabled={!canDelete}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  Delete Version
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  Remove current version permanently
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
                           );
-                        }
 
-                        return menuItem;
-                      })()}
+                          if (disabledReason) {
+                            return (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>{menuItem}</div>
+                                </TooltipTrigger>
+                                <TooltipContent side="left">
+                                  {disabledReason}
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          }
+
+                          return menuItem;
+                        })()}
                       {data.selectedVersion && (
                         <DropdownMenuItem
                           onSelect={() => setIsClearVideoFilesModalOpen(true)}
@@ -524,7 +565,9 @@ export default function Component(props: Route.ComponentProps) {
                         >
                           <FileX className="w-4 h-4 mr-2" />
                           <div className="flex flex-col">
-                            <span className="font-medium">Clear Video Files</span>
+                            <span className="font-medium">
+                              Clear Video Files
+                            </span>
                             <span className="text-xs text-muted-foreground">
                               Delete exported videos from file system
                             </span>

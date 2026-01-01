@@ -205,7 +205,7 @@
       "Verify error toast appears with failure reason",
       "Verify toast is dismissible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -218,6 +218,7 @@
       "Verify confirmation dialog appears",
       "Confirm deletion",
       "Verify version deleted from database",
+      "Verify version's video files deleted from file system",
       "Verify UI redirects to previous version"
     ],
     "passes": true
