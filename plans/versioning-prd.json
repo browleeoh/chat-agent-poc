@@ -8,7 +8,7 @@
       "Check dropdown shows current version name and date",
       "Verify dropdown lists all versions for the repo"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -20,7 +20,7 @@
       "Verify URL updates with versionId param",
       "Verify displayed sections/lessons match selected version"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -185,7 +185,7 @@
       "Verify most recent version appears first",
       "Verify versions are ordered newest to oldest"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
@@ -208,7 +208,7 @@
       "Copy URL and open in new tab",
       "Verify same repo and version are selected"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
@@ -218,6 +218,6 @@
       "Verify latest version is automatically selected",
       "Verify version selector shows latest version"
     ],
-    "passes": false
+    "passes": true
   }
 ]

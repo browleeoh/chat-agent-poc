@@ -17,6 +17,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { VideoModal } from "@/components/video-player";
 import { getVideoPath } from "@/lib/get-video";
@@ -66,36 +73,65 @@ export const meta: Route.MetaFunction = ({ data }) => {
 export const loader = async (args: Route.LoaderArgs) => {
   const url = new URL(args.request.url);
   const selectedRepoId = url.searchParams.get("repoId");
+  const selectedVersionId = url.searchParams.get("versionId");
 
   return Effect.gen(function* () {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
-    const [repos, selectedRepo] = yield* Effect.all(
-      [
-        db.getRepos(),
-        !selectedRepoId
-          ? Effect.succeed(undefined)
-          : db.getRepoWithSectionsById(selectedRepoId).pipe(
-              Effect.andThen((repo) => {
-                if (!repo) {
-                  return undefined;
-                }
 
-                return {
-                  ...repo,
-                  sections: repo.sections
-                    .filter((section) => {
-                      return !section.path.endsWith("ARCHIVE");
-                    })
-                    .filter((section) => section.lessons.length > 0),
-                };
-              })
-            ),
-      ],
-      {
-        concurrency: "unbounded",
+    // First get repos and versions for the selected repo
+    const repos = yield* db.getRepos();
+
+    let versions: Awaited<
+      ReturnType<typeof db.getRepoVersions>
+    > extends Effect.Effect<infer R, any, any>
+      ? R
+      : never = [];
+    let selectedVersion:
+      | Awaited<
+          ReturnType<typeof db.getLatestRepoVersion>
+        > extends Effect.Effect<infer R, any, any>
+        ? R
+        : never = undefined;
+
+    if (selectedRepoId) {
+      versions = yield* db.getRepoVersions(selectedRepoId);
+
+      // If versionId provided, use it; otherwise use latest
+      if (selectedVersionId) {
+        selectedVersion = yield* db
+          .getRepoVersionById(selectedVersionId)
+          .pipe(Effect.catchTag("NotFoundError", () => Effect.succeed(undefined)));
+      } else {
+        selectedVersion = yield* db.getLatestRepoVersion(selectedRepoId);
       }
-    );
+    }
+
+    const selectedRepo = yield* (!selectedRepoId
+      ? Effect.succeed(undefined)
+      : db.getRepoWithSectionsById(selectedRepoId).pipe(
+          Effect.andThen((repo) => {
+            if (!repo) {
+              return undefined;
+            }
+
+            return {
+              ...repo,
+              sections: repo.sections
+                .filter((section) => {
+                  return !section.path.endsWith("ARCHIVE");
+                })
+                .filter((section) => {
+                  // Filter by version if one is selected
+                  if (selectedVersion) {
+                    return section.repoVersionId === selectedVersion.id;
+                  }
+                  return true;
+                })
+                .filter((section) => section.lessons.length > 0),
+            };
+          })
+        ));
 
     const hasExportedVideoMap: Record<string, boolean> = {};
 
@@ -131,7 +167,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       });
     });
 
-    return { repos, selectedRepo, hasExportedVideoMap, hasExplainerFolderMap };
+    return { repos, selectedRepo, versions, selectedVersion, hasExportedVideoMap, hasExplainerFolderMap };
   }).pipe(
     Effect.catchTag("NotFoundError", (_e) => {
       return Effect.succeed(new Response("Not Found", { status: 404 }));
@@ -277,6 +313,33 @@ export default function Component(props: Route.ComponentProps) {
               ))}
             </div>
           </ScrollArea>
+          {selectedRepoId && data.versions.length > 0 && (
+            <>
+              <Separator className="mb-4" />
+              <div className="mb-4">
+                <label className="text-sm text-muted-foreground mb-2 block">
+                  Version
+                </label>
+                <Select
+                  value={data.selectedVersion?.id ?? ""}
+                  onValueChange={(versionId) => {
+                    setSearchParams({ repoId: selectedRepoId, versionId });
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select version" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.versions.map((version) => (
+                      <SelectItem key={version.id} value={version.id}>
+                        {version.name} ({new Date(version.createdAt).toLocaleDateString()})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
           <Separator className="mb-4" />
           <AddRepoModal
             isOpen={isAddRepoModalOpen}

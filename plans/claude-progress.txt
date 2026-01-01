@@ -92,3 +92,38 @@ Verified and tested cascade deletion works through the version hierarchy:
 ### Next Steps
 - Implement version selector UI in sidebar
 - Implement "Create New Version" functionality
+
+---
+
+## 2026-01-01: Version Selector UI in Sidebar
+
+### Work Done
+Implemented version selector dropdown in sidebar:
+
+1. **Updated loader in `_index.tsx`**
+   - Added `versionId` URL search param handling
+   - Fetches all versions for selected repo via `getRepoVersions`
+   - If versionId provided, uses that version; otherwise defaults to latest
+   - Filters sections by `repoVersionId` to show only content for selected version
+   - Returns `versions` and `selectedVersion` in loader data
+
+2. **Added version selector UI**
+   - Select dropdown appears below repo list when repo is selected
+   - Shows all versions with name and creation date
+   - Versions ordered newest to oldest (from DBService query)
+   - Changing version updates URL with `versionId` param
+   - Latest version auto-selected when no versionId in URL
+
+### PRD Status
+7 of 19 features passing:
+- ✅ "Migration creates v1.0 for existing repos"
+- ✅ "Cascade deletion works through version hierarchy"
+- ✅ "Version selector displays in sidebar when repo is selected"
+- ✅ "Switching versions updates displayed content"
+- ✅ "Version selector shows versions ordered by date descending"
+- ✅ "URL reflects selected version"
+- ✅ "Default to latest version when no versionId in URL"
+
+### Next Steps
+- Implement "Create New Version" functionality
+- Implement changelog generation
