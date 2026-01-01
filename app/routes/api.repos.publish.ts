@@ -15,8 +15,8 @@ import { DBService } from "@/services/db-service";
 import { Command, FileSystem } from "@effect/platform";
 import path from "node:path";
 import { makeSemaphore } from "effect/Effect";
-import { NodeRuntime } from "@effect/platform-node";
 import { generateChangelog } from "@/services/changelog-service";
+import { data } from "react-router";
 
 const publishRepoSchema = Schema.Struct({
   repoId: Schema.String,
@@ -73,7 +73,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const formData = await request.formData();
   const formDataObject = Object.fromEntries(formData);
 
-  return await Effect.gen(function* () {
+  return Effect.gen(function* () {
     const result = yield* Schema.decodeUnknown(publishRepoSchema)(
       formDataObject
     );
@@ -318,15 +318,14 @@ export const action = async ({ request }: Route.ActionArgs) => {
       return Console.log(e);
     }),
     Effect.catchTags({
-      ParseError: (_e) =>
-        Effect.succeed(new Response("Invalid request", { status: 400 })),
+      ParseError: (_e) => Effect.die(data("Invalid request", { status: 400 })),
       RepoDoesNotExistError: () =>
-        Effect.succeed(
-          new Response("Repo path does not exist locally", { status: 404 })
-        ),
+        Effect.die(data("Repo path does not exist locally", { status: 404 })),
+      VideoDoesNotExistLocallyError: (e) =>
+        Effect.die(data(e.message, { status: 404 })),
       DoesNotExistOnDbError: (e) =>
-        Effect.succeed(
-          new Response(
+        Effect.die(
+          data(
             JSON.stringify({
               message: e.message,
               type: e.type,
@@ -336,17 +335,13 @@ export const action = async ({ request }: Route.ActionArgs) => {
           )
         ),
       NotFoundError: (e) =>
-        Effect.succeed(
-          new Response(`Not found: ${e.message}`, { status: 404 })
-        ),
+        Effect.die(data(`Not found: ${e.message}`, { status: 404 })),
     }),
     Effect.withConfigProvider(ConfigProvider.fromEnv()),
     Effect.catchAll((_e) => {
-      return Effect.succeed(
-        new Response("Internal server error", { status: 500 })
-      );
+      return Effect.die(data("Internal server error", { status: 500 }));
     }),
     Effect.provide(layerLive),
-    NodeRuntime.runMain
+    Effect.runPromise
   );
 };

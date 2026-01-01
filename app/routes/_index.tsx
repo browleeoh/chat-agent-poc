@@ -8,7 +8,6 @@ import { DeleteVersionModal } from "@/components/delete-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
 import { RenameRepoModal } from "@/components/rename-repo-modal";
 import { RenameVersionModal } from "@/components/rename-version-modal";
-import { VersionSelectorModal } from "@/components/version-selector-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -22,13 +21,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { VersionSelectorModal } from "@/components/version-selector-modal";
 import { VideoModal } from "@/components/video-player";
 import { getVideoPath } from "@/lib/get-video";
 import { cn } from "@/lib/utils";
@@ -55,8 +55,8 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useFetcher, useSearchParams } from "react-router";
-import { useFetcherToast } from "@/hooks/use-fetcher-toast";
 import type { Route } from "./+types/_index";
+import { toast } from "sonner";
 
 export const meta: Route.MetaFunction = ({ data }) => {
   const selectedRepo = data?.selectedRepo;
@@ -232,11 +232,6 @@ export default function Component(props: Route.ComponentProps) {
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
 
-  useFetcherToast(publishRepoFetcher, {
-    successMessage: "Published successfully",
-    errorMessage: "Publish failed",
-  });
-
   const poller = useFetcher<typeof props.loaderData>();
 
   useEffect(() => {
@@ -321,7 +316,7 @@ export default function Component(props: Route.ComponentProps) {
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Left Sidebar - Repos */}
-      <div className="w-80 border-r bg-muted/30 hidden lg:block flex flex-col">
+      <div className="w-80 border-r bg-muted/30 hidden lg:flex flex-col">
         <div className="p-4 flex-1 flex flex-col min-h-0">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FolderGit2 className="w-5 h-5" />
@@ -428,13 +423,18 @@ export default function Component(props: Route.ComponentProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={() => {
-                          publishRepoFetcher.submit(
-                            { repoId: currentRepo.id },
-                            {
-                              method: "post",
-                              action: "/api/repos/publish",
-                            }
-                          );
+                          publishRepoFetcher
+                            .submit(
+                              { repoId: currentRepo.id },
+                              {
+                                method: "post",
+                                action: "/api/repos/publish",
+                              }
+                            )
+                            .catch((e) => {
+                              console.error("Publish failed", e);
+                              toast.error("Publish failed");
+                            });
                         }}
                       >
                         <Send className="w-4 h-4 mr-2" />

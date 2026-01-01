@@ -1,0 +1,86 @@
+[
+  {
+    "category": "refactor",
+    "description": "Rename api.repos.publish.ts to api.repos.publishToDropbox.ts",
+    "steps": [
+      "Rename app/routes/api.repos.publish.ts to app/routes/api.repos.publishToDropbox.ts",
+      "Update action reference in _index.tsx from /api/repos/publish to /api/repos/publishToDropbox",
+      "Run pnpm typecheck to verify no errors",
+      "Verify Dropbox publishing still works by triggering publish action"
+    ],
+    "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Extract db-service errors to separate file",
+    "steps": [
+      "Create app/services/db-service-errors.ts",
+      "Move NotFoundError, UnknownDBServiceError, NotLatestVersionError, CannotDeleteOnlyVersionError, CannotDeleteNonLatestVersionError to new file",
+      "Export all errors from new file",
+      "Update imports in db-service.ts",
+      "Update any other files importing these errors from db-service.ts",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Convert appendClips to object-based arguments",
+    "steps": [
+      "Change appendClips(videoId, insertionPoint, inputClips) to appendClips({videoId, insertionPoint, clips})",
+      "Update all callers of appendClips",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Convert createSections to object-based arguments",
+    "steps": [
+      "Change createSections(repoId, newSections, repoVersionId?) to createSections({repoId, sections, repoVersionId?})",
+      "Update all callers of createSections",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Convert updateRepoVersionName to object-based arguments",
+    "steps": [
+      "Change updateRepoVersionName(versionId, name) to updateRepoVersionName({versionId, name})",
+      "Update all callers",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Convert updateRepoName to object-based arguments",
+    "steps": [
+      "Change updateRepoName(repoId, name) to updateRepoName({repoId, name})",
+      "Update all callers",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "refactor",
+    "description": "Convert getRepoWithSectionsByVersion to object-based arguments",
+    "steps": [
+      "Change getRepoWithSectionsByVersion(repoId, versionId) to getRepoWithSectionsByVersion({repoId, versionId})",
+      "Update all callers",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  },
+  {
+    "category": "cleanup",
+    "description": "Remove unused next-themes dependency",
+    "steps": [
+      "Run pnpm remove next-themes",
+      "Verify no imports of next-themes exist in codebase",
+      "Run pnpm typecheck to verify no errors"
+    ],
+    "passes": false
+  }
+]
