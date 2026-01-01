@@ -249,3 +249,11 @@ Refactored updateRepoName to use object-based arguments for consistency with oth
 Changes:
 - app/services/db-service.ts: Changed signature from (repoId, name) to ({repoId, name})
 - app/routes/api.repos.$repoId.rename-repo.ts: Updated caller to use object syntax
+
+## 2026-01-01: Convert getRepoWithSectionsByVersion to object-based arguments
+
+Refactored getRepoWithSectionsByVersion to use object-based arguments for consistency with other db-service methods.
+
+Changes:
+- app/services/db-service.ts: Changed signature from (repoId, versionId) to ({repoId, versionId})
+- app/routes/api.repos.update.ts: Updated both callers to use object syntax

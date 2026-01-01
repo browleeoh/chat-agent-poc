@@ -89,10 +89,10 @@ export const action = async (args: Route.ActionArgs) => {
     }
 
     // Fetch the repo with sections for only the latest version
-    const repo = yield* db.getRepoWithSectionsByVersion(
-      baseRepo.id,
-      latestVersion.id
-    );
+    const repo = yield* db.getRepoWithSectionsByVersion({
+      repoId: baseRepo.id,
+      versionId: latestVersion.id,
+    });
 
     const lessonPathToLessonId = new Map<string, string>();
 
@@ -257,10 +257,10 @@ export const action = async (args: Route.ActionArgs) => {
     // 5. After all updates, check for any sections that have no lessons left
     //    - Delete or archive empty sections as needed (only for the latest version)
 
-    const repoAfterUpdates = yield* db.getRepoWithSectionsByVersion(
-      repo.id,
-      latestVersion.id
-    );
+    const repoAfterUpdates = yield* db.getRepoWithSectionsByVersion({
+      repoId: repo.id,
+      versionId: latestVersion.id,
+    });
 
     const sectionsWithNoLessons = repoAfterUpdates.sections.filter(
       (section) => section.lessons.length === 0

@@ -690,7 +690,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         return version;
       }),
       getRepoWithSectionsByVersion: Effect.fn("getRepoWithSectionsByVersion")(
-        function* (repoId: string, versionId: string) {
+        function* (opts: { repoId: string; versionId: string }) {
+          const { repoId, versionId } = opts;
           const repo = yield* makeDbCall(() =>
             db.query.repos.findFirst({
               where: eq(repos.id, repoId),
