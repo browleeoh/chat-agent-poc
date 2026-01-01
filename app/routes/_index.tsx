@@ -2,6 +2,7 @@
 
 import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
+import { CreateVersionModal } from "@/components/create-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ import { FileSystem } from "@effect/platform";
 import { Effect } from "effect";
 import {
   ChevronDown,
+  Copy,
   Download,
   FileX,
   FolderGit2,
@@ -194,6 +196,7 @@ export default function Component(props: Route.ComponentProps) {
     videoId: "",
     videoPath: "",
   });
+  const [isCreateVersionModalOpen, setIsCreateVersionModalOpen] = useState(false);
 
   const publishRepoFetcher = useFetcher();
   const exportUnexportedFetcher = useFetcher();
@@ -424,6 +427,19 @@ export default function Component(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
+                      {data.selectedVersion && (
+                        <DropdownMenuItem
+                          onSelect={() => setIsCreateVersionModalOpen(true)}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">Create New Version</span>
+                            <span className="text-xs text-muted-foreground">
+                              Copy structure from current version
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -702,6 +718,15 @@ export default function Component(props: Route.ComponentProps) {
           });
         }}
       />
+
+      {currentRepo && data.selectedVersion && (
+        <CreateVersionModal
+          repoId={currentRepo.id}
+          sourceVersionId={data.selectedVersion.id}
+          isOpen={isCreateVersionModalOpen}
+          onOpenChange={setIsCreateVersionModalOpen}
+        />
+      )}
     </div>
   );
 }

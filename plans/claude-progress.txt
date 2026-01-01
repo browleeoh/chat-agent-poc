@@ -127,3 +127,50 @@ Implemented version selector dropdown in sidebar:
 ### Next Steps
 - Implement "Create New Version" functionality
 - Implement changelog generation
+
+---
+
+## 2026-01-01: Create New Version Copies Structure
+
+### Work Done
+Implemented "Create New Version" functionality that copies structure from current version:
+
+1. **DBService.copyVersionStructure method**
+   - Creates new version record
+   - Copies all sections, lessons, videos from source version
+   - Copies only non-archived clips (archived clips excluded)
+   - Sets `previousVersionSectionId` on new sections
+   - Sets `previousVersionLessonId` on new lessons
+   - Enables change tracking for changelog generation
+
+2. **New API endpoint: POST /api/repos/$repoId/create-version**
+   - Accepts `name` and `sourceVersionId` form data
+   - Validates name is non-empty
+   - Returns new version id and name
+
+3. **CreateVersionModal component**
+   - Dialog with version name input
+   - Required validation (HTML5 + Schema.minLength)
+   - Shows "Creating..." during submit
+   - Auto-closes on success
+
+4. **Actions dropdown menu item**
+   - "Create New Version" option appears when version is selected
+   - Opens CreateVersionModal
+
+### PRD Status
+10 of 19 features passing:
+- ✅ "Migration creates v1.0 for existing repos"
+- ✅ "Cascade deletion works through version hierarchy"
+- ✅ "Version selector displays in sidebar when repo is selected"
+- ✅ "Switching versions updates displayed content"
+- ✅ "Version selector shows versions ordered by date descending"
+- ✅ "URL reflects selected version"
+- ✅ "Default to latest version when no versionId in URL"
+- ✅ "Create new version copies structure from current version"
+- ✅ "New version tracks references to previous version entities"
+- ✅ "Create version modal validates input"
+
+### Next Steps
+- Implement "Repo updates only affect latest version"
+- Implement changelog generation

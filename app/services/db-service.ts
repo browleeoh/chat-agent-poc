@@ -711,6 +711,119 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       deleteRepo: Effect.fn("deleteRepo")(function* (repoId: string) {
         yield* makeDbCall(() => db.delete(repos).where(eq(repos.id, repoId)));
       }),
+      /**
+       * Copy structure from an existing version to a new version.
+       * Copies all sections, lessons, videos, and non-archived clips.
+       * Sets previousVersionSectionId and previousVersionLessonId for change tracking.
+       */
+      copyVersionStructure: Effect.fn("copyVersionStructure")(function* (input: {
+        sourceVersionId: string;
+        repoId: string;
+        newVersionName: string;
+      }) {
+        // Create the new version
+        const newVersion = yield* makeDbCall(() =>
+          db.insert(repoVersions).values({
+            repoId: input.repoId,
+            name: input.newVersionName,
+          }).returning()
+        ).pipe(Effect.andThen((arr) => {
+          const v = arr[0];
+          if (!v) {
+            return Effect.fail(new UnknownDBServiceError({ cause: "No version returned" }));
+          }
+          return Effect.succeed(v);
+        }));
+
+        // Get all sections for the source version with their lessons, videos, and clips
+        const sourceSections = yield* makeDbCall(() =>
+          db.query.sections.findMany({
+            where: eq(sections.repoVersionId, input.sourceVersionId),
+            orderBy: asc(sections.order),
+            with: {
+              lessons: {
+                orderBy: asc(lessons.order),
+                with: {
+                  videos: {
+                    orderBy: asc(videos.path),
+                    with: {
+                      clips: {
+                        orderBy: asc(clips.order),
+                        where: eq(clips.archived, false), // Only non-archived clips
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          })
+        );
+
+        // Copy each section
+        for (const sourceSection of sourceSections) {
+          const [newSection] = yield* makeDbCall(() =>
+            db.insert(sections).values({
+              repoId: input.repoId,
+              repoVersionId: newVersion.id,
+              previousVersionSectionId: sourceSection.id,
+              path: sourceSection.path,
+              order: sourceSection.order,
+            }).returning()
+          );
+
+          if (!newSection) continue;
+
+          // Copy each lesson in the section
+          for (const sourceLesson of sourceSection.lessons) {
+            const [newLesson] = yield* makeDbCall(() =>
+              db.insert(lessons).values({
+                sectionId: newSection.id,
+                previousVersionLessonId: sourceLesson.id,
+                path: sourceLesson.path,
+                order: sourceLesson.order,
+              }).returning()
+            );
+
+            if (!newLesson) continue;
+
+            // Copy each video in the lesson
+            for (const sourceVideo of sourceLesson.videos) {
+              const [newVideo] = yield* makeDbCall(() =>
+                db.insert(videos).values({
+                  lessonId: newLesson.id,
+                  path: sourceVideo.path,
+                  originalFootagePath: sourceVideo.originalFootagePath,
+                }).returning()
+              );
+
+              if (!newVideo) continue;
+
+              // Copy each non-archived clip in the video
+              if (sourceVideo.clips.length > 0) {
+                yield* makeDbCall(() =>
+                  db.insert(clips).values(
+                    sourceVideo.clips.map((clip) => ({
+                      videoId: newVideo.id,
+                      videoFilename: clip.videoFilename,
+                      sourceStartTime: clip.sourceStartTime,
+                      sourceEndTime: clip.sourceEndTime,
+                      order: clip.order,
+                      archived: false,
+                      text: clip.text,
+                      transcribedAt: clip.transcribedAt,
+                      scene: clip.scene,
+                      profile: clip.profile,
+                      beatType: clip.beatType,
+                    }))
+                  )
+                );
+              }
+            }
+          }
+        }
+
+        return newVersion;
+      }),
     };
   }),
 }) {}

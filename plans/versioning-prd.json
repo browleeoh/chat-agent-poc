@@ -35,7 +35,7 @@
       "Verify non-archived clips are copied",
       "Verify archived clips are NOT copied"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -46,7 +46,7 @@
       "Check database: new lessons have previousVersionLessonId set",
       "Verify references point to correct source entities"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -197,7 +197,7 @@
       "Enter valid name",
       "Verify submit succeeds"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
