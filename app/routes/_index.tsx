@@ -45,6 +45,7 @@ import {
   ChevronDown,
   Copy,
   Download,
+  FileText,
   FileX,
   FolderGit2,
   Loader2,
@@ -467,6 +468,23 @@ export default function Component(props: Route.ComponentProps) {
                                 </span>
                               </div>
                             </DropdownMenuItem>
+                            {data.versions.length > 1 && (
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  to={`/repos/${currentRepo.id}/changelog`}
+                                >
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">
+                                      Preview Changelog
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      View changes between versions
+                                    </span>
+                                  </div>
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
                             {data.versions.length > 1 &&
                               (() => {
                                 const canDelete = data.isLatestVersion;

@@ -10,3 +10,14 @@ Implemented PRD item #8: Focus refresh uses shared hook with main page
 - Simplified main page: removed manual poller fetcher, now uses `useFocusRevalidate({ enabled: !!selectedRepoId, intervalMs: 5000 })`
 
 Next: Changelog preview page needs to be created and should use this same hook for focus revalidation.
+
+---
+
+Implemented PRD items #1 & #2: Preview Changelog action visibility
+
+- Added "Preview Changelog" action to Version section in Actions dropdown (`_index.tsx`)
+- Action only shows when `versions.length > 1` (hidden for single-version repos)
+- Links to `/repos/${repoId}/changelog` route (page not yet created)
+- Added FileText icon import from lucide-react
+
+Next: Create changelog preview page route at `app/routes/repos.$repoId.changelog.tsx`
