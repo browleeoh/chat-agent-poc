@@ -49,6 +49,7 @@
     "steps": [
       "Navigate to changelog preview page",
       "Verify headings are styled as HTML headings",
+      "Verify Tailwind Typograph is installed, via Tailwind v4 config file",
       "Verify bullet points are rendered as list items",
       "Verify no raw markdown syntax visible (e.g., no '###' or '-' prefixes)"
     ],

@@ -34,3 +34,13 @@ Implemented PRD items #3-7: Changelog preview page
 - Uses `useFocusRevalidate` hook for auto-refresh on focus
 
 PRD is now complete - all 8 items passing.
+
+---
+
+Fixed PRD item #5: Changelog renders as formatted HTML not raw markdown
+
+- Added `@plugin "@tailwindcss/typography"` to `app/app.css` (Tailwind v4 syntax)
+- Package was already installed but plugin wasn't imported
+- Changelog page already had `prose prose-invert` classes applied
+
+PRD complete - all items verified passing.
