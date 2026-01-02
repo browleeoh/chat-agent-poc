@@ -21,3 +21,16 @@ Implemented PRD items #1 & #2: Preview Changelog action visibility
 - Added FileText icon import from lucide-react
 
 Next: Create changelog preview page route at `app/routes/repos.$repoId.changelog.tsx`
+
+---
+
+Implemented PRD items #3-7: Changelog preview page
+
+- Created `app/routes/repos.$repoId.changelog.tsx` - changelog preview page route
+- Page fetches repo and version structure via `DBService.getAllVersionsWithStructure`
+- Generates changelog markdown via existing `generateChangelog` from `changelog-service.ts`
+- Renders markdown as HTML using `react-markdown` (prose styling via Tailwind)
+- Back navigation button returns to main page with repo selected
+- Uses `useFocusRevalidate` hook for auto-refresh on focus
+
+PRD is now complete - all 8 items passing.

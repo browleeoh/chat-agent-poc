@@ -29,7 +29,7 @@
       "Verify URL changes to changelog preview page",
       "Verify changelog content is displayed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -41,7 +41,7 @@
       "Verify renamed items appear under 'Renamed' section",
       "Verify content changes appear under 'Content Changes' section"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
@@ -52,7 +52,7 @@
       "Verify bullet points are rendered as list items",
       "Verify no raw markdown syntax visible (e.g., no '###' or '-' prefixes)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
@@ -63,7 +63,7 @@
       "Click back navigation",
       "Verify return to main interface with repo selected"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -75,7 +75,7 @@
       "Switch back to changelog preview tab",
       "Verify changelog content updates to reflect the change"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
