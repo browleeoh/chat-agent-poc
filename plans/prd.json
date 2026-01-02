@@ -200,7 +200,7 @@
       "Click plus button",
       "Verify add video dialog/flow opens"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

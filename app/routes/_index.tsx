@@ -1,6 +1,7 @@
 "use client";
 
 import { AddRepoModal } from "@/components/add-repo-modal";
+import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
 import { AddVideoModal } from "@/components/add-video-modal";
 import { ClearVideoFilesModal } from "@/components/clear-video-files-modal";
 import { CreateVersionModal } from "@/components/create-version-modal";
@@ -100,6 +101,7 @@ export const loader = async (args: Route.LoaderArgs) => {
 
     // First get repos and versions for the selected repo
     const repos = yield* db.getRepos();
+    const standaloneVideos = yield* db.getStandaloneVideos();
 
     let versions: Awaited<
       ReturnType<typeof db.getRepoVersions>
@@ -197,6 +199,7 @@ export const loader = async (args: Route.LoaderArgs) => {
 
     return {
       repos,
+      standaloneVideos,
       selectedRepo,
       versions,
       selectedVersion,
@@ -247,6 +250,8 @@ export default function Component(props: Route.ComponentProps) {
   const [isClearVideoFilesModalOpen, setIsClearVideoFilesModalOpen] =
     useState(false);
   const [isRewriteRepoPathModalOpen, setIsRewriteRepoPathModalOpen] =
+    useState(false);
+  const [isAddStandaloneVideoModalOpen, setIsAddStandaloneVideoModalOpen] =
     useState(false);
 
   const publishRepoFetcher = useFetcher();
@@ -342,15 +347,36 @@ export default function Component(props: Route.ComponentProps) {
 
             {/* Videos */}
             <Collapsible>
-              <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
-                <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
-                <VideoIcon className="w-5 h-5" />
-                Videos
-              </CollapsibleTrigger>
+              <div className="flex items-center justify-between">
+                <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
+                  <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
+                  <VideoIcon className="w-5 h-5" />
+                  Videos
+                </CollapsibleTrigger>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setIsAddStandaloneVideoModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
               <CollapsibleContent>
-                <div className="ml-6 mt-2">
+                <div className="ml-6 mt-2 space-y-1">
+                  {data.standaloneVideos.map((video) => (
+                    <Button
+                      key={video.id}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
+                      asChild
+                    >
+                      <Link to={`/videos/${video.id}/edit`}>{video.path}</Link>
+                    </Button>
+                  ))}
                   <Link to="/videos">
-                    <Button variant="ghost" size="sm" className="w-full justify-start">
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
                       View All Videos
                     </Button>
                   </Link>
@@ -371,6 +397,10 @@ export default function Component(props: Route.ComponentProps) {
           <AddRepoModal
             isOpen={isAddRepoModalOpen}
             onOpenChange={setIsAddRepoModalOpen}
+          />
+          <AddStandaloneVideoModal
+            open={isAddStandaloneVideoModalOpen}
+            onOpenChange={setIsAddStandaloneVideoModalOpen}
           />
         </div>
       </div>

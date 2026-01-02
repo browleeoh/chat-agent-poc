@@ -221,3 +221,16 @@ Implemented PRD items #14-15: Sidebar restructured with three main items
 - Typecheck passes, all tests pass
 
 Next: PRD item #16 (Videos sidebar with add button) partially done - needs video list and add button like Repos.
+
+---
+
+Implemented PRD item #16: Videos sidebar item expands to show video list with add button
+
+- Added `getStandaloneVideos` call to main page loader in `_index.tsx`
+- Videos sidebar section now has plus button to open AddStandaloneVideoModal
+- Collapsible content shows list of standalone videos with links to video editor
+- "View All Videos" link moved to bottom of list
+- Pattern matches Repos section structure
+- Typecheck passes, all tests pass
+
+Next: PRD items #17-19 remaining (home page recent videos, repo selection, delete confirmation).
