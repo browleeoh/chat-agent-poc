@@ -7,6 +7,7 @@ import { CreateVersionModal } from "@/components/create-version-modal";
 import { DeleteVersionModal } from "@/components/delete-version-modal";
 import { EditLessonModal } from "@/components/edit-lesson-modal";
 import { RenameRepoModal } from "@/components/rename-repo-modal";
+import { RewriteRepoPathModal } from "@/components/rewrite-repo-path-modal";
 import { RenameVersionModal } from "@/components/rename-version-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +49,7 @@ import {
   FileText,
   FileX,
   FolderGit2,
+  FolderPen,
   Loader2,
   PencilIcon,
   Play,
@@ -237,6 +239,8 @@ export default function Component(props: Route.ComponentProps) {
   const [isDeleteVersionModalOpen, setIsDeleteVersionModalOpen] =
     useState(false);
   const [isClearVideoFilesModalOpen, setIsClearVideoFilesModalOpen] =
+    useState(false);
+  const [isRewriteRepoPathModalOpen, setIsRewriteRepoPathModalOpen] =
     useState(false);
 
   const publishRepoFetcher = useFetcher();
@@ -428,6 +432,17 @@ export default function Component(props: Route.ComponentProps) {
                             <span className="font-medium">Rename Course</span>
                             <span className="text-xs text-muted-foreground">
                               Change course name
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => setIsRewriteRepoPathModalOpen(true)}
+                        >
+                          <FolderPen className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">Rewrite Repo Path</span>
+                            <span className="text-xs text-muted-foreground">
+                              Change repository file path
                             </span>
                           </div>
                         </DropdownMenuItem>
@@ -889,6 +904,15 @@ export default function Component(props: Route.ComponentProps) {
           versionName={data.selectedVersion.name}
           open={isClearVideoFilesModalOpen}
           onOpenChange={setIsClearVideoFilesModalOpen}
+        />
+      )}
+
+      {currentRepo && (
+        <RewriteRepoPathModal
+          repoId={currentRepo.id}
+          currentPath={currentRepo.filePath}
+          open={isRewriteRepoPathModalOpen}
+          onOpenChange={setIsRewriteRepoPathModalOpen}
         />
       )}
     </div>

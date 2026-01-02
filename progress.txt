@@ -44,3 +44,17 @@ Fixed PRD item #5: Changelog renders as formatted HTML not raw markdown
 - Changelog page already had `prose prose-invert` classes applied
 
 PRD complete - all items verified passing.
+
+---
+
+Implemented PRD items #9-12: Rewrite Repo Path feature
+
+- Added `updateRepoFilePath` method to `DBService` in `app/services/db-service.ts`
+- Created API route `app/routes/api.repos.$repoId.rewrite-path.ts` for path updates
+- API validates path exists on filesystem before updating, returns error if invalid
+- Created `app/components/rewrite-repo-path-modal.tsx` - dialog with pre-filled current path
+- Added "Rewrite Repo Path" action to Course section in Actions dropdown (`_index.tsx`)
+- Uses FolderPen icon from lucide-react
+- Typecheck passes
+
+Next: PRD item #13 (duplicate path validation) still pending.

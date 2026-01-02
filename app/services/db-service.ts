@@ -799,6 +799,28 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return updated;
       }),
+      updateRepoFilePath: Effect.fn("updateRepoFilePath")(function* (opts: {
+        repoId: string;
+        filePath: string;
+      }) {
+        const { repoId, filePath } = opts;
+        const [updated] = yield* makeDbCall(() =>
+          db
+            .update(repos)
+            .set({ filePath })
+            .where(eq(repos.id, repoId))
+            .returning()
+        );
+
+        if (!updated) {
+          return yield* new NotFoundError({
+            type: "updateRepoFilePath",
+            params: { repoId },
+          });
+        }
+
+        return updated;
+      }),
       deleteRepo: Effect.fn("deleteRepo")(function* (repoId: string) {
         yield* makeDbCall(() => db.delete(repos).where(eq(repos.id, repoId)));
       }),

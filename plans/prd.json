@@ -97,7 +97,7 @@
       "Click the Actions dropdown",
       "Verify 'Rewrite Repo Path' action is visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -107,7 +107,7 @@
       "Verify dialog opens with text input",
       "Verify current repo path is pre-filled in input"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -119,7 +119,7 @@
       "Verify repo path updates in UI",
       "Verify database reflects new path"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
@@ -131,7 +131,7 @@
       "Verify error message is displayed",
       "Verify repo path remains unchanged"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
