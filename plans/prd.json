@@ -1,0 +1,91 @@
+[
+  {
+    "category": "functional",
+    "description": "Preview Changelog action visible when multiple versions exist",
+    "steps": [
+      "Select a repo with multiple versions",
+      "Click the Actions dropdown",
+      "Verify 'Preview Changelog' action is visible in the Version section"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Preview Changelog action hidden when only one version exists",
+    "steps": [
+      "Select a repo with only one version",
+      "Click the Actions dropdown",
+      "Verify 'Preview Changelog' action is not visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Clicking Preview Changelog navigates to preview page",
+    "steps": [
+      "Select a repo with multiple versions",
+      "Click the Actions dropdown",
+      "Click 'Preview Changelog'",
+      "Verify URL changes to changelog preview page",
+      "Verify changelog content is displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Changelog content matches Dropbox changelog format",
+    "steps": [
+      "Navigate to changelog preview page",
+      "Verify changelog shows version headers with dates",
+      "Verify new lessons are listed under 'New Lessons' section",
+      "Verify renamed items appear under 'Renamed' section",
+      "Verify content changes appear under 'Content Changes' section"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Changelog renders as formatted HTML not raw markdown",
+    "steps": [
+      "Navigate to changelog preview page",
+      "Verify headings are styled as HTML headings",
+      "Verify bullet points are rendered as list items",
+      "Verify no raw markdown syntax visible (e.g., no '###' or '-' prefixes)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Preview page has back navigation to main interface",
+    "steps": [
+      "Navigate to changelog preview page",
+      "Verify back button or link is visible",
+      "Click back navigation",
+      "Verify return to main interface with repo selected"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Changelog refreshes when page is brought into focus",
+    "steps": [
+      "Navigate to changelog preview page",
+      "Switch to another browser tab or window",
+      "Make a change that affects changelog (e.g., rename a lesson)",
+      "Switch back to changelog preview tab",
+      "Verify changelog content updates to reflect the change"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Focus refresh uses shared hook with main page",
+    "steps": [
+      "Verify custom hook exists for focus-based revalidation",
+      "Verify main page uses the shared hook",
+      "Verify changelog preview page uses the same shared hook",
+      "Confirm both pages refresh on focus using identical logic"
+    ],
+    "passes": false
+  }
+]
