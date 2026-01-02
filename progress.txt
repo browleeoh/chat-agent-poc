@@ -117,3 +117,15 @@ Fixed PRD item #5: Deleted lessons shown under renamed sections
 - Added `oldToNewSectionPath` map to translate old paths to new paths
 - Deleted lessons now correctly appear under renamed section headings
 - Typecheck passes
+
+---
+
+Implemented PRD item #6: Changelog items use code font with numbered format
+
+- Added `formatCodePath` helper - wraps paths in backticks for code font
+- Section/lesson paths now display as `01.03-choosing-your-model` format
+- Section headings remain human-readable (no code font)
+- Section rename notes and deleted sections use code font
+- Typecheck passes
+
+PRD complete - all 15 items passing.

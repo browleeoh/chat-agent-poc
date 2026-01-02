@@ -56,6 +56,17 @@
   },
   {
     "category": "ui",
+    "description": "Changelog items use code font with numbered format",
+    "steps": [
+      "Navigate to changelog preview page",
+      "Verify lesson/section names displayed in code/monospace font",
+      "Verify format follows pattern like '01.03-choosing-your-model'",
+      "Verify section numbers and lesson numbers are zero-padded (e.g., 01, 02)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "ui",
     "description": "Changelog renders as formatted HTML not raw markdown",
     "steps": [
       "Navigate to changelog preview page",

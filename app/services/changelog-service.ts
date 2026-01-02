@@ -201,9 +201,16 @@ function detectChanges(
 }
 
 /**
- * Format a path for display (remove leading numbers like "01-" prefix).
+ * Format a path in code font for display.
  */
-function formatPath(path: string): string {
+function formatCodePath(path: string): string {
+  return `\`${path}\``;
+}
+
+/**
+ * Format a path for display (human-readable, for headings).
+ */
+function formatPathHumanReadable(path: string): string {
   return path.replace(/^\d+-/, "").replace(/-/g, " ");
 }
 
@@ -348,7 +355,7 @@ export function generateChangelog(
       lines.push("### Deleted Sections");
       lines.push("");
       for (const section of changes.deletedSections) {
-        lines.push(`- ${formatPath(section.sectionPath)}`);
+        lines.push(`- ${formatCodePath(section.sectionPath)}`);
       }
       lines.push("");
     }
@@ -372,13 +379,13 @@ export function generateChangelog(
       const displayPath = sectionChange.sectionRenamed
         ? sectionChange.sectionRenamed.newPath
         : sectionPath;
-      lines.push(`### ${formatPath(displayPath)}`);
+      lines.push(`### ${formatPathHumanReadable(displayPath)}`);
       lines.push("");
 
       // Section rename note
       if (sectionChange.sectionRenamed) {
         lines.push(
-          `*Renamed from "${formatPath(sectionChange.sectionRenamed.oldPath)}"*`
+          `*Renamed from ${formatCodePath(sectionChange.sectionRenamed.oldPath)}*`
         );
         lines.push("");
       }
@@ -388,7 +395,7 @@ export function generateChangelog(
         lines.push("#### New Lessons");
         lines.push("");
         for (const lessonPath of sectionChange.newLessons) {
-          lines.push(`- ${formatPath(lessonPath)}`);
+          lines.push(`- ${formatCodePath(lessonPath)}`);
         }
         lines.push("");
       }
@@ -399,7 +406,7 @@ export function generateChangelog(
         lines.push("");
         for (const lesson of sectionChange.renamedLessons) {
           lines.push(
-            `- ${formatPath(lesson.oldPath)} → ${formatPath(lesson.newPath)}`
+            `- ${formatCodePath(lesson.oldPath)} → ${formatCodePath(lesson.newPath)}`
           );
         }
         lines.push("");
@@ -410,7 +417,7 @@ export function generateChangelog(
         lines.push("#### Deleted");
         lines.push("");
         for (const lessonPath of sectionChange.deletedLessons) {
-          lines.push(`- ${formatPath(lessonPath)}`);
+          lines.push(`- ${formatCodePath(lessonPath)}`);
         }
         lines.push("");
       }
