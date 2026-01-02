@@ -1,5 +1,11 @@
 import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
 import { Button } from "@/components/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { useFocusRevalidate } from "@/hooks/use-focus-revalidate";
 import { getVideoPath } from "@/lib/get-video";
 import { formatSecondsToTimeCode } from "@/services/utils";
@@ -7,9 +13,9 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
-import { ArrowLeft, Plus, VideoIcon, VideoOffIcon } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, VideoIcon, VideoOffIcon } from "lucide-react";
 import { useState } from "react";
-import { data, Link } from "react-router";
+import { data, Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos._index";
 
 export const meta: Route.MetaFunction = () => {
@@ -49,6 +55,7 @@ export const loader = async () => {
 export default function Component(props: Route.ComponentProps) {
   const { videos, hasExportedVideoMap } = props.loaderData;
   const [isAddVideoOpen, setIsAddVideoOpen] = useState(false);
+  const deleteVideoFetcher = useFetcher();
 
   useFocusRevalidate({ enabled: true });
 
@@ -96,23 +103,43 @@ export default function Component(props: Route.ComponentProps) {
               }, 0);
 
               return (
-                <Link
-                  key={video.id}
-                  to={`/videos/${video.id}/edit`}
-                  className="flex items-center justify-between border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {hasExportedVideoMap[video.id] ? (
-                      <VideoIcon className="w-5 h-5 flex-shrink-0" />
-                    ) : (
-                      <VideoOffIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    )}
-                    <span className="font-medium">{video.path}</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {formatSecondsToTimeCode(totalDuration)}
-                  </span>
-                </Link>
+                <ContextMenu key={video.id}>
+                  <ContextMenuTrigger asChild>
+                    <Link
+                      to={`/videos/${video.id}/edit`}
+                      className="flex items-center justify-between border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors cursor-context-menu"
+                    >
+                      <div className="flex items-center gap-3">
+                        {hasExportedVideoMap[video.id] ? (
+                          <VideoIcon className="w-5 h-5 flex-shrink-0" />
+                        ) : (
+                          <VideoOffIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{video.path}</span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {formatSecondsToTimeCode(totalDuration)}
+                      </span>
+                    </Link>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem
+                      variant="destructive"
+                      onSelect={() => {
+                        deleteVideoFetcher.submit(
+                          { videoId: video.id },
+                          {
+                            method: "post",
+                            action: "/api/videos/delete",
+                          }
+                        );
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
               );
             })}
           </div>

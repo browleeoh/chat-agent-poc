@@ -117,7 +117,7 @@
       "Verify video is removed from list",
       "Verify video is deleted from database"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",

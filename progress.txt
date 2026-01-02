@@ -172,3 +172,15 @@ Implemented PRD items #6-8: New Video button and creation flow
 - Typecheck passes
 
 Next: Remaining PRD items #9-11 (editor/export verification, delete functionality).
+
+---
+
+Implemented PRD item #11: Can delete standalone video
+
+- Added context menu to videos list page (`videos._index.tsx`)
+- Right-click on standalone video shows context menu with "Delete" option
+- Delete option uses existing `api.videos.delete.ts` endpoint
+- Uses `useFetcher` for optimistic delete flow, page revalidates automatically
+- Typecheck passes
+
+Next: PRD items #9-10 are verification items (editor/export work same as lesson videos).
