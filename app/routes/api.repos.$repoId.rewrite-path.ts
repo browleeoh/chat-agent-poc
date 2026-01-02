@@ -53,6 +53,12 @@ export const action = async (args: Route.ActionArgs) => {
     Effect.catchTag("InvalidPathError", (e) => {
       return Effect.succeed({ success: false, error: e.message });
     }),
+    Effect.catchTag("AmbiguousRepoUpdateError", (e) => {
+      return Effect.succeed({
+        success: false,
+        error: `Cannot update: ${e.repoCount} repos share path "${e.filePath}"`,
+      });
+    }),
     Effect.catchAll(() => {
       return Effect.die(data("Internal server error", { status: 500 }));
     }),

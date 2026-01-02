@@ -142,6 +142,6 @@
       "Verify error is thrown indicating ambiguous update",
       "Verify no repos are modified"
     ],
-    "passes": false
+    "passes": true
   }
 ]

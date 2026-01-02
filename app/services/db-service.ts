@@ -2,6 +2,7 @@ import { db } from "@/db/db";
 import { clips, lessons, repos, repoVersions, sections, videos } from "@/db/schema";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 import {
+  AmbiguousRepoUpdateError,
   CannotDeleteNonLatestVersionError,
   CannotDeleteOnlyVersionError,
   NotFoundError,
@@ -804,6 +805,34 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         filePath: string;
       }) {
         const { repoId, filePath } = opts;
+
+        // Check if multiple repos share the current repo's path
+        const currentRepo = yield* makeDbCall(() =>
+          db.query.repos.findFirst({
+            where: eq(repos.id, repoId),
+          })
+        );
+
+        if (!currentRepo) {
+          return yield* new NotFoundError({
+            type: "updateRepoFilePath",
+            params: { repoId },
+          });
+        }
+
+        const reposWithSamePath = yield* makeDbCall(() =>
+          db.query.repos.findMany({
+            where: eq(repos.filePath, currentRepo.filePath),
+          })
+        );
+
+        if (reposWithSamePath.length > 1) {
+          return yield* new AmbiguousRepoUpdateError({
+            filePath: currentRepo.filePath,
+            repoCount: reposWithSamePath.length,
+          });
+        }
+
         const [updated] = yield* makeDbCall(() =>
           db
             .update(repos)

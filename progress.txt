@@ -58,3 +58,15 @@ Implemented PRD items #9-12: Rewrite Repo Path feature
 - Typecheck passes
 
 Next: PRD item #13 (duplicate path validation) still pending.
+
+---
+
+Implemented PRD item #13: Repo update fails if multiple repos share same path
+
+- Added `AmbiguousRepoUpdateError` to `app/services/db-service-errors.ts`
+- Modified `updateRepoFilePath` in `db-service.ts` to check for duplicate paths before update
+- If multiple repos have same filePath, throws error before any modification
+- Updated API route to handle error and return user-friendly message
+- Typecheck passes
+
+PRD complete - all 13 items passing.
