@@ -223,6 +223,12 @@ function organizeChangesBySection(
 ): Map<string, SectionChanges> {
   const sectionMap = new Map<string, SectionChanges>();
 
+  // Build a mapping from old section paths to new section paths (for renamed sections)
+  const oldToNewSectionPath = new Map<string, string>();
+  for (const section of changes.renamedSections) {
+    oldToNewSectionPath.set(section.oldPath, section.newPath);
+  }
+
   // Helper to get or create section entry
   const getSection = (sectionPath: string): SectionChanges => {
     if (!sectionMap.has(sectionPath)) {
@@ -248,9 +254,11 @@ function organizeChangesBySection(
     });
   }
 
-  // Add deleted lessons
+  // Add deleted lessons (map old section path to new if section was renamed)
   for (const lesson of changes.deletedLessons) {
-    getSection(lesson.sectionPath).deletedLessons.push(lesson.lessonPath);
+    const effectiveSectionPath =
+      oldToNewSectionPath.get(lesson.sectionPath) ?? lesson.sectionPath;
+    getSection(effectiveSectionPath).deletedLessons.push(lesson.lessonPath);
   }
 
   // Add section renames

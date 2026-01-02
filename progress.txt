@@ -107,3 +107,13 @@ Fixed PRD item #4: Changelog organized by section hierarchy
 - Section renames shown as italic note under section heading
 - Preserves section order from current version
 - Typecheck passes
+
+---
+
+Fixed PRD item #5: Deleted lessons shown under renamed sections
+
+- Bug: deleted lessons from renamed sections weren't displayed
+- Deleted lessons stored old section path, but sections indexed by new path
+- Added `oldToNewSectionPath` map to translate old paths to new paths
+- Deleted lessons now correctly appear under renamed section headings
+- Typecheck passes
