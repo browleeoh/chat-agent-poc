@@ -70,3 +70,17 @@ Implemented PRD item #13: Repo update fails if multiple repos share same path
 - Typecheck passes
 
 PRD complete - all 13 items passing.
+
+---
+
+Implemented PRD item #5: Changelog shows deleted items
+
+- Extended `VersionChanges` type with `deletedSections` and `deletedLessons` arrays
+- Added detection logic in `detectChanges`: builds sets of referenced section/lesson IDs from current version, then finds previous version items not referenced
+- Deleted sections show with "(entire section)" suffix
+- Deleted lessons within retained sections show section/lesson path
+- Added "Deleted" section rendering in `generateChangelog` output
+- Updated `hasChanges` check to include deleted items
+- Typecheck passes
+
+PRD complete - all 14 items passing.

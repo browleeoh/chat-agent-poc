@@ -31,6 +31,8 @@ type VersionChanges = {
     newPath: string;
   }>;
   contentChanges: Array<{ sectionPath: string; lessonPath: string }>;
+  deletedSections: Array<{ sectionPath: string }>;
+  deletedLessons: Array<{ sectionPath: string; lessonPath: string }>;
 };
 
 /**
@@ -102,6 +104,8 @@ function detectChanges(
     renamedSections: [],
     renamedLessons: [],
     contentChanges: [],
+    deletedSections: [],
+    deletedLessons: [],
   };
 
   const prevLessonLookup = buildLessonLookup(previousVersion);
@@ -160,6 +164,39 @@ function detectChanges(
     }
   }
 
+  // Detect deleted sections and lessons
+  // Build sets of section/lesson IDs that are referenced in current version
+  const referencedSectionIds = new Set<string>();
+  const referencedLessonIds = new Set<string>();
+
+  for (const section of currentVersion.sections) {
+    if (section.previousVersionSectionId) {
+      referencedSectionIds.add(section.previousVersionSectionId);
+    }
+    for (const lesson of section.lessons) {
+      if (lesson.previousVersionLessonId) {
+        referencedLessonIds.add(lesson.previousVersionLessonId);
+      }
+    }
+  }
+
+  // Find sections in previous version that aren't referenced
+  for (const prevSection of previousVersion.sections) {
+    if (!referencedSectionIds.has(prevSection.id)) {
+      changes.deletedSections.push({ sectionPath: prevSection.path });
+    } else {
+      // Section still exists, check for deleted lessons within it
+      for (const prevLesson of prevSection.lessons) {
+        if (!referencedLessonIds.has(prevLesson.id)) {
+          changes.deletedLessons.push({
+            sectionPath: prevSection.path,
+            lessonPath: prevLesson.path,
+          });
+        }
+      }
+    }
+  }
+
   return changes;
 }
 
@@ -212,7 +249,9 @@ export function generateChangelog(
       changes.newLessons.length > 0 ||
       changes.renamedSections.length > 0 ||
       changes.renamedLessons.length > 0 ||
-      changes.contentChanges.length > 0;
+      changes.contentChanges.length > 0 ||
+      changes.deletedSections.length > 0 ||
+      changes.deletedLessons.length > 0;
 
     if (!hasChanges) {
       lines.push("No significant changes.");
@@ -256,6 +295,21 @@ export function generateChangelog(
       for (const change of changes.contentChanges) {
         lines.push(
           `- ${formatPath(change.sectionPath)} / ${formatPath(change.lessonPath)}`
+        );
+      }
+      lines.push("");
+    }
+
+    // Deleted
+    if (changes.deletedSections.length > 0 || changes.deletedLessons.length > 0) {
+      lines.push("### Deleted");
+      lines.push("");
+      for (const section of changes.deletedSections) {
+        lines.push(`- ${formatPath(section.sectionPath)} (entire section)`);
+      }
+      for (const lesson of changes.deletedLessons) {
+        lines.push(
+          `- ${formatPath(lesson.sectionPath)} / ${formatPath(lesson.lessonPath)}`
         );
       }
       lines.push("");

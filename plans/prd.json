@@ -44,6 +44,16 @@
     "passes": true
   },
   {
+    "category": "functional",
+    "description": "Changelog shows deleted items",
+    "steps": [
+      "Delete a lesson or section between versions",
+      "Navigate to changelog preview page",
+      "Verify deleted items appear under 'Deleted' section"
+    ],
+    "passes": true
+  },
+  {
     "category": "ui",
     "description": "Changelog renders as formatted HTML not raw markdown",
     "steps": [
