@@ -165,5 +165,64 @@
       "Verify no repos are modified"
     ],
     "passes": true
+  },
+  {
+    "category": "ui",
+    "description": "Sidebar has exactly three main items: Repos, Videos, Diagram Playground",
+    "steps": [
+      "Load the application",
+      "Verify sidebar shows 'Repos' item",
+      "Verify sidebar shows 'Videos' item",
+      "Verify sidebar shows 'Diagram Playground' item",
+      "Verify no other main navigation items exist"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Repos sidebar item expands to show repo list with add button",
+    "steps": [
+      "Click on 'Repos' in sidebar",
+      "Verify list of repos appears",
+      "Verify plus/add button is visible next to Repos heading",
+      "Click plus button",
+      "Verify add repo dialog/flow opens"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Videos sidebar item expands to show video list with add button",
+    "steps": [
+      "Click on 'Videos' in sidebar",
+      "Verify list of videos appears",
+      "Verify plus/add button is visible next to Videos heading",
+      "Click plus button",
+      "Verify add video dialog/flow opens"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Home page shows most recent three unattached videos",
+    "steps": [
+      "Navigate to home page",
+      "Verify section showing recent unattached videos",
+      "Verify maximum of three videos displayed",
+      "Verify only videos without lessonId are shown",
+      "Verify videos ordered by most recent first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Home page allows selecting a repository",
+    "steps": [
+      "Navigate to home page",
+      "Verify repo selection UI is visible",
+      "Click on a repo",
+      "Verify repo is selected and details shown"
+    ],
+    "passes": false
   }
 ]
