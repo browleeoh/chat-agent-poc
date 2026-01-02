@@ -9,7 +9,7 @@ import {
   NotLatestVersionError,
   UnknownDBServiceError,
 } from "@/services/db-service-errors";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 import { generateNKeysBetween } from "fractional-indexing";
 
@@ -203,6 +203,23 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       }
 
       return video;
+    });
+
+    const getStandaloneVideos = Effect.fn("getStandaloneVideos")(function* () {
+      const standaloneVideos = yield* makeDbCall(() =>
+        db.query.videos.findMany({
+          where: isNull(videos.lessonId),
+          orderBy: desc(videos.createdAt),
+          with: {
+            clips: {
+              orderBy: asc(clips.order),
+              where: eq(clips.archived, false),
+            },
+          },
+        })
+      );
+
+      return standaloneVideos;
     });
 
     const getVideoWithClipsById = Effect.fn("getVideoWithClipsById")(function* (
@@ -435,6 +452,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       archiveClip,
       getVideoById: getVideoDeepById,
       getVideoWithClipsById: getVideoWithClipsById,
+      getStandaloneVideos,
       createRepo: Effect.fn("createRepo")(function* (input: {
         filePath: string;
         name: string;

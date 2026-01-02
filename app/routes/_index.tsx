@@ -291,10 +291,19 @@ export default function Component(props: Route.ComponentProps) {
       {/* Left Sidebar - Repos */}
       <div className="w-80 border-r bg-muted/30 hidden lg:flex flex-col">
         <div className="p-4 flex-1 flex flex-col min-h-0">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <FolderGit2 className="w-5 h-5" />
-            Repos
-          </h2>
+          <div className="flex items-center gap-4 mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <FolderGit2 className="w-5 h-5" />
+              Repos
+            </h2>
+            <Link
+              to="/videos"
+              className="text-lg font-semibold flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <VideoIcon className="w-5 h-5" />
+              Videos
+            </Link>
+          </div>
           <Link to="/diagram-playground">
             <Button variant="outline" className="w-full mb-4">
               Diagram Playground

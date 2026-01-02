@@ -146,3 +146,16 @@ Implemented PRD item #12 (standalone-videos): Database schema allows null lesson
 - Typecheck passes
 
 Next: Need to create standalone videos list page and new video creation flow.
+
+---
+
+Implemented PRD items #1-5: Videos link and list page
+
+- Added "Videos" link to sidebar navigation in `_index.tsx`, alongside "Repos"
+- Created `app/routes/videos._index.tsx` - standalone videos list page
+- Added `getStandaloneVideos` method to `DBService` - queries videos with null lessonId
+- List page shows video path, duration, and export status (VideoIcon vs red VideoOffIcon)
+- Clicking video navigates to `/videos/${videoId}/edit`
+- Typecheck passes
+
+Next: Add "New Video" button and creation flow for standalone videos.

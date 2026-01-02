@@ -7,7 +7,7 @@
       "Look at the sidebar",
       "Verify 'Videos' link is visible at the top alongside 'Repos'"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -17,7 +17,7 @@
       "Verify URL changes to videos list page",
       "Verify standalone videos list is displayed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -29,7 +29,7 @@
       "Verify only the standalone video is shown",
       "Verify lesson-attached video is not shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
@@ -39,7 +39,7 @@
       "Verify exported videos show filled camera icon",
       "Verify non-exported videos show red camera icon"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -50,7 +50,7 @@
       "Verify video editor opens",
       "Verify correct video is loaded in editor"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
