@@ -314,3 +314,15 @@ Implemented PRD items #24-27: Beat dots visual display
 - Typecheck passes, all tests pass
 
 Next: PRD items #21 (volume indicator colors) and #23 (beat playback 0.4s pause) still pending.
+
+---
+
+Implemented PRD item #23: Beat adds 0.4s pause during playback
+
+- Modified `PreloadableClipManager` in `preloadable-clip.tsx`
+- When clip with `beatType === "long"` finishes, `onClipFinished` callback is delayed by `BEAT_DURATION * 1000`ms
+- Uses setTimeout to create pause before transitioning to next clip
+- Imported `BEAT_DURATION` constant (0.4s) from constants.ts
+- Typecheck passes, all tests pass
+
+Next: PRD item #21 (volume indicator colors - green/orange/red based on level) still pending.

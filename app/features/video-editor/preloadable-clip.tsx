@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ClipOnDatabase, FrontendId } from "./clip-state-reducer";
 import { cn } from "@/lib/utils";
-import { FINAL_VIDEO_PADDING } from "./constants";
+import { BEAT_DURATION, FINAL_VIDEO_PADDING } from "./constants";
 import type { RunningState } from "./video-state-reducer";
 
 const PRELOAD_PLAY_AMOUNT = 0.1;
@@ -149,7 +149,13 @@ export const PreloadableClipManager = (props: {
             return;
           }
 
-          props.onClipFinished();
+          if (clip.beatType === "long") {
+            setTimeout(() => {
+              props.onClipFinished();
+            }, BEAT_DURATION * 1000);
+          } else {
+            props.onClipFinished();
+          }
         };
 
         const isFinalClip = clip.frontendId === props.finalClipId;

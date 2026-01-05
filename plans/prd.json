@@ -276,7 +276,7 @@
       "Verify clips with beats pause for 0.4s (BEAT_DURATION from constants.ts)",
       "Verify beat duration is added to total clip playback time"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
