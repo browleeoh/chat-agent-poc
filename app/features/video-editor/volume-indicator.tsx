@@ -1,10 +1,21 @@
 import { cn } from "@/lib/utils";
 
 const TOTAL_DOTS = 8;
-const TARGET_DOTS = 6; // 75% target (6 out of 8)
 
 /**
- * Volume indicator showing 8 dots where 6 filled = 75% volume target.
+ * Returns the active color for a dot based on its position.
+ * Dots 1-3: green (low volume)
+ * Dot 4: orange (medium volume)
+ * Dots 5-8: red (high volume)
+ */
+const getDotColor = (index: number): string => {
+  if (index < 3) return "bg-green-500";
+  if (index === 3) return "bg-orange-500";
+  return "bg-red-500";
+};
+
+/**
+ * Volume indicator showing 8 dots with color-coded levels.
  * @param volumeLevel - Normalized volume from 0-1
  */
 export const VolumeIndicator = (props: { volumeLevel: number }) => {
@@ -15,20 +26,13 @@ export const VolumeIndicator = (props: { volumeLevel: number }) => {
     <div className="flex items-center gap-1">
       {Array.from({ length: TOTAL_DOTS }).map((_, index) => {
         const isFilled = index < filledDots;
-        const isTarget = index < TARGET_DOTS;
 
         return (
           <div
             key={index}
             className={cn(
               "size-2 rounded-full transition-colors duration-75",
-              isFilled
-                ? isTarget
-                  ? "bg-green-500"
-                  : "bg-red-500"
-                : isTarget
-                  ? "bg-gray-600"
-                  : "bg-gray-700"
+              isFilled ? getDotColor(index) : "bg-gray-400"
             )}
           />
         );

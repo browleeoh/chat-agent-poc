@@ -326,3 +326,17 @@ Implemented PRD item #23: Beat adds 0.4s pause during playback
 - Typecheck passes, all tests pass
 
 Next: PRD item #21 (volume indicator colors - green/orange/red based on level) still pending.
+
+---
+
+Fixed PRD item #21: Volume indicator shows correct color scheme
+
+- Updated `VolumeIndicator` in `volume-indicator.tsx` to match PRD requirements
+- Dots 1-3 (index 0-2): green (low volume)
+- Dot 4 (index 3): orange (medium volume)
+- Dots 5-8 (index 4-7): red (high volume)
+- All inactive dots now show light grey (bg-gray-400) instead of mixed greys
+- Added `getDotColor` helper function for cleaner color logic
+- Typecheck passes, all tests pass
+
+PRD complete - all 22 items now passing.

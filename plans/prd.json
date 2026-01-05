@@ -253,7 +253,7 @@
       "Speak at high volume",
       "Verify dots 5-8 light up red"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
