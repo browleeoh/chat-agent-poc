@@ -287,3 +287,17 @@ Implemented PRD item #21: Prerecording checklist shows 75% volume indicator with
 - Typecheck passes, all tests pass
 
 PRD complete - all 22 items passing.
+
+---
+
+Implemented PRD item #22: Press B while clip is selected to add a beat/pause
+
+- Added `beat-toggle-key-pressed` action to videoStateReducer
+- Added `toggle-beat-for-clip` effect type to dispatch when B pressed
+- Added effect handler in video-editor.tsx to call `onToggleBeatForClip`
+- Added 'B' key handler in keyboard event listener, dispatches through reducer
+- Uses `selectedClipsSet` to find currently selected clip (via arrow keys)
+- Follows existing pattern: keydown → dispatch action → reducer execs effect → effect handler calls prop
+- Typecheck passes, all tests pass
+
+Next: PRD item #23 (beat adds 0.4s to clip duration during playback) still pending.

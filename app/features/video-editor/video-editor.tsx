@@ -133,6 +133,9 @@ export const VideoEditor = (props: {
       "retranscribe-clips": (_state, effect, _dispatch) => {
         props.onClipsRetranscribe(effect.clipIds);
       },
+      "toggle-beat-for-clip": (_state, effect, _dispatch) => {
+        props.onToggleBeatForClip(effect.clipId);
+      },
     }
   );
 
@@ -191,6 +194,8 @@ export const VideoEditor = (props: {
         dispatch({ type: "press-home" });
       } else if (e.key === "End") {
         dispatch({ type: "press-end" });
+      } else if (e.key === "b" || e.key === "B") {
+        dispatch({ type: "beat-toggle-key-pressed" });
       }
     };
 

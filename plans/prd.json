@@ -250,5 +250,28 @@
       "Verify visual indicates 75% volume target (not 100%)"
     ],
     "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Press B while clip is selected to add a beat/pause",
+    "steps": [
+      "Navigate to video editor",
+      "Select a clip using arrow keys",
+      "Press 'B' key",
+      "Verify beat/pause is added to the clip",
+      "Verify pause indicator displays on the clip itself"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Beat adds 0.4s to clip duration during playback",
+    "steps": [
+      "Navigate to video editor with clips containing beats",
+      "Play back the clips",
+      "Verify clips with beats pause for 0.4s (BEAT_DURATION from constants.ts)",
+      "Verify beat duration is added to total clip playback time"
+    ],
+    "passes": false
   }
 ]

@@ -25,6 +25,10 @@ export namespace videoStateReducer {
     | {
         type: "retranscribe-clips";
         clipIds: FrontendId[];
+      }
+    | {
+        type: "toggle-beat-for-clip";
+        clipId: FrontendId;
       };
 
   export type Action =
@@ -90,6 +94,9 @@ export namespace videoStateReducer {
     | {
         type: "retranscribe-clip";
         clipId: FrontendId;
+      }
+    | {
+        type: "beat-toggle-key-pressed";
       };
 }
 
@@ -447,6 +454,16 @@ export const makeVideoEditorReducer =
           type: "retranscribe-clips",
           clipIds: [action.clipId],
         });
+        return state;
+      }
+      case "beat-toggle-key-pressed": {
+        const selectedClipId = Array.from(state.selectedClipsSet).pop();
+        if (selectedClipId) {
+          exec({
+            type: "toggle-beat-for-clip",
+            clipId: selectedClipId,
+          });
+        }
         return state;
       }
     }
