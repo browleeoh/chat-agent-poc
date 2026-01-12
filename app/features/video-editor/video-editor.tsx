@@ -886,9 +886,9 @@ export const InsertionPointIndicator = () => {
 export const BeatIndicator = () => {
   return (
     <div className="flex items-center justify-center gap-1 py-1">
-      <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-      <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-      <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
     </div>
   );
 };
