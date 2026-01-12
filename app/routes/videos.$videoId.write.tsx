@@ -80,11 +80,26 @@ export const loader = async (args: Route.LoaderArgs) => {
     const video = yield* db.getVideoById(videoId);
 
     const lesson = video.lesson;
+
+    // For standalone videos (no lesson), return minimal data
     if (!lesson) {
-      return yield* Effect.die(
-        data("Cannot write for standalone videos", { status: 400 })
-      );
+      const nextVideoId = yield* db.getNextVideoId(videoId);
+      const previousVideoId = yield* db.getPreviousVideoId(videoId);
+
+      return {
+        videoPath: video.path,
+        lessonPath: null,
+        sectionPath: null,
+        repoId: null,
+        lessonId: null,
+        fullPath: null,
+        files: [],
+        nextVideoId,
+        previousVideoId,
+        isStandalone: true,
+      };
     }
+
     const repo = lesson.section.repo;
     const section = lesson.section;
 
@@ -145,6 +160,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       files: filesWithMetadata,
       nextVideoId,
       previousVideoId,
+      isStandalone: false,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -202,6 +218,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     files,
     nextVideoId,
     previousVideoId,
+    isStandalone,
   } = props.loaderData;
   const [text, setText] = useState<string>("");
   const [mode, setMode] = useState<Mode>(() => {
@@ -314,12 +331,14 @@ export function InnerComponent(props: Route.ComponentProps) {
       <div className="flex items-center gap-2 p-4 border-b justify-between">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
-            <Link to={`/?repoId=${repoId}#${lessonId}`}>
+            <Link to={isStandalone ? "/" : `/?repoId=${repoId}#${lessonId}`}>
               <ChevronLeftIcon className="size-6" />
             </Link>
           </Button>
           <h1 className="text-lg">
-            {sectionPath}/{lessonPath}/{videoPath}
+            {isStandalone
+              ? videoPath
+              : `${sectionPath}/${lessonPath}/${videoPath}`}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -342,18 +361,30 @@ export function InnerComponent(props: Route.ComponentProps) {
         </div>
       </div>
       <div className="flex-1 flex overflow-hidden">
-        {/* Left column: Video and Files */}
-        <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4 scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
-          <Video src={`/videos/${videoId}`} />
-          <FileTree
-            files={files}
-            enabledFiles={enabledFiles}
-            onEnabledFilesChange={setEnabledFiles}
-          />
-        </div>
+        {/* Left column: Video and Files (hidden for standalone) */}
+        {!isStandalone && (
+          <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4 scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
+            <Video src={`/videos/${videoId}`} />
+            <FileTree
+              files={files}
+              enabledFiles={enabledFiles}
+              onEnabledFilesChange={setEnabledFiles}
+            />
+          </div>
+        )}
 
-        {/* Right column: Chat */}
-        <div className="w-3/4 flex flex-col">
+        {/* Right column: Chat (full width for standalone) */}
+        <div
+          className={`${isStandalone ? "w-full" : "w-3/4"} flex flex-col`}
+        >
+          {/* Video player for standalone videos */}
+          {isStandalone && (
+            <div className="p-4 border-b">
+              <div className="max-w-2xl mx-auto">
+                <Video src={`/videos/${videoId}`} />
+              </div>
+            </div>
+          )}
           <AIConversation className="flex-1 overflow-y-auto scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
             <AIConversationContent className="max-w-2xl mx-auto">
               {error && (
@@ -383,7 +414,7 @@ export function InnerComponent(props: Route.ComponentProps) {
 
                 return (
                   <AIMessage from={message.role} key={message.id}>
-                    <AIResponse imageBasePath={fullPath}>
+                    <AIResponse imageBasePath={fullPath ?? ""}>
                       {partsToText(message.parts)}
                     </AIResponse>
                   </AIMessage>
@@ -487,68 +518,71 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </>
                   )}
                 </Button>
-                <DropdownMenu>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={
-                                !hasExplainerOrProblem ||
-                                status === "streaming" ||
-                                writeToReadmeFetcher.state === "submitting" ||
-                                writeToReadmeFetcher.state === "loading" ||
-                                !lastAssistantMessageText
-                              }
-                            >
-                              {writeToReadmeFetcher.state === "submitting" ||
-                              writeToReadmeFetcher.state === "loading" ? (
-                                <>
-                                  <SaveIcon className="h-4 w-4 mr-1" />
-                                  Writing...
-                                </>
-                              ) : (
-                                <>
-                                  <SaveIcon className="h-4 w-4 mr-1" />
-                                  Readme
-                                  <ChevronDown className="h-4 w-4 ml-1" />
-                                </>
-                              )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </span>
-                      </TooltipTrigger>
-                      {!hasExplainerOrProblem && (
-                        <TooltipContent>
-                          <p>No explainer or problem folder</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => writeToReadme("write")}>
-                      <SaveIcon className="h-4 w-4 mr-2" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">Write to README</span>
-                        <span className="text-xs text-muted-foreground">
-                          Replace existing content
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => writeToReadme("append")}>
-                      <PlusIcon className="h-4 w-4 mr-2" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">Append to README</span>
-                        <span className="text-xs text-muted-foreground">
-                          Add to end of existing content
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* README dropdown - hidden for standalone videos */}
+                {!isStandalone && (
+                  <DropdownMenu>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={
+                                  !hasExplainerOrProblem ||
+                                  status === "streaming" ||
+                                  writeToReadmeFetcher.state === "submitting" ||
+                                  writeToReadmeFetcher.state === "loading" ||
+                                  !lastAssistantMessageText
+                                }
+                              >
+                                {writeToReadmeFetcher.state === "submitting" ||
+                                writeToReadmeFetcher.state === "loading" ? (
+                                  <>
+                                    <SaveIcon className="h-4 w-4 mr-1" />
+                                    Writing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <SaveIcon className="h-4 w-4 mr-1" />
+                                    Readme
+                                    <ChevronDown className="h-4 w-4 ml-1" />
+                                  </>
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </span>
+                        </TooltipTrigger>
+                        {!hasExplainerOrProblem && (
+                          <TooltipContent>
+                            <p>No explainer or problem folder</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={() => writeToReadme("write")}>
+                        <SaveIcon className="h-4 w-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Write to README</span>
+                          <span className="text-xs text-muted-foreground">
+                            Replace existing content
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => writeToReadme("append")}>
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">Append to README</span>
+                          <span className="text-xs text-muted-foreground">
+                            Add to end of existing content
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
               <AIInput onSubmit={handleSubmit}>
                 <AIInputTextarea

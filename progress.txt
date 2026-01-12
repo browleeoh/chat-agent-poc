@@ -66,3 +66,16 @@
   - app/routes/videos.$videoId.edit.tsx
   - app/services/db-service.ts
   - app/routes/clips.reorder.ts (new)
+
+## Issue #11 - Allow the write page to work for stand-alone videos
+- Write page now works for videos without a lesson (standalone videos)
+- For standalone videos:
+  - File tree is hidden (no files to show)
+  - README writing dropdown is hidden (no explainer/problem folder)
+  - Video player moves to the chat area above the conversation
+  - Chat column takes full width
+  - Header shows just video name (not section/lesson/video path)
+  - Back button navigates to home instead of repo view
+  - Copy functionality still works
+- Key decision: Pass empty string for `imageBasePath` when standalone (no local files to reference)
+- File: app/routes/videos.$videoId.write.tsx:75-164, 329-374, 417, 521-585
