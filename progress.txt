@@ -7,3 +7,8 @@
 - BeatIndicator (three ellipses) now serves as the only beat indicator
 - Kept PauseIcon in context menu for "Add/Remove Beat" action
 - File: app/features/video-editor/video-editor.tsx:730-732 (removed)
+
+## Issue #5 - Scene-based overlay visibility
+- Half-opaque overlay now only shows when current OBS scene matches previous clip's scene
+- If no scene detected (OBS not connected or clip has no scene), defaults to showing overlay
+- File: app/features/video-editor/video-editor.tsx:370-391

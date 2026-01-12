@@ -367,20 +367,28 @@ export const VideoEditor = (props: {
                     showCenterLine={props.obsConnectorState.scene === "Camera"}
                   />
                 )}
-                {databaseClipToShowLastFrameOf && viewMode === "last-frame" && (
-                  <div
-                    className={cn(
-                      "absolute top-0 left-0 rounded-lg",
-                      databaseClipToShowLastFrameOf.profile === "TikTok" &&
-                        "w-92 aspect-[9/16]"
-                    )}
-                  >
-                    <img
-                      className="w-full h-full rounded-lg opacity-50"
-                      src={`/clips/${databaseClipToShowLastFrameOf.databaseId}/last-frame`}
-                    />
-                  </div>
-                )}
+                {databaseClipToShowLastFrameOf &&
+                  viewMode === "last-frame" &&
+                  // Only show overlay if scenes match, or if no scene is detected
+                  (props.obsConnectorState.type !== "obs-recording" &&
+                  props.obsConnectorState.type !== "obs-connected"
+                    ? true // Default to showing if OBS not connected
+                    : databaseClipToShowLastFrameOf.scene === null ||
+                      databaseClipToShowLastFrameOf.scene ===
+                        props.obsConnectorState.scene) && (
+                    <div
+                      className={cn(
+                        "absolute top-0 left-0 rounded-lg",
+                        databaseClipToShowLastFrameOf.profile === "TikTok" &&
+                          "w-92 aspect-[9/16]"
+                      )}
+                    >
+                      <img
+                        className="w-full h-full rounded-lg opacity-50"
+                        src={`/clips/${databaseClipToShowLastFrameOf.databaseId}/last-frame`}
+                      />
+                    </div>
+                  )}
               </div>
             )}
             <div className={cn(viewMode !== "video-player" && "hidden")}>
