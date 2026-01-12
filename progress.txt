@@ -12,3 +12,10 @@
 - Half-opaque overlay now only shows when current OBS scene matches previous clip's scene
 - If no scene detected (OBS not connected or clip has no scene), defaults to showing overlay
 - File: app/features/video-editor/video-editor.tsx:370-391
+
+## Issue #6 - Changelog shows updated/changed videos
+- Content changes (changed transcripts) were being detected but not displayed
+- Added `updatedLessons` to `SectionChanges` type
+- Track content changes when organizing changes by section
+- Added "#### Updated" section in changelog output for lessons with transcript changes
+- File: app/services/changelog-service.ts:220-226, 246, 266-269, 380, 423-431

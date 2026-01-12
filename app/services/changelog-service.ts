@@ -220,6 +220,7 @@ function formatPathHumanReadable(path: string): string {
 type SectionChanges = {
   newLessons: string[];
   renamedLessons: Array<{ oldPath: string; newPath: string }>;
+  updatedLessons: string[];
   deletedLessons: string[];
   sectionRenamed?: { oldPath: string; newPath: string };
 };
@@ -242,6 +243,7 @@ function organizeChangesBySection(
       sectionMap.set(sectionPath, {
         newLessons: [],
         renamedLessons: [],
+        updatedLessons: [],
         deletedLessons: [],
       });
     }
@@ -259,6 +261,11 @@ function organizeChangesBySection(
       oldPath: lesson.oldPath,
       newPath: lesson.newPath,
     });
+  }
+
+  // Add updated lessons (content changes)
+  for (const lesson of changes.contentChanges) {
+    getSection(lesson.sectionPath).updatedLessons.push(lesson.lessonPath);
   }
 
   // Add deleted lessons (map old section path to new if section was renamed)
@@ -289,7 +296,7 @@ function organizeChangesBySection(
     if (!orderedSections.some(([path]) => path === deleted.sectionPath)) {
       orderedSections.push([
         deleted.sectionPath,
-        { newLessons: [], renamedLessons: [], deletedLessons: [] },
+        { newLessons: [], renamedLessons: [], updatedLessons: [], deletedLessons: [] },
       ]);
     }
   }
@@ -370,6 +377,7 @@ export function generateChangelog(
       const hasLessonChanges =
         sectionChange.newLessons.length > 0 ||
         sectionChange.renamedLessons.length > 0 ||
+        sectionChange.updatedLessons.length > 0 ||
         sectionChange.deletedLessons.length > 0 ||
         sectionChange.sectionRenamed;
 
@@ -408,6 +416,16 @@ export function generateChangelog(
           lines.push(
             `- ${formatCodePath(lesson.oldPath)} → ${formatCodePath(lesson.newPath)}`
           );
+        }
+        lines.push("");
+      }
+
+      // Updated Lessons within section (content changes)
+      if (sectionChange.updatedLessons.length > 0) {
+        lines.push("#### Updated");
+        lines.push("");
+        for (const lessonPath of sectionChange.updatedLessons) {
+          lines.push(`- ${formatCodePath(lessonPath)}`);
         }
         lines.push("");
       }
