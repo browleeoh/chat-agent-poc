@@ -222,3 +222,27 @@
 - Files changed:
   - app/services/db-service.ts:504-509 (added clipSections to query)
   - app/routes/videos.$videoId.edit.tsx:45-70, 89-117 (loader returns items, component maps to TimelineItem)
+
+## Issue #18 - Video Editor Clip Sections (Part 5: Stream Deck Integration)
+- Added Stream Deck support for creating clip sections via HTTP/WebSocket
+- Stream Deck HTTP endpoint: `/api/add-clip-section` on port 5174
+- WebSocket message: `{ type: "add-clip-section" }` broadcast on port 5172
+- New message type added to `streamDeckForwarderMessageSchema`
+- Implementation:
+  - `add-clip-section` action added to `clipStateReducer` - creates optimistic clip section at insertion point
+  - `create-clip-section` effect fires to persist to database
+  - Default naming: "Section 1", "Section 2", etc. based on existing clip section count
+  - Insertion point moves to after new clip section
+- New DBService operation: `createClipSectionAtInsertionPoint` - calculates fractional order from insertion point
+- New API route: `/clip-sections/create-at-insertion-point` - accepts insertion point, calculates order internally
+- Key decision: Order calculation moved to backend (like clips) rather than frontend passing raw order
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - stream-deck-forwarder/stream-deck-forwarder-types.ts (added add-clip-section message type)
+  - stream-deck-forwarder/run-stream-deck-forwarder.ts (added HTTP endpoint)
+  - app/features/video-editor/clip-state-reducer.ts (added action and effect types, reducer case)
+  - app/features/video-editor/video-editor.tsx (WebSocket handler, onAddClipSection prop, name generator)
+  - app/routes/videos.$videoId.edit.tsx (effect handler, onAddClipSection prop)
+  - app/services/db-service.ts (added createClipSectionAtInsertionPoint)
+  - app/routes/clip-sections.create-at-insertion-point.ts (new API route)

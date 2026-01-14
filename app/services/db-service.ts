@@ -185,6 +185,87 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return clipSection;
     });
 
+    const createClipSectionAtInsertionPoint = Effect.fn("createClipSectionAtInsertionPoint")(function* (
+      videoId: string,
+      name: string,
+      insertionPoint: { type: "start" } | { type: "after-clip"; databaseClipId: string }
+    ) {
+      // Get all non-archived clips and clip sections for this video, ordered
+      const allClips = yield* makeDbCall(() =>
+        db.query.clips.findMany({
+          where: and(eq(clips.videoId, videoId), eq(clips.archived, false)),
+          orderBy: asc(clips.order),
+        })
+      );
+
+      const allClipSections = yield* makeDbCall(() =>
+        db.query.clipSections.findMany({
+          where: and(
+            eq(clipSections.videoId, videoId),
+            eq(clipSections.archived, false)
+          ),
+          orderBy: asc(clipSections.order),
+        })
+      );
+
+      // Combine and sort by order
+      const allItems = [
+        ...allClips.map((c) => ({ type: "clip" as const, ...c })),
+        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+      ].sort((a, b) => a.order.localeCompare(b.order));
+
+      // Calculate order based on insertion point
+      let prevOrder: string | null = null;
+      let nextOrder: string | null = null;
+
+      if (insertionPoint.type === "start") {
+        // Insert before all items
+        const firstItem = allItems[0];
+        nextOrder = firstItem?.order ?? null;
+      } else if (insertionPoint.type === "after-clip") {
+        // Insert after specific clip
+        const insertAfterClipIndex = allItems.findIndex(
+          (item) => item.type === "clip" && item.id === insertionPoint.databaseClipId
+        );
+
+        if (insertAfterClipIndex === -1) {
+          return yield* new NotFoundError({
+            type: "createClipSectionAtInsertionPoint",
+            params: { videoId, insertionPoint },
+            message: `Could not find a clip to insert after`,
+          });
+        }
+
+        const insertAfterItem = allItems[insertAfterClipIndex];
+        prevOrder = insertAfterItem?.order ?? null;
+
+        const nextItem = allItems[insertAfterClipIndex + 1];
+        nextOrder = nextItem?.order ?? null;
+      }
+
+      const [order] = generateNKeysBetween(prevOrder, nextOrder, 1);
+
+      const [clipSection] = yield* makeDbCall(() =>
+        db
+          .insert(clipSections)
+          .values({
+            videoId,
+            name,
+            order: order!,
+            archived: false,
+          })
+          .returning()
+      );
+
+      if (!clipSection) {
+        return yield* new UnknownDBServiceError({
+          cause: "No clip section was returned from the database",
+        });
+      }
+
+      return clipSection;
+    });
+
     const getClipSectionById = Effect.fn("getClipSectionById")(function* (
       clipSectionId: string
     ) {
@@ -572,6 +653,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       updateClip,
       reorderClip,
       createClipSection,
+      createClipSectionAtInsertionPoint,
       getClipSectionById,
       updateClipSection,
       archiveClipSection,

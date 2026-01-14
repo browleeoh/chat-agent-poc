@@ -165,6 +165,10 @@ export namespace clipStateReducer {
         type: "move-clip";
         clipId: FrontendId;
         direction: "up" | "down";
+      }
+    | {
+        type: "add-clip-section";
+        name: string;
       };
 
   export type Effect =
@@ -192,6 +196,12 @@ export namespace clipStateReducer {
         type: "reorder-clip";
         clipId: DatabaseId;
         direction: "up" | "down";
+      }
+    | {
+        type: "create-clip-section";
+        frontendId: FrontendId;
+        name: string;
+        insertionPoint: FrontendInsertionPoint;
       };
 }
 
@@ -680,6 +690,74 @@ export const clipStateReducer: EffectReducer<
       return {
         ...state,
         items: newClips,
+      };
+    }
+    case "add-clip-section": {
+      const newFrontendId = createFrontendId();
+      const newClipSection: ClipSectionOptimisticallyAdded = {
+        type: "clip-section-optimistically-added",
+        frontendId: newFrontendId,
+        name: action.name,
+        insertionOrder: state.insertionOrder + 1,
+      };
+
+      let newInsertionPoint: FrontendInsertionPoint = {
+        type: "after-clip-section",
+        frontendClipSectionId: newFrontendId,
+      };
+
+      let newItems: TimelineItem[];
+      if (state.insertionPoint.type === "end") {
+        // Append to end
+        newItems = [...state.items, newClipSection];
+      } else if (state.insertionPoint.type === "start") {
+        // Insert at start
+        newItems = [newClipSection, ...state.items];
+      } else if (state.insertionPoint.type === "after-clip") {
+        const targetClipId = state.insertionPoint.frontendClipId;
+        const insertionPointIndex = state.items.findIndex(
+          (c) => c.frontendId === targetClipId
+        );
+        if (insertionPointIndex === -1) {
+          throw new Error("Target clip not found when inserting clip section after");
+        }
+        newItems = [
+          ...state.items.slice(0, insertionPointIndex + 1),
+          newClipSection,
+          ...state.items.slice(insertionPointIndex + 1),
+        ];
+      } else {
+        // after-clip-section
+        const targetClipSectionId = state.insertionPoint.frontendClipSectionId;
+        const insertionPointIndex = state.items.findIndex(
+          (c) => c.frontendId === targetClipSectionId
+        );
+        if (insertionPointIndex === -1) {
+          throw new Error("Target clip section not found when inserting clip section after");
+        }
+        newItems = [
+          ...state.items.slice(0, insertionPointIndex + 1),
+          newClipSection,
+          ...state.items.slice(insertionPointIndex + 1),
+        ];
+      }
+
+      exec({
+        type: "create-clip-section",
+        frontendId: newFrontendId,
+        name: action.name,
+        insertionPoint: state.insertionPoint,
+      });
+
+      exec({
+        type: "scroll-to-insertion-point",
+      });
+
+      return {
+        ...state,
+        items: newItems,
+        insertionOrder: state.insertionOrder + 1,
+        insertionPoint: newInsertionPoint,
       };
     }
   }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const streamDeckForwarderMessageSchema = z.object({
-  type: z.enum(["delete-last-clip", "toggle-last-frame-of-video", "toggle-beat"]),
+  type: z.enum(["delete-last-clip", "toggle-last-frame-of-video", "toggle-beat", "add-clip-section"]),
 });
 
 export type StreamDeckForwarderMessage = z.infer<

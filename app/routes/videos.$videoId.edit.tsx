@@ -177,6 +177,23 @@ export const ComponentInner = (props: Route.ComponentProps) => {
           res.json();
         });
       },
+      "create-clip-section": (state, effect, _dispatch) => {
+        // Convert frontend insertion point to database insertion point for API
+        const apiInsertionPoint = toDatabaseInsertionPoint(
+          effect.insertionPoint,
+          state.items
+        );
+        fetch("/clip-sections/create-at-insertion-point", {
+          method: "POST",
+          body: JSON.stringify({
+            videoId: props.loaderData.video.id,
+            name: effect.name,
+            insertionPoint: apiInsertionPoint,
+          }),
+        }).then((res) => {
+          res.json();
+        });
+      },
     }
   );
 
@@ -246,6 +263,9 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       }}
       onMoveClip={(clipId, direction) => {
         dispatch({ type: "move-clip", clipId, direction });
+      }}
+      onAddClipSection={(name) => {
+        dispatch({ type: "add-clip-section", name });
       }}
       obsConnectorState={obsConnector.state}
       items={clipState.items.filter((item) => {

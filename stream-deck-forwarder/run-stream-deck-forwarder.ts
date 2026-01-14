@@ -41,6 +41,10 @@ const httpServer = http.createServer((req, res) => {
     sendMessage({
       type: "toggle-beat",
     });
+  } else if (req.url === "/api/add-clip-section") {
+    sendMessage({
+      type: "add-clip-section",
+    });
   }
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("Hello, world!");

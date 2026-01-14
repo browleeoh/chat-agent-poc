@@ -111,10 +111,19 @@ export const VideoEditor = (props: {
   onToggleBeat: () => void;
   onToggleBeatForClip: (clipId: FrontendId) => void;
   onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
+  onAddClipSection: (name: string) => void;
 }) => {
   // Filter items to get only clips (excluding clip sections)
   // Clip sections will be rendered separately in a future update
   const clips = useMemo(() => props.items.filter(isClip), [props.items]);
+
+  // Generate default name for new clip sections based on existing count
+  const generateDefaultClipSectionName = () => {
+    const existingClipSectionCount = props.items.filter(
+      (item) => item.type === "clip-section-on-database" || item.type === "clip-section-optimistically-added"
+    ).length;
+    return `Section ${existingClipSectionCount + 1}`;
+  };
 
   const [state, dispatch] = useEffectReducer<
     videoStateReducer.State,
@@ -237,6 +246,8 @@ export const VideoEditor = (props: {
         dispatch({ type: "toggle-last-frame-of-video" });
       } else if (data.type === "toggle-beat") {
         props.onToggleBeat();
+      } else if (data.type === "add-clip-section") {
+        props.onAddClipSection(generateDefaultClipSectionName());
       }
     });
     return () => {
