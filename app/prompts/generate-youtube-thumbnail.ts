@@ -31,20 +31,23 @@ ${opts.code
 
   return `
 <role-context>
-You are a helpful assistant being asked to generate compelling YouTube thumbnail descriptions for a coding lesson video.
+You are a helpful assistant being asked to generate compelling YouTube thumbnail + title pairs for a coding lesson video.
 
-YouTube thumbnails are critical for click-through rates. They should be visually striking, clearly communicate the value proposition, and work in tandem with the video title.
+YouTube thumbnails and titles work together to drive click-through rates. The title and thumbnail should complement each other - the title can set up ideas that the thumbnail answers, or vice versa. They should create a cohesive, compelling package that clearly communicates value.
 </role-context>
 
 <documents>
 ${transcriptSection}${codeSection}</documents>
 
 <the-ask>
-Consider the following 10 framing devices, then generate the top 5 most effective YouTube thumbnail designs for this coding lesson.
+Consider the following 10 framing devices, then generate the top 5 most effective YouTube thumbnail + title pairs for this coding lesson.
 
-Each thumbnail should contain EXACTLY 5 elements or fewer. Present the design as an ASCII diagram showing the spatial layout.
+For each pair:
+- The title should be compelling, clickable, and use sentence case (60-70 characters)
+- The thumbnail should contain EXACTLY 5 elements or fewer as an ASCII diagram
+- The title and thumbnail should work together cohesively (e.g., title poses a question, thumbnail shows the answer)
 
-IMPORTANT: Do NOT include any faces, people, or facial expressions. Focus on code, text, diagrams, icons, and visual elements only.
+IMPORTANT: Do NOT include any faces, people, or facial expressions in thumbnails. Focus on code, text, diagrams, icons, and visual elements only.
 
 Consider these framing devices when choosing your top 5:
 
@@ -146,14 +149,18 @@ Key constraints:
 </the-ask>
 
 <output-format>
-Do not enter into conversation with the user. Always assume that their messages to you are instructions for editing the thumbnail designs.
+Do not enter into conversation with the user. Always assume that their messages to you are instructions for editing the thumbnail and title pairs.
 
-Respond with EXACTLY 5 thumbnail designs as ASCII diagrams, numbered 1-5.
+Respond with EXACTLY 5 thumbnail + title pairs, numbered 1-5.
 
 IMPORTANT: Wrap each ASCII diagram in a Markdown code block for proper formatting.
 
 Format:
 1. [Framing device name]
+
+**Title:** [YouTube title here in sentence case]
+
+**Thumbnail:**
 \`\`\`
 +-------------------------+
 | [ASCII diagram here]    |
@@ -161,6 +168,10 @@ Format:
 \`\`\`
 
 2. [Framing device name]
+
+**Title:** [YouTube title here in sentence case]
+
+**Thumbnail:**
 \`\`\`
 +-------------------------+
 | [ASCII diagram here]    |
@@ -169,16 +180,16 @@ Format:
 
 ...and so on for all 5.
 
-After listing all 5 thumbnail designs, add a blank line and then provide your single top recommendation:
+After listing all 5 pairs, add a blank line and then provide your single top recommendation:
 
 ---
 
 **Top Recommendation:**
 
-#[Number] - [Brief explanation of why this thumbnail is most effective - focus on visual impact, clarity, and emotional appeal. Keep it concise (1-2 sentences max).]
+#[Number] - [Brief explanation of why this title + thumbnail pair is most effective - focus on how they work together, visual impact, clarity, and emotional appeal. Keep it concise (1-2 sentences max).]
 
 Example:
-#3 - Strong before/after contrast with performance metrics creates instant curiosity and clearly demonstrates value proposition.
+#3 - Title poses the performance problem while thumbnail shows the dramatic before/after metrics, creating instant curiosity and clear value demonstration.
 </output-format>
 `.trim();
 };

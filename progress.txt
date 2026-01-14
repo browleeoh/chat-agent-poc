@@ -535,3 +535,15 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/prompts/generate-youtube-thumbnail.ts
+
+## Issue #40 - YouTube thumbnail descriptions now paired with titles
+- Modified YouTube thumbnail generator to produce title + thumbnail pairs instead of standalone thumbnails
+- Each of the 5 outputs now includes both a YouTube title and an accompanying thumbnail design
+- Title and thumbnail work together cohesively (e.g., title poses question, thumbnail shows answer)
+- Titles follow same guidelines as YouTube title mode: sentence case, 60-70 characters, compelling
+- Updated role context to emphasize the relationship between title and thumbnail
+- Updated output format to show paired structure: Title followed by Thumbnail for each option
+- Recommendation now evaluates how well the title and thumbnail work together as a unit
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/prompts/generate-youtube-thumbnail.ts
