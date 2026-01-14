@@ -432,3 +432,13 @@
 - Changed padding from `py-1` (4px top and bottom) to `pt-2 pb-1` (8px top, 4px bottom)
 - This adds more visual separation between the clip and the beat indicator
 - File: app/features/video-editor/video-editor.tsx:1336
+
+## Issue #30 - Transcript sections become markdown headers
+- When copying transcript or feeding to LLM on write article page, clip sections now become H2 markdown headers
+- Format: `## Section Name` followed by two newlines, then the paragraph of clip text
+- Updated `copyTranscriptToClipboard` in video-editor.tsx to iterate over `props.items` and build formatted transcript
+- Updated write page loader to combine clips and clipSections, sort by order, and build formatted transcript
+- Clips between sections are joined with spaces into a single paragraph
+- Files changed:
+  - app/features/video-editor/video-editor.tsx:289-323
+  - app/routes/videos.$videoId.write.tsx:91-138

@@ -288,11 +288,31 @@ export const VideoEditor = (props: {
 
   const copyTranscriptToClipboard = async () => {
     try {
-      // Get all clips with text and concatenate them
-      const transcript = clips
-        .filter((clip) => clip.type === "on-database")
-        .map((clip) => clip.text)
-        .join(" ");
+      // Build transcript with clip sections as markdown headers
+      const parts: string[] = [];
+      let currentParagraph: string[] = [];
+
+      for (const item of props.items) {
+        if (isClipSection(item)) {
+          // Flush current paragraph before starting a new section
+          if (currentParagraph.length > 0) {
+            parts.push(currentParagraph.join(" "));
+            currentParagraph = [];
+          }
+          // Add section as H2 header
+          parts.push(`## ${item.name}`);
+        } else if (isClip(item) && item.type === "on-database" && item.text) {
+          currentParagraph.push(item.text);
+        }
+      }
+
+      // Flush remaining paragraph
+      if (currentParagraph.length > 0) {
+        parts.push(currentParagraph.join(" "));
+      }
+
+      // Join sections with double newlines
+      const transcript = parts.join("\n\n");
 
       await navigator.clipboard.writeText(transcript);
       setIsCopied(true);

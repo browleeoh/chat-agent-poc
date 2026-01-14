@@ -88,11 +88,51 @@ export const loader = async (args: Route.LoaderArgs) => {
 
     const lesson = video.lesson;
 
-    // Build transcript from clips
-    const transcript = video.clips
-      .map((clip) => clip.text)
-      .join(" ")
-      .trim();
+    // Build transcript from clips and clip sections
+    // Combine and sort clips and clip sections by order (ASCII ordering to match PostgreSQL COLLATE "C")
+    type ClipItem = { type: "clip"; order: string; text: string | null };
+    type ClipSectionItem = { type: "clip-section"; order: string; name: string };
+
+    const clipItems: ClipItem[] = video.clips.map((clip) => ({
+      type: "clip" as const,
+      order: clip.order,
+      text: clip.text,
+    }));
+
+    const clipSectionItems: ClipSectionItem[] = video.clipSections.map((section) => ({
+      type: "clip-section" as const,
+      order: section.order,
+      name: section.name,
+    }));
+
+    const sortedItems = [...clipItems, ...clipSectionItems].sort((a, b) =>
+      a.order < b.order ? -1 : a.order > b.order ? 1 : 0
+    );
+
+    // Build formatted transcript with sections as H2 headers
+    const transcriptParts: string[] = [];
+    let currentParagraph: string[] = [];
+
+    for (const item of sortedItems) {
+      if (item.type === "clip-section") {
+        // Flush current paragraph before starting a new section
+        if (currentParagraph.length > 0) {
+          transcriptParts.push(currentParagraph.join(" "));
+          currentParagraph = [];
+        }
+        // Add section as H2 header
+        transcriptParts.push(`## ${item.name}`);
+      } else if (item.text) {
+        currentParagraph.push(item.text);
+      }
+    }
+
+    // Flush remaining paragraph
+    if (currentParagraph.length > 0) {
+      transcriptParts.push(currentParagraph.join(" "));
+    }
+
+    const transcript = transcriptParts.join("\n\n").trim();
     const transcriptWordCount = transcript
       ? transcript.split(/\s+/).length
       : 0;
