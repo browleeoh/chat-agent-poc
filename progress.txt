@@ -169,3 +169,15 @@
 - Files changed:
   - app/db/schema.ts:151-168, 180-182, 187 (added clipSections table and relations)
   - app/services/db-service.ts:2, 162-335, 568-572 (added clipSections import and CRUD operations)
+
+## Issue #18 - Video Editor Clip Sections (Part 2: API Routes)
+- Created four API routes for clip section operations following existing clip route patterns
+- Routes follow Effect-based architecture with Schema validation and error handling
+- All routes use withDatabaseDump for data persistence and layerLive for dependency injection
+- Key decision: Archive route supports both single ID and array of IDs (same pattern as clips.archive.ts)
+- All tests and typecheck pass
+- Files changed:
+  - app/routes/clip-sections.create.ts (new) - creates clip section with videoId, name, order
+  - app/routes/clip-sections.update.ts (new) - updates clip section name
+  - app/routes/clip-sections.archive.ts (new) - soft deletes one or more clip sections
+  - app/routes/clip-sections.reorder.ts (new) - moves clip section up/down in unified ordering
