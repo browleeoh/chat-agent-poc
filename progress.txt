@@ -624,3 +624,14 @@
 - Files changed:
   - app/features/video-editor/video-editor.tsx (wrapper div sizing)
   - app/features/video-editor/preloadable-clip.tsx (video element sizing)
+
+## Issue #44 - Sticky clip section headers in video editor
+- Added CSS sticky positioning to ClipSectionDivider component
+- When scrolling through the timeline, the current section header now sticks to the top of the viewport
+- Implementation: Added `sticky top-0 z-10 bg-gray-900` classes to ClipSectionDivider button
+- Background color ensures section header obscures content scrolling underneath
+- z-index ensures section header stays on top of clips
+- Key decision: Used native CSS sticky positioning rather than JavaScript scroll listeners for better performance
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/features/video-editor/video-editor.tsx:1465

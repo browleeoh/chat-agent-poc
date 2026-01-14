@@ -1462,6 +1462,7 @@ export const ClipSectionDivider = React.forwardRef<
       ref={ref}
       className={cn(
         "flex items-center gap-3 py-2 px-3 w-full allow-keydown",
+        "sticky top-0 z-10 bg-gray-900",
         "hover:bg-gray-800/50 rounded-md transition-colors",
         isSelected && "bg-gray-700 outline-2 outline-gray-200",
         className
