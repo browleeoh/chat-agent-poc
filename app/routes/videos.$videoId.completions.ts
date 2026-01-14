@@ -21,6 +21,7 @@ const chatSchema = Schema.Struct({
     Schema.Literal("style-guide-project")
   ),
   model: Schema.String,
+  includeTranscript: Schema.optionalWith(Schema.Boolean, { default: () => true }),
 });
 
 export const action = async (args: Route.ActionArgs) => {
@@ -33,10 +34,12 @@ export const action = async (args: Route.ActionArgs) => {
     const enabledFiles: string[] = [...parsed.enabledFiles];
     const mode = parsed.mode;
     const model: string = parsed.model;
+    const includeTranscript = parsed.includeTranscript;
 
     const videoContext = yield* acquireTextWritingContext({
       videoId,
       enabledFiles,
+      includeTranscript,
     });
 
     const modelMessages = createModelMessagesForTextWritingAgent({

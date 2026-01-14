@@ -7,8 +7,18 @@ export const generateStepsToCompleteForSkillBuildingProblemPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
-}) =>
-  `
+}) => {
+  const transcriptSection = opts.transcript
+    ? `Here is the transcript of the video:
+
+<transcript>
+${opts.transcript}
+</transcript>
+
+`
+    : "";
+
+  return `
 <role-context>
 You are a helpful assistant being asked to turn a transcript of a video (usually a screencast from a coding lesson) into a piece of accompanying content.
 
@@ -16,13 +26,7 @@ The user will be reading this content alongside the lesson.
 </role-context>
 
 <documents>
-Here is the transcript of the video:
-
-<transcript>
-${opts.transcript}
-</transcript>
-
-Here is the code for the video.
+${transcriptSection}Here is the code for the video.
 
 <code>
 ${opts.code
@@ -45,3 +49,4 @@ Do not enter into conversation with the user. Always assume that their messages 
 Respond only with the content for the skill building lesson. Do not include any other text.
 </output-format>
 `.trim();
+};

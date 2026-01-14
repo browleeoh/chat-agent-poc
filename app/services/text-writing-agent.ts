@@ -127,7 +127,7 @@ export const ALWAYS_EXCLUDED_DIRECTORIES = ["node_modules", ".vite"];
 export const DEFAULT_UNCHECKED_PATHS = ["readme.md", "speaker-notes.md"];
 
 export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
-  function* (props: { videoId: string; enabledFiles: string[] | undefined }) {
+  function* (props: { videoId: string; enabledFiles: string[] | undefined; includeTranscript?: boolean }) {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
 
@@ -213,10 +213,13 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
         content: f.content,
       }));
 
-    let transcript = video.clips
-      .map((clip) => clip.text)
-      .join(" ")
-      .trim();
+    const includeTranscript = props.includeTranscript ?? true;
+    const transcript = includeTranscript
+      ? video.clips
+          .map((clip) => clip.text)
+          .join(" ")
+          .trim()
+      : "";
 
     return {
       textFiles,

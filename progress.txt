@@ -79,3 +79,28 @@
   - Copy functionality still works
 - Key decision: Pass empty string for `imageBasePath` when standalone (no local files to reference)
 - File: app/routes/videos.$videoId.write.tsx:75-164, 329-374, 417, 521-585
+
+## Issue #12 - Transcript toggle on write article page
+- Added checkbox above file tree to toggle transcript inclusion in prompts
+- Displays word count next to checkbox (e.g., "Transcript (1,234 words)")
+- When unchecked, transcript is not passed to the AI prompts
+- Changes:
+  - Loader now fetches video with clips via `getVideoWithClipsById` and calculates word count
+  - Added `includeTranscript` state (defaults to true) and UI checkbox
+  - Completions endpoint schema accepts `includeTranscript` parameter
+  - `acquireTextWritingContext` returns empty transcript when `includeTranscript` is false
+  - Updated all prompt functions to conditionally include transcript section:
+    - generate-article.ts
+    - generate-steps-to-complete-for-project.ts
+    - generate-steps-to-complete-for-skill-building-problem.ts
+    - refine-skill-building-with-style-guide.ts
+    - refine-project-with-style-guide.ts
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx
+  - app/routes/videos.$videoId.completions.ts
+  - app/services/text-writing-agent.ts
+  - app/prompts/generate-article.ts
+  - app/prompts/generate-steps-to-complete-for-project.ts
+  - app/prompts/generate-steps-to-complete-for-skill-building-problem.ts
+  - app/prompts/refine-skill-building-with-style-guide.ts
+  - app/prompts/refine-project-with-style-guide.ts

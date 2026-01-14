@@ -18,6 +18,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AIMessage, AIMessageContent } from "components/ui/kibo-ui/ai/message";
 import { AIResponse } from "components/ui/kibo-ui/ai/response";
 import {
@@ -77,9 +78,18 @@ export const loader = async (args: Route.LoaderArgs) => {
   return Effect.gen(function* () {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
-    const video = yield* db.getVideoById(videoId);
+    const video = yield* db.getVideoWithClipsById(videoId);
 
     const lesson = video.lesson;
+
+    // Build transcript from clips
+    const transcript = video.clips
+      .map((clip) => clip.text)
+      .join(" ")
+      .trim();
+    const transcriptWordCount = transcript
+      ? transcript.split(/\s+/).length
+      : 0;
 
     // For standalone videos (no lesson), return minimal data
     if (!lesson) {
@@ -97,6 +107,7 @@ export const loader = async (args: Route.LoaderArgs) => {
         nextVideoId,
         previousVideoId,
         isStandalone: true,
+        transcriptWordCount,
       };
     }
 
@@ -161,6 +172,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       nextVideoId,
       previousVideoId,
       isStandalone: false,
+      transcriptWordCount,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -219,6 +231,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     nextVideoId,
     previousVideoId,
     isStandalone,
+    transcriptWordCount,
   } = props.loaderData;
   const [text, setText] = useState<string>("");
   const [mode, setMode] = useState<Mode>(() => {
@@ -246,6 +259,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     }
     return new Set(files.filter((f) => f.defaultEnabled).map((f) => f.path));
   });
+  const [includeTranscript, setIncludeTranscript] = useState(true);
 
   // Check if explainer or problem folder exists
   const hasExplainerOrProblem = files.some(
@@ -320,7 +334,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     e.preventDefault();
     sendMessage(
       { text: text.trim() || "Go" },
-      { body: { enabledFiles: Array.from(enabledFiles), mode, model } }
+      { body: { enabledFiles: Array.from(enabledFiles), mode, model, includeTranscript } }
     );
 
     setText("");
@@ -365,6 +379,22 @@ export function InnerComponent(props: Route.ComponentProps) {
         {!isStandalone && (
           <div className="w-1/4 border-r overflow-y-auto p-4 space-y-4 scrollbar scrollbar-track-transparent scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-600">
             <Video src={`/videos/${videoId}`} />
+            <div className="flex items-center gap-2 py-1 px-2">
+              <Checkbox
+                id="include-transcript"
+                checked={includeTranscript}
+                onCheckedChange={(checked) => setIncludeTranscript(!!checked)}
+              />
+              <label
+                htmlFor="include-transcript"
+                className="text-sm flex-1 cursor-pointer"
+              >
+                Transcript
+              </label>
+              <span className="text-xs text-muted-foreground">
+                ({transcriptWordCount.toLocaleString()} words)
+              </span>
+            </div>
             <FileTree
               files={files}
               enabledFiles={enabledFiles}

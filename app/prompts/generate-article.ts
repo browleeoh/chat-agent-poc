@@ -20,18 +20,23 @@ export const generateArticlePrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
-}) => `
-You are a helpful assistant being asked to format a transcript of a video to accompany it for easier reading. The video is a screencast from a coding lesson, where the viewer can see the code.
-
-## Documents
-
-Here is the transcript of the video:
+}) => {
+  const transcriptSection = opts.transcript
+    ? `Here is the transcript of the video:
 
 <transcript>
 ${opts.transcript}
 </transcript>
 
-Here is the code for the video.
+`
+    : "";
+
+  return `
+You are a helpful assistant being asked to format a transcript of a video to accompany it for easier reading. The video is a screencast from a coding lesson, where the viewer can see the code.
+
+## Documents
+
+${transcriptSection}Here is the code for the video.
 
 <code>
 ${opts.code
@@ -55,3 +60,4 @@ Do not enter into conversation with the user. Always assume that their messages 
 
 Respond only with the annotated transcript. Do not include any other text.
 `;
+};

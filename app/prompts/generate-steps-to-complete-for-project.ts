@@ -15,21 +15,25 @@ export const generateStepsToCompleteForProjectPrompt = (opts: {
   }[];
   transcript: string;
   images: string[];
-}) =>
-  `
+}) => {
+  const transcriptSection = opts.transcript
+    ? `Here is the transcript of the video:
+
+<transcript>
+${opts.transcript}
+</transcript>
+
+`
+    : "";
+
+  return `
 <role-context>
 You are a helpful assistant being asked to turn a git commit diff and video transcript into a list of steps to recreate the work done in the commit. The user will be following these steps to complete the lesson.
 </role-context>
 
 ## Documents
 
-Here is the transcript of the video:
-
-<transcript>
-${opts.transcript}
-</transcript>
-
-Here is the code for the video, which includes the git diff and commit message:
+${transcriptSection}Here is the code for the video, which includes the git diff and commit message:
 
 <code>
 ${opts.code
@@ -83,3 +87,4 @@ Do not enter into conversation with the user. Always assume that their messages 
 Respond only with the markdown steps. Do not include any other text.
 </output-format>
 `.trim();
+};

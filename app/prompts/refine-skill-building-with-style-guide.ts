@@ -19,6 +19,16 @@ export const refineSkillBuildingWithStyleGuidePrompt = (opts: {
     );
   }
 
+  const transcriptSection = opts.transcript
+    ? `Here is the transcript of the video (for additional context):
+
+<transcript>
+${opts.transcript}
+</transcript>
+
+`
+    : "";
+
   return `
 <role-context>
 You are a helpful assistant being asked to refine an existing skill-building lesson README to match our style guide and formatting standards.
@@ -34,13 +44,7 @@ Here is the existing README content that needs to be refined:
 ${readmeFile.content}
 </existing-readme>
 
-Here is the transcript of the video (for additional context):
-
-<transcript>
-${opts.transcript}
-</transcript>
-
-Here is the code for the video (for reference):
+${transcriptSection}Here is the code for the video (for reference):
 
 <code>
 ${opts.code
