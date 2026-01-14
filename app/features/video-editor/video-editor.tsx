@@ -11,6 +11,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
@@ -92,7 +93,8 @@ const isClip = (item: TimelineItem): item is Clip =>
   item.type === "on-database" || item.type === "optimistically-added";
 
 const isClipSection = (item: TimelineItem): item is ClipSection =>
-  item.type === "clip-section-on-database" || item.type === "clip-section-optimistically-added";
+  item.type === "clip-section-on-database" ||
+  item.type === "clip-section-optimistically-added";
 
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
@@ -118,7 +120,11 @@ export const VideoEditor = (props: {
   onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
   onAddClipSection: (name: string) => void;
   onUpdateClipSection: (clipSectionId: FrontendId, name: string) => void;
-  onAddClipSectionAt: (name: string, position: "before" | "after", itemId: FrontendId) => void;
+  onAddClipSectionAt: (
+    name: string,
+    position: "before" | "after",
+    itemId: FrontendId
+  ) => void;
   error: EditorError | null;
 }) => {
   // Filter items to get only clips (excluding clip sections)
@@ -128,7 +134,9 @@ export const VideoEditor = (props: {
   // Generate default name for new clip sections based on existing count
   const generateDefaultClipSectionName = () => {
     const existingClipSectionCount = props.items.filter(
-      (item) => item.type === "clip-section-on-database" || item.type === "clip-section-optimistically-added"
+      (item) =>
+        item.type === "clip-section-on-database" ||
+        item.type === "clip-section-optimistically-added"
     ).length;
     return `Section ${existingClipSectionCount + 1}`;
   };
@@ -170,7 +178,6 @@ export const VideoEditor = (props: {
       },
     }
   );
-
 
   const currentClipIndex = clips.findIndex(
     (clip) => clip.frontendId === state.currentClipId
@@ -282,7 +289,12 @@ export const VideoEditor = (props: {
   const [clipSectionNamingModal, setClipSectionNamingModal] = useState<
     | { mode: "create"; defaultName: string }
     | { mode: "edit"; clipSectionId: FrontendId; currentName: string }
-    | { mode: "add-at"; position: "before" | "after"; itemId: FrontendId; defaultName: string }
+    | {
+        mode: "add-at";
+        position: "before" | "after";
+        itemId: FrontendId;
+        defaultName: string;
+      }
     | null
   >(null);
 
@@ -382,9 +394,7 @@ export const VideoEditor = (props: {
     props.insertionPoint
   );
 
-  const currentClip = clips.find(
-    (clip) => clip.frontendId === currentClipId
-  );
+  const currentClip = clips.find((clip) => clip.frontendId === currentClipId);
 
   const allClipsHaveSilenceDetected = clips.every(
     (clip) => clip.type === "on-database"
@@ -429,9 +439,7 @@ export const VideoEditor = (props: {
   const areAnyClipsDangerous = clips.some((clip) => {
     if (clip.type !== "on-database") return false;
     const props = clipComputedProps.get(clip.frontendId);
-    return (
-      props && props.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD
-    );
+    return props && props.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD;
   });
 
   // Show error overlay if there's a fatal error
@@ -449,7 +457,8 @@ export const VideoEditor = (props: {
           </p>
           <div className="bg-zinc-800 rounded p-3 mb-6 text-left">
             <p className="text-sm text-zinc-500 mb-1">
-              Operation: <span className="text-zinc-300">{props.error.effectType}</span>
+              Operation:{" "}
+              <span className="text-zinc-300">{props.error.effectType}</span>
             </p>
             <p className="text-sm text-red-400 font-mono break-all">
               {props.error.message}
@@ -667,7 +676,9 @@ export const VideoEditor = (props: {
                     </Tooltip>
 
                     {youtubeChapters.length > 0 && (
-                      <DropdownMenuItem onSelect={copyYoutubeChaptersToClipboard}>
+                      <DropdownMenuItem
+                        onSelect={copyYoutubeChaptersToClipboard}
+                      >
                         {isChaptersCopied ? (
                           <CheckIcon className="w-4 h-4 mr-2" />
                         ) : (
@@ -890,7 +901,7 @@ export const VideoEditor = (props: {
                     ? clipSectionNamingModal.defaultName
                     : clipSectionNamingModal?.mode === "add-at"
                       ? clipSectionNamingModal.defaultName
-                      : clipSectionNamingModal?.currentName ?? ""
+                      : (clipSectionNamingModal?.currentName ?? "")
                 }
                 required
               />
@@ -913,7 +924,10 @@ export const VideoEditor = (props: {
                 }}
                 type="button"
               >
-                {clipSectionNamingModal?.mode === "create" || clipSectionNamingModal?.mode === "add-at" ? "Skip" : "Cancel"}
+                {clipSectionNamingModal?.mode === "create" ||
+                clipSectionNamingModal?.mode === "add-at"
+                  ? "Skip"
+                  : "Cancel"}
               </Button>
               <Button type="submit">Save</Button>
             </div>
@@ -964,7 +978,9 @@ export const VideoEditor = (props: {
                         <ContextMenuTrigger asChild>
                           <ClipSectionDivider
                             name={item.name}
-                            isSelected={state.selectedClipsSet.has(item.frontendId)}
+                            isSelected={state.selectedClipsSet.has(
+                              item.frontendId
+                            )}
                             onClick={(e) => {
                               // If already selected and clicked again (without modifiers),
                               // play from the next clip after this section
@@ -992,7 +1008,10 @@ export const VideoEditor = (props: {
                         <ContextMenuContent>
                           <ContextMenuItem
                             onSelect={() => {
-                              props.onSetInsertionPoint("before", item.frontendId);
+                              props.onSetInsertionPoint(
+                                "before",
+                                item.frontendId
+                              );
                             }}
                           >
                             <ChevronLeftIcon />
@@ -1000,12 +1019,16 @@ export const VideoEditor = (props: {
                           </ContextMenuItem>
                           <ContextMenuItem
                             onSelect={() => {
-                              props.onSetInsertionPoint("after", item.frontendId);
+                              props.onSetInsertionPoint(
+                                "after",
+                                item.frontendId
+                              );
                             }}
                           >
                             <ChevronRightIcon />
                             Insert After
                           </ContextMenuItem>
+                          <ContextMenuSeparator />
                           <ContextMenuItem
                             onSelect={() => {
                               setClipSectionNamingModal({
@@ -1032,6 +1055,7 @@ export const VideoEditor = (props: {
                             <PlusIcon />
                             Add Section After
                           </ContextMenuItem>
+                          <ContextMenuSeparator />
                           <ContextMenuItem
                             onSelect={() => {
                               setClipSectionNamingModal({
@@ -1062,6 +1086,7 @@ export const VideoEditor = (props: {
                             <ArrowDownIcon />
                             Move Down
                           </ContextMenuItem>
+                          <ContextMenuSeparator />
                           <ContextMenuItem
                             variant="destructive"
                             onSelect={() => {
@@ -1237,6 +1262,7 @@ export const VideoEditor = (props: {
                           <ChevronRightIcon />
                           Insert After
                         </ContextMenuItem>
+                        <ContextMenuSeparator />
                         <ContextMenuItem
                           onSelect={() => {
                             setClipSectionNamingModal({
@@ -1263,6 +1289,7 @@ export const VideoEditor = (props: {
                           <PlusIcon />
                           Add Section After
                         </ContextMenuItem>
+                        <ContextMenuSeparator />
                         <ContextMenuItem
                           disabled={isFirstItem}
                           onSelect={() => {
@@ -1281,13 +1308,16 @@ export const VideoEditor = (props: {
                           <ArrowDownIcon />
                           Move Down
                         </ContextMenuItem>
+                        <ContextMenuSeparator />
                         <ContextMenuItem
                           onSelect={() => {
                             props.onToggleBeatForClip(clip.frontendId);
                           }}
                         >
                           <PauseIcon />
-                          {clip.beatType === "long" ? "Remove Beat" : "Add Beat"}
+                          {clip.beatType === "long"
+                            ? "Remove Beat"
+                            : "Add Beat"}
                         </ContextMenuItem>
                         <ContextMenuItem
                           disabled={clip.type !== "on-database"}
@@ -1301,6 +1331,7 @@ export const VideoEditor = (props: {
                           <RefreshCwIcon />
                           Re-transcribe
                         </ContextMenuItem>
+                        <ContextMenuSeparator />
                         <ContextMenuItem
                           variant="destructive"
                           onSelect={() => {
@@ -1353,7 +1384,7 @@ export const InsertionPointIndicator = () => {
 
 export const BeatIndicator = () => {
   return (
-    <div className="flex items-center justify-center gap-1 pt-2 pb-1">
+    <div className="flex items-center justify-center gap-1 pt-5 pb-1">
       <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
       <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
       <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />

@@ -442,3 +442,18 @@
 - Files changed:
   - app/features/video-editor/video-editor.tsx:289-323
   - app/routes/videos.$videoId.write.tsx:91-138
+
+## Issue #31 - Organize context menus into sections
+- Added ContextMenuSeparator to visually group related menu items
+- Clip section context menu organized into 4 groups:
+  - Insertion: Insert Before, Insert After
+  - Sections: Add Section Before, Add Section After
+  - Edit/Organize: Edit, Move Up, Move Down
+  - Destructive: Delete
+- Clip context menu organized into 5 groups:
+  - Insertion: Insert Before, Insert After
+  - Sections: Add Section Before, Add Section After
+  - Organize: Move Up, Move Down
+  - Clip Actions: Add/Remove Beat, Re-transcribe
+  - Destructive: Delete
+- File: app/features/video-editor/video-editor.tsx
