@@ -18,7 +18,8 @@ const chatSchema = Schema.Struct({
     Schema.Literal("project"),
     Schema.Literal("skill-building"),
     Schema.Literal("style-guide-skill-building"),
-    Schema.Literal("style-guide-project")
+    Schema.Literal("style-guide-project"),
+    Schema.Literal("seo-description")
   ),
   model: Schema.String,
   includeTranscript: Schema.optionalWith(Schema.Boolean, { default: () => true }),

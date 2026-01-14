@@ -3,6 +3,7 @@ import { generateStepsToCompleteForProjectPrompt } from "@/prompts/generate-step
 import { generateStepsToCompleteForSkillBuildingProblemPrompt } from "@/prompts/generate-steps-to-complete-for-skill-building-problem";
 import { refineSkillBuildingWithStyleGuidePrompt } from "@/prompts/refine-skill-building-with-style-guide";
 import { refineProjectWithStyleGuidePrompt } from "@/prompts/refine-project-with-style-guide";
+import { generateSeoDescriptionPrompt } from "@/prompts/generate-seo-description";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -22,7 +23,8 @@ export type TextWritingAgentMode =
   | "skill-building"
   | "style-guide-skill-building"
   | "style-guide-project"
-  | "project";
+  | "project"
+  | "seo-description";
 
 export type TextWritingAgentCodeFile = {
   path: string;
@@ -63,6 +65,12 @@ export const createTextWritingAgent = (props: {
         });
       case "style-guide-project":
         return refineProjectWithStyleGuidePrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+        });
+      case "seo-description":
+        return generateSeoDescriptionPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),

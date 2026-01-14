@@ -205,7 +205,8 @@ type Mode =
   | "project"
   | "skill-building"
   | "style-guide-skill-building"
-  | "style-guide-project";
+  | "style-guide-project"
+  | "seo-description";
 type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
 
 const modeToLabel = {
@@ -214,6 +215,7 @@ const modeToLabel = {
   "skill-building": "Skill Building Steps",
   "style-guide-skill-building": "Style Guide Pass - Skill Building",
   "style-guide-project": "Style Guide Pass - Project",
+  "seo-description": "SEO Description",
 };
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -506,6 +508,14 @@ export function InnerComponent(props: Route.ComponentProps) {
                         <div>Style Guide Pass - Project</div>
                         <div className="text-xs text-muted-foreground">
                           Refine existing project steps with style guide
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="seo-description">
+                      <div>
+                        <div>SEO Description</div>
+                        <div className="text-xs text-muted-foreground">
+                          Generate SEO description (max 160 characters)
                         </div>
                       </div>
                     </SelectItem>

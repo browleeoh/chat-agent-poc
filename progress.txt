@@ -111,3 +111,18 @@
 - Uses FilmIcon to indicate video editing functionality
 - Placed before the Previous/Next navigation buttons
 - File: app/routes/videos.$videoId.write.tsx:358-363
+
+## Issue #13 - Add SEO description mode to write article page
+- Created new prompt file for SEO description generation with 160 character limit
+- Added "seo-description" mode to frontend Mode type and modeToLabel mapping
+- Added new SelectItem in UI for SEO Description mode with description
+- Updated backend chatSchema to accept "seo-description" in mode union
+- Added "seo-description" to TextWritingAgentMode type in text-writing-agent.ts
+- Wired up SEO mode in createTextWritingAgent switch statement
+- Prompt emphasizes 160 character hard limit and SEO best practices
+- Mode takes transcript and optional code files as context
+- Files changed:
+  - app/prompts/generate-seo-description.ts (new)
+  - app/routes/videos.$videoId.write.tsx:203-209, 212-218, 514-521
+  - app/routes/videos.$videoId.completions.ts:13-26
+  - app/services/text-writing-agent.ts:1-6, 21-27, 72-77
