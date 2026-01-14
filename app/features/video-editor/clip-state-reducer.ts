@@ -930,10 +930,7 @@ export const clipStateReducer: EffectReducer<
         ...state,
         items: newItems,
         insertionOrder: state.insertionOrder + 1,
-        insertionPoint: {
-          type: "after-clip-section",
-          frontendClipSectionId: newFrontendId,
-        },
+        // Don't move insertion point - user is just organizing content via context menu
       };
     }
   }

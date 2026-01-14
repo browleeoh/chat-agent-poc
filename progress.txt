@@ -369,3 +369,10 @@
 - Updated `press-end` to use `itemIds[itemIds.length - 1]` instead of `clipIds[clipIds.length - 1]`
 - Updated JSDoc comment to reflect that Home/End now use itemIds for navigation
 - File: app/features/video-editor/video-state-reducer.ts:185-199
+
+## Issue #25 - Clip section add via context menu no longer moves insertion point
+- When adding a clip section via right-click "Add Before" or "Add After", the insertion point was being moved to after the new clip section
+- This was incorrect because the user is organizing content, not actively recording
+- Removed the `insertionPoint` update from the `add-clip-section-at` reducer case
+- Stream Deck add section still moves insertion point (correct for recording workflow)
+- File: app/features/video-editor/clip-state-reducer.ts:929-934
