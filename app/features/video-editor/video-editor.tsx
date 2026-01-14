@@ -62,6 +62,7 @@ import { useEffectReducer } from "use-effect-reducer";
 import type {
   Clip,
   ClipOnDatabase,
+  ClipSection,
   FrontendId,
   FrontendInsertionPoint,
   TimelineItem,
@@ -88,6 +89,9 @@ function calculateTextSimilarity(str1: string, str2: string): number {
 
 const isClip = (item: TimelineItem): item is Clip =>
   item.type === "on-database" || item.type === "optimistically-added";
+
+const isClipSection = (item: TimelineItem): item is ClipSection =>
+  item.type === "clip-section-on-database" || item.type === "clip-section-optimistically-added";
 
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
@@ -311,37 +315,43 @@ export const VideoEditor = (props: {
     (clip) => clip.type === "on-database" && clip.text
   );
 
-  let timecode = 0;
+  // Create a map of clip frontendId -> computed properties (timecode, levenshtein)
+  const clipComputedProps = useMemo(() => {
+    let timecode = 0;
+    const map = new Map<
+      FrontendId,
+      { timecode: string; nextLevenshtein: number }
+    >();
 
-  const clipsWithTimecodeAndLevenshtein = useMemo(
-    () =>
-      clips.map((clip, index, clips) => {
-        if (clip.type === "optimistically-added") return clip;
+    clips.forEach((clip, index) => {
+      if (clip.type === "optimistically-added") {
+        map.set(clip.frontendId, { timecode: "", nextLevenshtein: 0 });
+        return;
+      }
 
-        const nextClip = clips[index + 1];
+      const nextClip = clips[index + 1];
 
-        const nextLevenshtein =
-          nextClip?.type === "on-database" && nextClip?.text
-            ? calculateTextSimilarity(clip.text, nextClip.text)
-            : 0;
+      const nextLevenshtein =
+        nextClip?.type === "on-database" && nextClip?.text
+          ? calculateTextSimilarity(clip.text, nextClip.text)
+          : 0;
 
-        const timecodeString = formatSecondsToTimeCode(timecode);
+      const timecodeString = formatSecondsToTimeCode(timecode);
 
-        const duration = clip.sourceEndTime - clip.sourceStartTime;
-        timecode += duration;
-        return {
-          ...clip,
-          nextLevenshtein,
-          timecode: timecodeString,
-        };
-      }),
-    [clips]
-  );
+      const duration = clip.sourceEndTime - clip.sourceStartTime;
+      timecode += duration;
 
-  const areAnyClipsDangerous = clipsWithTimecodeAndLevenshtein.some((clip) => {
+      map.set(clip.frontendId, { timecode: timecodeString, nextLevenshtein });
+    });
+
+    return map;
+  }, [clips]);
+
+  const areAnyClipsDangerous = clips.some((clip) => {
+    if (clip.type !== "on-database") return false;
+    const props = clipComputedProps.get(clip.frontendId);
     return (
-      clip.type === "on-database" &&
-      clip.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD
+      props && props.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD
     );
   });
 
@@ -685,12 +695,44 @@ export const VideoEditor = (props: {
             </div>
           )}
 
-          {clips.length > 0 && (
+          {props.items.length > 0 && (
             <>
               {props.insertionPoint.type === "start" && (
                 <InsertionPointIndicator />
               )}
-              {clipsWithTimecodeAndLevenshtein.map((clip, clipIndex) => {
+              {props.items.map((item, itemIndex) => {
+                const isFirstItem = itemIndex === 0;
+                const isLastItem = itemIndex === props.items.length - 1;
+
+                // Render clip section divider
+                if (isClipSection(item)) {
+                  return (
+                    <div key={item.frontendId}>
+                      <ClipSectionDivider
+                        name={item.name}
+                        isSelected={state.selectedClipsSet.has(item.frontendId)}
+                        onClick={(e) => {
+                          dispatch({
+                            type: "click-clip",
+                            clipId: item.frontendId,
+                            ctrlKey: e.ctrlKey,
+                            shiftKey: e.shiftKey,
+                          });
+                        }}
+                      />
+                      {props.insertionPoint.type === "after-clip-section" &&
+                        props.insertionPoint.frontendClipSectionId ===
+                          item.frontendId && <InsertionPointIndicator />}
+                    </div>
+                  );
+                }
+
+                // Render clip
+                const clip = item;
+                const computedProps = clipComputedProps.get(clip.frontendId);
+                const timecode = computedProps?.timecode ?? "";
+                const nextLevenshtein = computedProps?.nextLevenshtein ?? 0;
+
                 const duration =
                   clip.type === "on-database"
                     ? clip.sourceEndTime - clip.sourceStartTime
@@ -704,17 +746,13 @@ export const VideoEditor = (props: {
                   clip.type === "on-database" &&
                   (clip.profile === "TikTok" || clip.profile === "Portrait");
 
-                const isFirstClip = clipIndex === 0;
-                const isLastClip =
-                  clipIndex === clipsWithTimecodeAndLevenshtein.length - 1;
-
                 return (
-                  <>
-                    <ContextMenu key={clip.frontendId}>
+                  <div key={clip.frontendId}>
+                    <ContextMenu>
                       <ContextMenuTrigger asChild>
                         <button
                           className={cn(
-                            "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex",
+                            "bg-gray-800 rounded-md text-left relative overflow-hidden allow-keydown flex w-full",
                             state.selectedClipsSet.has(clip.frontendId) &&
                               "outline-2 outline-gray-200 bg-gray-700",
                             clip.frontendId === currentClipId && "bg-blue-900"
@@ -762,7 +800,7 @@ export const VideoEditor = (props: {
                                     "text-white"
                                 )}
                               >
-                                {clip.timecode}
+                                {timecode}
                               </div>
                             </div>
                           ) : (
@@ -797,11 +835,11 @@ export const VideoEditor = (props: {
                                 )
                               ) : clip.type === "on-database" ? (
                                 <>
-                                  {clip.nextLevenshtein >
+                                  {nextLevenshtein >
                                     DANGEROUS_TEXT_SIMILARITY_THRESHOLD && (
                                     <span className="text-orange-500 mr-2 text-base font-semibold inline-flex items-center">
                                       <AlertTriangleIcon className="w-4 h-4 mr-2" />
-                                      {clip.nextLevenshtein.toFixed(0)}%
+                                      {nextLevenshtein.toFixed(0)}%
                                     </span>
                                   )}
                                   <span
@@ -844,7 +882,7 @@ export const VideoEditor = (props: {
                           Insert After
                         </ContextMenuItem>
                         <ContextMenuItem
-                          disabled={isFirstClip}
+                          disabled={isFirstItem}
                           onSelect={() => {
                             props.onMoveClip(clip.frontendId, "up");
                           }}
@@ -853,7 +891,7 @@ export const VideoEditor = (props: {
                           Move Up
                         </ContextMenuItem>
                         <ContextMenuItem
-                          disabled={isLastClip}
+                          disabled={isLastItem}
                           onSelect={() => {
                             props.onMoveClip(clip.frontendId, "down");
                           }}
@@ -896,13 +934,11 @@ export const VideoEditor = (props: {
                       </ContextMenuContent>
                     </ContextMenu>
                     {/* Beat indicator dots below clip */}
-                    {clip.beatType === "long" && (
-                      <BeatIndicator />
-                    )}
+                    {clip.beatType === "long" && <BeatIndicator />}
                     {props.insertionPoint.type === "after-clip" &&
                       props.insertionPoint.frontendClipId ===
                         clip.frontendId && <InsertionPointIndicator />}
-                  </>
+                  </div>
                 );
               })}
 
@@ -940,6 +976,29 @@ export const BeatIndicator = () => {
       <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
       <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
     </div>
+  );
+};
+
+export const ClipSectionDivider = (props: {
+  name: string;
+  isSelected: boolean;
+  onClick: (e: React.MouseEvent) => void;
+}) => {
+  return (
+    <button
+      className={cn(
+        "flex items-center gap-3 py-2 px-3 w-full allow-keydown",
+        "hover:bg-gray-800/50 rounded-md transition-colors",
+        props.isSelected && "bg-gray-700 outline-2 outline-gray-200"
+      )}
+      onClick={props.onClick}
+    >
+      <div className="border-t-2 border-gray-500 flex-1" />
+      <span className="text-sm font-medium text-gray-300 whitespace-nowrap">
+        {props.name}
+      </span>
+      <div className="border-t-2 border-gray-500 flex-1" />
+    </button>
   );
 };
 

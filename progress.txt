@@ -246,3 +246,18 @@
   - app/routes/videos.$videoId.edit.tsx (effect handler, onAddClipSection prop)
   - app/services/db-service.ts (added createClipSectionAtInsertionPoint)
   - app/routes/clip-sections.create-at-insertion-point.ts (new API route)
+
+## Issue #18 - Video Editor Clip Sections (Part 6: UI Components)
+- Added `ClipSectionDivider` UI component for rendering clip sections in timeline
+- Clip sections now render as horizontal divider lines with the section name centered
+- Visual design: Gray horizontal lines with section name label in between
+- Selectable: Click to select, participates in selection state (outline when selected)
+- Insertion point indicator shows after clip sections when insertion point is set there
+- Refactored timeline rendering to iterate over `props.items` (unified array) instead of just clips
+- Added `isClipSection()` type guard helper alongside existing `isClip()` helper
+- Extracted clip computed properties (timecode, levenshtein) into a Map for cleaner code
+- Move Up/Down context menu now correctly uses unified item index for boundaries
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/video-editor.tsx (ClipSectionDivider component, refactored rendering loop)
