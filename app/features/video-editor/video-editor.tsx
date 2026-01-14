@@ -117,6 +117,7 @@ export const VideoEditor = (props: {
   onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
   onAddClipSection: (name: string) => void;
   onUpdateClipSection: (clipSectionId: FrontendId, name: string) => void;
+  onAddClipSectionAt: (name: string, position: "before" | "after", itemId: FrontendId) => void;
 }) => {
   // Filter items to get only clips (excluding clip sections)
   // Clip sections will be rendered separately in a future update
@@ -272,9 +273,11 @@ export const VideoEditor = (props: {
   // State for clip section naming modal
   // When creating: { mode: "create", defaultName: string }
   // When editing: { mode: "edit", clipSectionId: FrontendId, currentName: string }
+  // When adding at position: { mode: "add-at", position: "before" | "after", itemId: FrontendId, defaultName: string }
   const [clipSectionNamingModal, setClipSectionNamingModal] = useState<
     | { mode: "create"; defaultName: string }
     | { mode: "edit"; clipSectionId: FrontendId; currentName: string }
+    | { mode: "add-at"; position: "before" | "after"; itemId: FrontendId; defaultName: string }
     | null
   >(null);
 
@@ -756,6 +759,12 @@ export const VideoEditor = (props: {
             // On dismiss, create with default name if in create mode
             if (clipSectionNamingModal?.mode === "create") {
               props.onAddClipSection(clipSectionNamingModal.defaultName);
+            } else if (clipSectionNamingModal?.mode === "add-at") {
+              props.onAddClipSectionAt(
+                clipSectionNamingModal.defaultName,
+                clipSectionNamingModal.position,
+                clipSectionNamingModal.itemId
+              );
             }
             setClipSectionNamingModal(null);
           }
@@ -766,7 +775,9 @@ export const VideoEditor = (props: {
             <DialogTitle>
               {clipSectionNamingModal?.mode === "create"
                 ? "Name Clip Section"
-                : "Edit Clip Section"}
+                : clipSectionNamingModal?.mode === "add-at"
+                  ? "Name Clip Section"
+                  : "Edit Clip Section"}
             </DialogTitle>
           </DialogHeader>
           <form
@@ -782,6 +793,12 @@ export const VideoEditor = (props: {
                   clipSectionNamingModal.clipSectionId,
                   name
                 );
+              } else if (clipSectionNamingModal?.mode === "add-at") {
+                props.onAddClipSectionAt(
+                  name,
+                  clipSectionNamingModal.position,
+                  clipSectionNamingModal.itemId
+                );
               }
               setClipSectionNamingModal(null);
             }}
@@ -795,7 +812,9 @@ export const VideoEditor = (props: {
                 defaultValue={
                   clipSectionNamingModal?.mode === "create"
                     ? clipSectionNamingModal.defaultName
-                    : clipSectionNamingModal?.currentName ?? ""
+                    : clipSectionNamingModal?.mode === "add-at"
+                      ? clipSectionNamingModal.defaultName
+                      : clipSectionNamingModal?.currentName ?? ""
                 }
                 required
               />
@@ -804,15 +823,21 @@ export const VideoEditor = (props: {
               <Button
                 variant="outline"
                 onClick={() => {
-                  // On cancel in create mode, create with default name
+                  // On cancel in create or add-at mode, create with default name
                   if (clipSectionNamingModal?.mode === "create") {
                     props.onAddClipSection(clipSectionNamingModal.defaultName);
+                  } else if (clipSectionNamingModal?.mode === "add-at") {
+                    props.onAddClipSectionAt(
+                      clipSectionNamingModal.defaultName,
+                      clipSectionNamingModal.position,
+                      clipSectionNamingModal.itemId
+                    );
                   }
                   setClipSectionNamingModal(null);
                 }}
                 type="button"
               >
-                {clipSectionNamingModal?.mode === "create" ? "Skip" : "Cancel"}
+                {clipSectionNamingModal?.mode === "create" || clipSectionNamingModal?.mode === "add-at" ? "Skip" : "Cancel"}
               </Button>
               <Button type="submit">Save</Button>
             </div>
@@ -890,6 +915,32 @@ export const VideoEditor = (props: {
                           >
                             <ChevronRightIcon />
                             Insert After
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onSelect={() => {
+                              setClipSectionNamingModal({
+                                mode: "add-at",
+                                position: "before",
+                                itemId: item.frontendId,
+                                defaultName: generateDefaultClipSectionName(),
+                              });
+                            }}
+                          >
+                            <PlusIcon />
+                            Add Section Before
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onSelect={() => {
+                              setClipSectionNamingModal({
+                                mode: "add-at",
+                                position: "after",
+                                itemId: item.frontendId,
+                                defaultName: generateDefaultClipSectionName(),
+                              });
+                            }}
+                          >
+                            <PlusIcon />
+                            Add Section After
                           </ContextMenuItem>
                           <ContextMenuItem
                             onSelect={() => {
@@ -1095,6 +1146,32 @@ export const VideoEditor = (props: {
                         >
                           <ChevronRightIcon />
                           Insert After
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          onSelect={() => {
+                            setClipSectionNamingModal({
+                              mode: "add-at",
+                              position: "before",
+                              itemId: clip.frontendId,
+                              defaultName: generateDefaultClipSectionName(),
+                            });
+                          }}
+                        >
+                          <PlusIcon />
+                          Add Section Before
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          onSelect={() => {
+                            setClipSectionNamingModal({
+                              mode: "add-at",
+                              position: "after",
+                              itemId: clip.frontendId,
+                              defaultName: generateDefaultClipSectionName(),
+                            });
+                          }}
+                        >
+                          <PlusIcon />
+                          Add Section After
                         </ContextMenuItem>
                         <ContextMenuItem
                           disabled={isFirstItem}

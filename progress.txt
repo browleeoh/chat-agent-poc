@@ -318,3 +318,24 @@
 - TypeScript typechecks pass
 - Files changed:
   - app/features/video-editor/video-editor.tsx (youtubeChapters calculation, copy function, export modal UI)
+
+## Issue #19 - Add clip section via context menu
+- Added "Add Section Before" and "Add Section After" options to both clip and clip section context menus
+- Right-click a clip or clip section to add a new section before or after it
+- Implementation details:
+  - Added `add-clip-section-at` action to clip-state-reducer with position and itemId parameters
+  - Added `create-clip-section-at` effect type for backend communication
+  - Created new DBService function `createClipSectionAtPosition` that calculates order based on target item
+  - Created new API route `/clip-sections/create-at-position` that accepts position, targetItemId, targetItemType
+  - Extended clip section naming modal to support "add-at" mode with position data
+  - Added effect handler in videos.$videoId.edit.tsx
+  - Added `onAddClipSectionAt` prop to VideoEditor component
+- Shows naming modal when adding a section, with Skip button to use default name
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/clip-state-reducer.ts (new action and effect types, reducer case)
+  - app/features/video-editor/video-editor.tsx (context menu items, modal handling, new prop)
+  - app/routes/videos.$videoId.edit.tsx (effect handler, new prop)
+  - app/services/db-service.ts (createClipSectionAtPosition function)
+  - app/routes/clip-sections.create-at-position.ts (new API route)

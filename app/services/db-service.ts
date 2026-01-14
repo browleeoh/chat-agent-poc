@@ -266,6 +266,89 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return clipSection;
     });
 
+    const createClipSectionAtPosition = Effect.fn("createClipSectionAtPosition")(function* (
+      videoId: string,
+      name: string,
+      position: "before" | "after",
+      targetItemId: string,
+      targetItemType: "clip" | "clip-section"
+    ) {
+      // Get all non-archived clips and clip sections for this video, ordered
+      const allClips = yield* makeDbCall(() =>
+        db.query.clips.findMany({
+          where: and(eq(clips.videoId, videoId), eq(clips.archived, false)),
+          orderBy: asc(clips.order),
+        })
+      );
+
+      const allClipSections = yield* makeDbCall(() =>
+        db.query.clipSections.findMany({
+          where: and(
+            eq(clipSections.videoId, videoId),
+            eq(clipSections.archived, false)
+          ),
+          orderBy: asc(clipSections.order),
+        })
+      );
+
+      // Combine and sort by order
+      const allItems = [
+        ...allClips.map((c) => ({ type: "clip" as const, ...c })),
+        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+      ].sort((a, b) => a.order.localeCompare(b.order));
+
+      // Find the target item
+      const targetIndex = allItems.findIndex(
+        (item) => item.type === targetItemType && item.id === targetItemId
+      );
+
+      if (targetIndex === -1) {
+        return yield* new NotFoundError({
+          type: "createClipSectionAtPosition",
+          params: { videoId, targetItemId, targetItemType },
+          message: `Could not find the target ${targetItemType} to position relative to`,
+        });
+      }
+
+      // Calculate order based on position
+      let prevOrder: string | null = null;
+      let nextOrder: string | null = null;
+
+      if (position === "before") {
+        // Insert before target item
+        nextOrder = allItems[targetIndex]?.order ?? null;
+        const prevItem = allItems[targetIndex - 1];
+        prevOrder = prevItem?.order ?? null;
+      } else {
+        // Insert after target item
+        prevOrder = allItems[targetIndex]?.order ?? null;
+        const nextItem = allItems[targetIndex + 1];
+        nextOrder = nextItem?.order ?? null;
+      }
+
+      const [order] = generateNKeysBetween(prevOrder, nextOrder, 1);
+
+      const [clipSection] = yield* makeDbCall(() =>
+        db
+          .insert(clipSections)
+          .values({
+            videoId,
+            name,
+            order: order!,
+            archived: false,
+          })
+          .returning()
+      );
+
+      if (!clipSection) {
+        return yield* new UnknownDBServiceError({
+          cause: "No clip section was returned from the database",
+        });
+      }
+
+      return clipSection;
+    });
+
     const getClipSectionById = Effect.fn("getClipSectionById")(function* (
       clipSectionId: string
     ) {
@@ -654,6 +737,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       reorderClip,
       createClipSection,
       createClipSectionAtInsertionPoint,
+      createClipSectionAtPosition,
       getClipSectionById,
       updateClipSection,
       archiveClipSection,

@@ -174,6 +174,12 @@ export namespace clipStateReducer {
         type: "update-clip-section";
         clipSectionId: FrontendId;
         name: string;
+      }
+    | {
+        type: "add-clip-section-at";
+        name: string;
+        position: "before" | "after";
+        itemId: FrontendId;
       };
 
   export type Effect =
@@ -221,6 +227,14 @@ export namespace clipStateReducer {
         type: "update-clip-section";
         clipSectionId: DatabaseId;
         name: string;
+      }
+    | {
+        type: "create-clip-section-at";
+        frontendId: FrontendId;
+        name: string;
+        position: "before" | "after";
+        targetItemId: DatabaseId;
+        targetItemType: "clip" | "clip-section";
       };
 }
 
@@ -846,6 +860,80 @@ export const clipStateReducer: EffectReducer<
           }
           return item;
         }),
+      };
+    }
+    case "add-clip-section-at": {
+      const targetItem = state.items.find(
+        (item) => item.frontendId === action.itemId
+      );
+      if (!targetItem) {
+        return state;
+      }
+
+      const targetIndex = state.items.findIndex(
+        (item) => item.frontendId === action.itemId
+      );
+
+      const newFrontendId = createFrontendId();
+      const newClipSection: ClipSectionOptimisticallyAdded = {
+        type: "clip-section-optimistically-added",
+        frontendId: newFrontendId,
+        name: action.name,
+        insertionOrder: state.insertionOrder + 1,
+      };
+
+      // Determine database ID and type of target item
+      let targetDatabaseId: DatabaseId | undefined;
+      let targetItemType: "clip" | "clip-section";
+      if (targetItem.type === "on-database") {
+        targetDatabaseId = targetItem.databaseId;
+        targetItemType = "clip";
+      } else if (targetItem.type === "clip-section-on-database") {
+        targetDatabaseId = targetItem.databaseId;
+        targetItemType = "clip-section";
+      } else {
+        // Can't add relative to optimistically added items
+        return state;
+      }
+
+      // Insert at the correct position
+      let newItems: TimelineItem[];
+      if (action.position === "before") {
+        newItems = [
+          ...state.items.slice(0, targetIndex),
+          newClipSection,
+          ...state.items.slice(targetIndex),
+        ];
+      } else {
+        // after
+        newItems = [
+          ...state.items.slice(0, targetIndex + 1),
+          newClipSection,
+          ...state.items.slice(targetIndex + 1),
+        ];
+      }
+
+      exec({
+        type: "create-clip-section-at",
+        frontendId: newFrontendId,
+        name: action.name,
+        position: action.position,
+        targetItemId: targetDatabaseId,
+        targetItemType: targetItemType,
+      });
+
+      exec({
+        type: "scroll-to-insertion-point",
+      });
+
+      return {
+        ...state,
+        items: newItems,
+        insertionOrder: state.insertionOrder + 1,
+        insertionPoint: {
+          type: "after-clip-section",
+          frontendClipSectionId: newFrontendId,
+        },
       };
     }
   }
