@@ -64,6 +64,7 @@ import type {
   ClipOnDatabase,
   FrontendId,
   FrontendInsertionPoint,
+  TimelineItem,
 } from "./clip-state-reducer";
 import { type OBSConnectionState } from "./obs-connector";
 import { PreloadableClipManager } from "./preloadable-clip";
@@ -85,9 +86,12 @@ function calculateTextSimilarity(str1: string, str2: string): number {
   return Math.max(0, Math.round(similarity * 100) / 100); // Round to 2 decimal places
 }
 
+const isClip = (item: TimelineItem): item is Clip =>
+  item.type === "on-database" || item.type === "optimistically-added";
+
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
-  clips: Clip[];
+  items: TimelineItem[];
   videoPath: string;
   lessonPath?: string;
   repoName?: string;
@@ -108,20 +112,24 @@ export const VideoEditor = (props: {
   onToggleBeatForClip: (clipId: FrontendId) => void;
   onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
 }) => {
+  // Filter items to get only clips (excluding clip sections)
+  // Clip sections will be rendered separately in a future update
+  const clips = useMemo(() => props.items.filter(isClip), [props.items]);
+
   const [state, dispatch] = useEffectReducer<
     videoStateReducer.State,
     videoStateReducer.Action,
     videoStateReducer.Effect
   >(
-    makeVideoEditorReducer(props.clips.map((clip) => clip.frontendId)),
+    makeVideoEditorReducer(clips.map((clip) => clip.frontendId)),
     {
       showLastFrameOfVideo: true,
       runningState: "paused",
-      currentClipId: props.clips[0]?.frontendId,
+      currentClipId: clips[0]?.frontendId,
       currentTimeInClip: 0,
       selectedClipsSet: new Set<FrontendId>(),
       clipIdsPreloaded: new Set<FrontendId>(
-        [props.clips[0]?.frontendId, props.clips[1]?.frontendId].filter(
+        [clips[0]?.frontendId, clips[1]?.frontendId].filter(
           (id) => id !== undefined
         )
       ),
@@ -144,11 +152,11 @@ export const VideoEditor = (props: {
   );
 
 
-  const currentClipIndex = props.clips.findIndex(
+  const currentClipIndex = clips.findIndex(
     (clip) => clip.frontendId === state.currentClipId
   );
 
-  const nextClip = props.clips[currentClipIndex + 1];
+  const nextClip = clips[currentClipIndex + 1];
 
   const selectedClipId = Array.from(state.selectedClipsSet)[0];
 
@@ -245,7 +253,7 @@ export const VideoEditor = (props: {
   const copyTranscriptToClipboard = async () => {
     try {
       // Get all clips with text and concatenate them
-      const transcript = props.clips
+      const transcript = clips
         .filter((clip) => clip.type === "on-database")
         .map((clip) => clip.text)
         .join(" ");
@@ -258,7 +266,7 @@ export const VideoEditor = (props: {
     }
   };
 
-  const totalDuration = props.clips.reduce((acc, clip) => {
+  const totalDuration = clips.reduce((acc, clip) => {
     if (clip.type === "on-database") {
       return acc + (clip.sourceEndTime - clip.sourceStartTime);
     }
@@ -276,19 +284,19 @@ export const VideoEditor = (props: {
   }
 
   const databaseClipToShowLastFrameOf = getDatabaseClipBeforeInsertionPoint(
-    props.clips,
+    clips,
     props.insertionPoint
   );
 
-  const currentClip = props.clips.find(
+  const currentClip = clips.find(
     (clip) => clip.frontendId === currentClipId
   );
 
-  const allClipsHaveSilenceDetected = props.clips.every(
+  const allClipsHaveSilenceDetected = clips.every(
     (clip) => clip.type === "on-database"
   );
 
-  const allClipsHaveText = props.clips.every(
+  const allClipsHaveText = clips.every(
     (clip) => clip.type === "on-database" && clip.text
   );
 
@@ -296,7 +304,7 @@ export const VideoEditor = (props: {
 
   const clipsWithTimecodeAndLevenshtein = useMemo(
     () =>
-      props.clips.map((clip, index, clips) => {
+      clips.map((clip, index, clips) => {
         if (clip.type === "optimistically-added") return clip;
 
         const nextClip = clips[index + 1];
@@ -316,7 +324,7 @@ export const VideoEditor = (props: {
           timecode: timecodeString,
         };
       }),
-    [props.clips]
+    [clips]
   );
 
   const areAnyClipsDangerous = clipsWithTimecodeAndLevenshtein.some((clip) => {
@@ -405,10 +413,10 @@ export const VideoEditor = (props: {
             <div className={cn(viewMode !== "video-player" && "hidden")}>
               <PreloadableClipManager
                 clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-                clips={props.clips
+                clips={clips
                   .filter((clip) => state.clipIdsPreloaded.has(clip.frontendId))
                   .filter((clip) => clip.type === "on-database")}
-                finalClipId={props.clips[props.clips.length - 1]?.frontendId}
+                finalClipId={clips[clips.length - 1]?.frontendId}
                 state={state.runningState}
                 currentClipId={currentClipId}
                 currentClipProfile={currentClip?.profile ?? undefined}
@@ -643,7 +651,7 @@ export const VideoEditor = (props: {
       {/* Clips Section - Shows second on mobile, first on desktop */}
       <div className="lg:flex-1 flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
         <div className="grid gap-4 w-full p-2">
-          {props.clips.length === 0 && (
+          {clips.length === 0 && (
             <div className="bg-gray-800 rounded-lg p-6">
               <h2 className="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2">
                 <CircleQuestionMarkIcon className="size-6" />
@@ -666,7 +674,7 @@ export const VideoEditor = (props: {
             </div>
           )}
 
-          {props.clips.length > 0 && (
+          {clips.length > 0 && (
             <>
               {props.insertionPoint.type === "start" && (
                 <InsertionPointIndicator />

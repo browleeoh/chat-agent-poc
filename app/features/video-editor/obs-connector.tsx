@@ -2,7 +2,7 @@ import type { DB } from "@/db/schema";
 import { OBSWebSocket } from "obs-websocket-js";
 import { useCallback, useEffect, useState } from "react";
 import { useEffectReducer, type EffectReducer } from "use-effect-reducer";
-import type { DatabaseInsertionPoint } from "./clip-state-reducer";
+import type { ApiInsertionPoint } from "./clip-state-reducer";
 import {
   useSpeechDetector,
   useWatchForSpeechDetected,
@@ -168,7 +168,7 @@ export const useConnectToOBSVirtualCamera = (props: {
 
 export const useRunOBSImportRepeatedly = (props: {
   videoId: string;
-  insertionPoint: DatabaseInsertionPoint;
+  insertionPoint: ApiInsertionPoint;
   state:
     | {
         type: "should-run";
@@ -382,7 +382,7 @@ const obsConnectorReducer: EffectReducer<
 
 export const useOBSConnector = (props: {
   videoId: string;
-  insertionPoint: DatabaseInsertionPoint;
+  insertionPoint: ApiInsertionPoint;
   onNewDatabaseClips: (clips: DB.Clip[]) => void;
   onNewClipOptimisticallyAdded: (opts: {
     scene: string;

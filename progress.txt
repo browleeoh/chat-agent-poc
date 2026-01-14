@@ -181,3 +181,29 @@
   - app/routes/clip-sections.update.ts (new) - updates clip section name
   - app/routes/clip-sections.archive.ts (new) - soft deletes one or more clip sections
   - app/routes/clip-sections.reorder.ts (new) - moves clip section up/down in unified ordering
+
+## Issue #18 - Video Editor Clip Sections (Part 3: Frontend State Integration)
+- Integrated ClipSection types into video editor state management
+- State now uses unified `TimelineItem[]` array (clips and clip sections together)
+- Added new types:
+  - `ClipSectionOnDatabase` and `ClipSectionOptimisticallyAdded` in clip-state-reducer.ts
+  - `TimelineItem = Clip | ClipSection` union type
+  - `ApiInsertionPoint` - narrower type for backend API communication
+- Updated `FrontendInsertionPoint` to include `after-clip-section` variant
+- Updated `DatabaseInsertionPoint` to include `after-clip-section` variant
+- Renamed state property from `clips` to `items` throughout:
+  - clip-state-reducer.ts: State now has `items: TimelineItem[]`
+  - video-editor.tsx: Added `isClip()` helper, uses local `clips` derived from `props.items`
+  - videos.$videoId.edit.tsx: Passes `items` prop, filters archived items
+- Updated `toDatabaseInsertionPoint` to handle `after-clip-section` (converts to `after-clip` or `start` for API)
+- Updated OBS connector to use `ApiInsertionPoint` type
+- Added DB.ClipSection type to schema.ts namespace
+- All tests and typecheck pass
+- Key decision: Clip sections filtered out in VideoEditor for now - UI components added in future task
+- Files changed:
+  - app/db/schema.ts (added DB.ClipSection type)
+  - app/features/video-editor/clip-state-reducer.ts (major state refactoring)
+  - app/features/video-editor/clip-state-reducer.test.ts (updated to use items)
+  - app/features/video-editor/video-editor.tsx (items prop, isClip helper)
+  - app/features/video-editor/obs-connector.tsx (ApiInsertionPoint type)
+  - app/routes/videos.$videoId.edit.tsx (items prop, ApiInsertionPoint)

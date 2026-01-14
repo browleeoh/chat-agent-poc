@@ -1,11 +1,11 @@
 import type { DB } from "@/db/schema";
 import type {
-  Clip,
+  ApiInsertionPoint,
   ClipOnDatabase,
   DatabaseId,
-  DatabaseInsertionPoint,
   FrontendId,
   FrontendInsertionPoint,
+  TimelineItem,
 } from "@/features/video-editor/clip-state-reducer";
 import {
   clipStateReducer,
@@ -69,7 +69,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
   const [clipState, dispatch] = useEffectReducer(
     clipStateReducer,
     {
-      clips: props.loaderData.clips.map(
+      items: props.loaderData.clips.map(
         (clip): ClipOnDatabase => ({
           ...clip,
           type: "on-database",
@@ -149,8 +149,8 @@ export const ComponentInner = (props: Route.ComponentProps) => {
   );
 
   const databaseInsertionPoint = useMemo(
-    () => toDatabaseInsertionPoint(clipState.insertionPoint, clipState.clips),
-    [clipState.insertionPoint, clipState.clips]
+    () => toDatabaseInsertionPoint(clipState.insertionPoint, clipState.items),
+    [clipState.insertionPoint, clipState.items]
   );
 
   const obsConnector = useOBSConnector({
@@ -172,7 +172,7 @@ export const ComponentInner = (props: Route.ComponentProps) => {
       onClipsRetranscribe={(clipIds) => {
         const databaseIds = clipIds
           .map((frontendId) => {
-            const clip = clipState.clips.find(
+            const clip = clipState.items.find(
               (c) => c.frontendId === frontendId
             );
             return clip?.type === "on-database" ? clip.databaseId : null;
@@ -216,8 +216,11 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         dispatch({ type: "move-clip", clipId, direction });
       }}
       obsConnectorState={obsConnector.state}
-      clips={clipState.clips.filter((clip) => {
-        if (clip.type === "optimistically-added" && clip.shouldArchive) {
+      items={clipState.items.filter((item) => {
+        if (item.type === "optimistically-added" && item.shouldArchive) {
+          return false;
+        }
+        if (item.type === "clip-section-optimistically-added" && item.shouldArchive) {
           return false;
         }
         return true;
@@ -239,21 +242,21 @@ export const ComponentInner = (props: Route.ComponentProps) => {
 
 const toDatabaseInsertionPoint = (
   insertionPoint: FrontendInsertionPoint,
-  clips: Clip[]
-): DatabaseInsertionPoint => {
+  items: TimelineItem[]
+): ApiInsertionPoint => {
   if (insertionPoint.type === "start") {
     return { type: "start" };
   }
   if (insertionPoint.type === "after-clip") {
-    const frontendClipIndex = clips.findIndex(
+    const frontendClipIndex = items.findIndex(
       (c) => c.frontendId === insertionPoint.frontendClipId
     );
     if (frontendClipIndex === -1) {
       throw new Error("Clip not found");
     }
 
-    const previousDatabaseClipId = clips
-      .slice(0, frontendClipIndex)
+    const previousDatabaseClipId = items
+      .slice(0, frontendClipIndex + 1)
       .findLast((c) => c.type === "on-database")?.databaseId;
 
     if (!previousDatabaseClipId) {
@@ -263,8 +266,30 @@ const toDatabaseInsertionPoint = (
     return { type: "after-clip", databaseClipId: previousDatabaseClipId };
   }
 
+  if (insertionPoint.type === "after-clip-section") {
+    const frontendClipSectionIndex = items.findIndex(
+      (c) => c.frontendId === insertionPoint.frontendClipSectionId
+    );
+    if (frontendClipSectionIndex === -1) {
+      throw new Error("Clip section not found");
+    }
+
+    // Find the last database clip before or at this clip section
+    const previousDatabaseClipId = items
+      .slice(0, frontendClipSectionIndex + 1)
+      .findLast((c) => c.type === "on-database")?.databaseId;
+
+    // For now, the backend doesn't understand clip sections,
+    // so we return the last database clip or start
+    if (!previousDatabaseClipId) {
+      return { type: "start" };
+    }
+
+    return { type: "after-clip", databaseClipId: previousDatabaseClipId };
+  }
+
   if (insertionPoint.type === "end") {
-    const lastDatabaseClipId = clips.findLast(
+    const lastDatabaseClipId = items.findLast(
       (c) => c.type === "on-database"
     )?.databaseId;
     if (!lastDatabaseClipId) {

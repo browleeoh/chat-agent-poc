@@ -171,6 +171,10 @@ export namespace DB {
   export interface Clip extends Omit<InferSelectModel<typeof clips>, "id"> {
     id: DatabaseId;
   }
+
+  export interface ClipSection extends Omit<InferSelectModel<typeof clipSections>, "id"> {
+    id: DatabaseId;
+  }
 }
 
 export const clipsRelations = relations(clips, ({ one }) => ({

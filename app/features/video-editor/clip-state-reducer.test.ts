@@ -19,7 +19,7 @@ const createInitialState = (
   overrides: Partial<clipStateReducer.State> = {}
 ): clipStateReducer.State => ({
   clipIdsBeingTranscribed: new Set(),
-  clips: [],
+  items: [],
   insertionPoint: { type: "end" },
   insertionOrder: 0,
   ...overrides,
@@ -70,7 +70,7 @@ describe("clipStateReducer", () => {
         reportEffect
       );
 
-      const clipIds = newState.clips.map((clip) => clip.frontendId);
+      const clipIds = newState.items.map((clip) => clip.frontendId);
 
       expect(reportEffect).not.toHaveBeenCalledWith({
         type: "transcribe-clips",
@@ -113,7 +113,7 @@ describe("clipStateReducer", () => {
       );
 
       expect(stateAfterTranscribe.clipIdsBeingTranscribed.size).toBe(0);
-      expect(stateAfterTranscribe.clips[0]).toMatchObject({
+      expect(stateAfterTranscribe.items[0]).toMatchObject({
         text: "Hello",
       });
     });
@@ -131,7 +131,7 @@ describe("clipStateReducer", () => {
         reportEffect1
       );
 
-      expect(stateWithOneOptimisticClip.clips[0]).toMatchObject({
+      expect(stateWithOneOptimisticClip.items[0]).toMatchObject({
         type: "optimistically-added",
       });
       expect(reportEffect1).toHaveBeenCalledWith({
@@ -148,9 +148,9 @@ describe("clipStateReducer", () => {
         reportEffect2
       );
 
-      expect(stateWithOneDatabaseClip.clips.length).toBe(1);
+      expect(stateWithOneDatabaseClip.items.length).toBe(1);
 
-      expect(stateWithOneDatabaseClip.clips[0]).toMatchObject({
+      expect(stateWithOneDatabaseClip.items[0]).toMatchObject({
         type: "on-database",
         id: "123",
       });
@@ -202,8 +202,8 @@ describe("clipStateReducer", () => {
         clips: [["1", { scene: "Camera", profile: "Landscape", beatType: "none" }]],
       });
 
-      expect(stateWithOneDatabaseClip.clips.length).toBe(2);
-      expect(stateWithOneDatabaseClip.clips[0]).toMatchObject({
+      expect(stateWithOneDatabaseClip.items.length).toBe(2);
+      expect(stateWithOneDatabaseClip.items[0]).toMatchObject({
         type: "on-database",
         id: "1",
       });
@@ -223,12 +223,12 @@ describe("clipStateReducer", () => {
         clips: [["2", { scene: "No Face", profile: "Portrait", beatType: "none" }]],
       });
 
-      expect(stateWithTwoDatabaseClips.clips.length).toBe(2);
-      expect(stateWithTwoDatabaseClips.clips[0]).toMatchObject({
+      expect(stateWithTwoDatabaseClips.items.length).toBe(2);
+      expect(stateWithTwoDatabaseClips.items[0]).toMatchObject({
         type: "on-database",
         id: "1",
       });
-      expect(stateWithTwoDatabaseClips.clips[1]).toMatchObject({
+      expect(stateWithTwoDatabaseClips.items[1]).toMatchObject({
         type: "on-database",
         id: "2",
       });
@@ -245,7 +245,7 @@ describe("clipStateReducer", () => {
         reportEffect
       );
 
-      expect(stateWithASingleDatabaseClip.clips.length).toBe(1);
+      expect(stateWithASingleDatabaseClip.items.length).toBe(1);
       expect(reportEffect).toHaveBeenCalledWith({
         type: "scroll-to-insertion-point",
       });
@@ -264,7 +264,7 @@ describe("clipStateReducer", () => {
         reportEffect
       );
 
-      const optimisticClipId = stateWithOneOptimisticClip.clips[0]!.frontendId;
+      const optimisticClipId = stateWithOneOptimisticClip.items[0]!.frontendId;
 
       const stateWithOneOptimisticClipDeleted = clipStateReducer(
         stateWithOneOptimisticClip,
@@ -275,7 +275,7 @@ describe("clipStateReducer", () => {
         reportEffect
       );
 
-      expect(stateWithOneOptimisticClipDeleted.clips[0]).toMatchObject({
+      expect(stateWithOneOptimisticClipDeleted.items[0]).toMatchObject({
         type: "optimistically-added",
         shouldArchive: true,
       });
@@ -292,7 +292,7 @@ describe("clipStateReducer", () => {
         mockExec1
       );
 
-      const optimisticClipId = stateWithOneOptimisticClip.clips[0]!.frontendId;
+      const optimisticClipId = stateWithOneOptimisticClip.items[0]!.frontendId;
 
       const mockExec2 = createMockExec();
       const stateWithOneOptimisticClipDeleted = clipStateReducer(
@@ -314,7 +314,7 @@ describe("clipStateReducer", () => {
         reportEffect
       );
 
-      expect(stateWithNoDatabaseClips.clips.length).toBe(0);
+      expect(stateWithNoDatabaseClips.items.length).toBe(0);
       expect(reportEffect).toHaveBeenCalledWith({
         type: "archive-clips",
         clipIds: ["123"],
@@ -338,7 +338,7 @@ describe("clipStateReducer", () => {
         reportEffect1
       );
 
-      const databaseClipId = stateWithOneDatabaseClip.clips[0]!.frontendId;
+      const databaseClipId = stateWithOneDatabaseClip.items[0]!.frontendId;
 
       const reportEffect2 = createMockExec();
       const stateWithOneDatabaseClipDeleted = clipStateReducer(
@@ -350,7 +350,7 @@ describe("clipStateReducer", () => {
         reportEffect2
       );
 
-      expect(stateWithOneDatabaseClipDeleted.clips.length).toBe(0);
+      expect(stateWithOneDatabaseClipDeleted.items.length).toBe(0);
       expect(reportEffect2).toHaveBeenCalledWith({
         type: "archive-clips",
         clipIds: ["123"],
@@ -383,7 +383,7 @@ describe("clipStateReducer", () => {
         .send(
           fromPartial({
             type: "set-insertion-point-before",
-            clipId: stateWithClips.clips[0]!.frontendId,
+            clipId: stateWithClips.items[0]!.frontendId,
           })
         )
         .getState();
@@ -402,7 +402,7 @@ describe("clipStateReducer", () => {
         )
         .getState();
 
-      expect(stateWithOneMoreClip.clips).toMatchObject([
+      expect(stateWithOneMoreClip.items).toMatchObject([
         {
           scene: "Scene 3",
         },
@@ -424,7 +424,7 @@ describe("clipStateReducer", () => {
         )
         .getState();
 
-      expect(stateWithTwoMoreClips.clips).toMatchObject([
+      expect(stateWithTwoMoreClips.items).toMatchObject([
         {
           scene: "Scene 3",
         },
@@ -459,7 +459,7 @@ describe("clipStateReducer", () => {
         })
         .getState();
 
-      expect(stateWithDatabaseClips.clips).toMatchObject([
+      expect(stateWithDatabaseClips.items).toMatchObject([
         {
           id: "3",
           scene: "Scene 3",
@@ -503,14 +503,14 @@ describe("clipStateReducer", () => {
         .send(
           fromPartial({
             type: "set-insertion-point-after",
-            clipId: stateWithClips.clips[0]!.frontendId,
+            clipId: stateWithClips.items[0]!.frontendId,
           })
         )
         .getState();
 
       expect(stateWithEndInsertionPoint.insertionPoint).toEqual({
         type: "after-clip",
-        frontendClipId: stateWithClips.clips[0]!.frontendId,
+        frontendClipId: stateWithClips.items[0]!.frontendId,
       });
 
       const stateWithOneMoreClip = tester
@@ -523,7 +523,7 @@ describe("clipStateReducer", () => {
         )
         .getState();
 
-      expect(stateWithOneMoreClip.clips).toMatchObject([
+      expect(stateWithOneMoreClip.items).toMatchObject([
         {
           scene: "Scene 1",
         },
@@ -546,7 +546,7 @@ describe("clipStateReducer", () => {
         })
         .getState();
 
-      expect(stateWithDatabaseClips.clips).toMatchObject([
+      expect(stateWithDatabaseClips.items).toMatchObject([
         {
           id: "1",
           scene: "Scene 1",
@@ -586,7 +586,7 @@ describe("clipStateReducer", () => {
         .send(
           fromPartial({
             type: "set-insertion-point-after",
-            clipId: stateWithClips.clips[0]!.frontendId,
+            clipId: stateWithClips.items[0]!.frontendId,
           })
         )
         .send(
@@ -601,7 +601,7 @@ describe("clipStateReducer", () => {
         )
         .getState();
 
-      expect(stateWithDatabaseClips.clips).toMatchObject([
+      expect(stateWithDatabaseClips.items).toMatchObject([
         {
           id: "1",
           scene: "Scene 1",
@@ -639,7 +639,7 @@ describe("clipStateReducer", () => {
       const stateWithLatestInsertedClipDeleted = tester
         .send({
           type: "set-insertion-point-after",
-          clipId: stateWithClips.clips[0]!.frontendId,
+          clipId: stateWithClips.items[0]!.frontendId,
         })
         .send(
           fromPartial({
@@ -653,7 +653,7 @@ describe("clipStateReducer", () => {
         })
         .getState();
 
-      expect(stateWithLatestInsertedClipDeleted.clips).toMatchObject([
+      expect(stateWithLatestInsertedClipDeleted.items).toMatchObject([
         {
           scene: "Scene 1",
         },
@@ -669,7 +669,7 @@ describe("clipStateReducer", () => {
       // The insertion point should be after the first clip
       expect(stateWithLatestInsertedClipDeleted.insertionPoint).toEqual({
         type: "after-clip",
-        frontendClipId: stateWithClips.clips[0]!.frontendId,
+        frontendClipId: stateWithClips.items[0]!.frontendId,
       });
     });
   });
@@ -685,7 +685,7 @@ describe("clipStateReducer", () => {
       const finalState = new ReducerTester(
         clipStateReducer,
         createInitialState({
-          clips: [
+          items: [
             fromPartial({
               type: "on-database",
               frontendId: "1",
@@ -710,7 +710,7 @@ describe("clipStateReducer", () => {
         )
         .getState();
 
-      expect(finalState.clips).toMatchObject([
+      expect(finalState.items).toMatchObject([
         {
           frontendId: "1",
         },

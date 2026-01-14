@@ -14,6 +14,10 @@ export type FrontendInsertionPoint =
       frontendClipId: FrontendId;
     }
   | {
+      type: "after-clip-section";
+      frontendClipSectionId: FrontendId;
+    }
+  | {
       type: "end";
     };
 
@@ -23,7 +27,25 @@ export type DatabaseInsertionPoint =
       databaseClipId: DatabaseId;
     }
   | {
+      type: "after-clip-section";
+      databaseClipSectionId: DatabaseId;
+    }
+  | {
       type: "start";
+    };
+
+/**
+ * A narrower type for insertion points that can be sent to the backend API.
+ * The backend currently doesn't understand clip sections, so we only send
+ * "start" or "after-clip".
+ */
+export type ApiInsertionPoint =
+  | {
+      type: "start";
+    }
+  | {
+      type: "after-clip";
+      databaseClipId: DatabaseId;
     };
 
 export type ClipOnDatabase = {
@@ -71,9 +93,29 @@ export const createFrontendId = (): FrontendId => {
 
 export type Clip = ClipOnDatabase | ClipOptimisticallyAdded;
 
+export type ClipSectionOnDatabase = {
+  type: "clip-section-on-database";
+  frontendId: FrontendId;
+  databaseId: DatabaseId;
+  name: string;
+  insertionOrder: number | null;
+};
+
+export type ClipSectionOptimisticallyAdded = {
+  type: "clip-section-optimistically-added";
+  frontendId: FrontendId;
+  name: string;
+  insertionOrder: number;
+  shouldArchive?: boolean;
+};
+
+export type ClipSection = ClipSectionOnDatabase | ClipSectionOptimisticallyAdded;
+
+export type TimelineItem = Clip | ClipSection;
+
 export namespace clipStateReducer {
   export type State = {
-    clips: Clip[];
+    items: TimelineItem[];
     clipIdsBeingTranscribed: Set<FrontendId>;
     insertionPoint: FrontendInsertionPoint;
     insertionOrder: number;
@@ -165,7 +207,7 @@ export const clipStateReducer: EffectReducer<
   switch (action.type) {
     case "new-optimistic-clip-detected": {
       // Check if clip with same soundDetectionId already exists (deduplication for React StrictMode)
-      const existingClip = state.clips.find(
+      const existingClip = state.items.find(
         (c) =>
           c.type === "optimistically-added" &&
           c.soundDetectionId === action.soundDetectionId
@@ -187,30 +229,49 @@ export const clipStateReducer: EffectReducer<
 
       let newInsertionPoint: FrontendInsertionPoint = state.insertionPoint;
 
-      let newClips: Clip[];
+      let newClips: TimelineItem[];
       if (state.insertionPoint.type === "end") {
         // Append to end
-        newClips = [...state.clips, newClip];
+        newClips = [...state.items, newClip];
       } else if (state.insertionPoint.type === "start") {
         // Insert at start
-        newClips = [newClip, ...state.clips];
+        newClips = [newClip, ...state.items];
         newInsertionPoint = {
           type: "after-clip",
           frontendClipId: newFrontendId,
         };
-      } else {
+      } else if (state.insertionPoint.type === "after-clip") {
         const targetClipId = state.insertionPoint.frontendClipId;
         // Insert at insertion point
-        const insertionPointIndex = state.clips.findIndex(
+        const insertionPointIndex = state.items.findIndex(
           (c) => c.frontendId === targetClipId
         );
         if (insertionPointIndex === -1) {
           throw new Error("Target clip not found when inserting after");
         }
         newClips = [
-          ...state.clips.slice(0, insertionPointIndex + 1),
+          ...state.items.slice(0, insertionPointIndex + 1),
           newClip,
-          ...state.clips.slice(insertionPointIndex + 1),
+          ...state.items.slice(insertionPointIndex + 1),
+        ];
+        newInsertionPoint = {
+          type: "after-clip",
+          frontendClipId: newFrontendId,
+        };
+      } else {
+        // after-clip-section
+        const targetClipSectionId = state.insertionPoint.frontendClipSectionId;
+        // Insert at insertion point
+        const insertionPointIndex = state.items.findIndex(
+          (c) => c.frontendId === targetClipSectionId
+        );
+        if (insertionPointIndex === -1) {
+          throw new Error("Target clip section not found when inserting after");
+        }
+        newClips = [
+          ...state.items.slice(0, insertionPointIndex + 1),
+          newClip,
+          ...state.items.slice(insertionPointIndex + 1),
         ];
         newInsertionPoint = {
           type: "after-clip",
@@ -224,7 +285,7 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: newClips,
+        items: newClips,
         insertionOrder: state.insertionOrder + 1,
         insertionPoint: newInsertionPoint,
       };
@@ -232,7 +293,7 @@ export const clipStateReducer: EffectReducer<
     case "new-database-clips": {
       let shouldScrollToBottom = false;
 
-      let newClipsState: (Clip | undefined)[] = [...state.clips];
+      let newClipsState: (TimelineItem | undefined)[] = [...state.items];
 
       const clipsToArchive = new Set<DatabaseId>();
       const databaseClipIdsToTranscribe = new Set<DatabaseId>();
@@ -351,13 +412,13 @@ export const clipStateReducer: EffectReducer<
           ...Array.from(state.clipIdsBeingTranscribed),
           ...Array.from(frontendClipIdsToTranscribe),
         ]),
-        clips: newClipsState.filter((c) => c !== undefined),
+        items: newClipsState.filter((c) => c !== undefined),
         insertionPoint: newInsertionPoint,
       };
     }
     case "clips-deleted": {
-      const { clips, clipsToArchive, insertionPoint } = archiveClips(
-        state.clips,
+      const { items, clipsToArchive, insertionPoint } = archiveClips(
+        state.items,
         action.clipIds,
         state.insertionPoint
       );
@@ -370,7 +431,7 @@ export const clipStateReducer: EffectReducer<
       }
       return {
         ...state,
-        clips,
+        items,
         insertionPoint: insertionPoint,
       };
     }
@@ -387,18 +448,18 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: state.clips.map((clip) => {
-          if (clip.type === "on-database" && textMap[clip.databaseId]) {
-            set.delete(clip.frontendId);
-            return { ...clip, text: textMap[clip.databaseId]! };
+        items: state.items.map((item) => {
+          if (item.type === "on-database" && textMap[item.databaseId]) {
+            set.delete(item.frontendId);
+            return { ...item, text: textMap[item.databaseId]! };
           }
-          return clip;
+          return item;
         }),
         clipIdsBeingTranscribed: set,
       };
     }
     case "set-insertion-point-after": {
-      const clip = state.clips.find((c) => c.frontendId === action.clipId);
+      const clip = state.items.find((c) => c.frontendId === action.clipId);
       if (!clip) {
         return state;
       }
@@ -412,14 +473,14 @@ export const clipStateReducer: EffectReducer<
       };
     }
     case "set-insertion-point-before": {
-      const clip = state.clips.find((c) => c.frontendId === action.clipId);
+      const clip = state.items.find((c) => c.frontendId === action.clipId);
       if (!clip) {
         return state;
       }
 
       // If inserting before, we need to find the previous clip's frontendId
       // to use as insertAfterId, OR use INSERTION_POINT_START if this is first clip
-      const clipIndex = state.clips.findIndex(
+      const clipIndex = state.items.findIndex(
         (c) => c.frontendId === action.clipId
       );
 
@@ -429,7 +490,7 @@ export const clipStateReducer: EffectReducer<
         insertionPoint = { type: "start" };
       } else {
         // Not first clip - use previous clip's frontendId
-        const previousClip = state.clips[clipIndex - 1];
+        const previousClip = state.items[clipIndex - 1];
 
         if (previousClip) {
           insertionPoint = {
@@ -452,13 +513,13 @@ export const clipStateReducer: EffectReducer<
       }
 
       if (state.insertionPoint.type === "end") {
-        const lastClip = state.clips[state.clips.length - 1];
+        const lastClip = state.items[state.items.length - 1];
 
         if (!lastClip) {
           return state;
         }
-        const { clips, clipsToArchive, insertionPoint } = archiveClips(
-          state.clips,
+        const { items, clipsToArchive, insertionPoint } = archiveClips(
+          state.items,
           [lastClip.frontendId],
           state.insertionPoint
         );
@@ -472,15 +533,18 @@ export const clipStateReducer: EffectReducer<
 
         return {
           ...state,
-          clips,
+          items,
           insertionPoint,
         };
       }
 
-      const clipIdToArchive = state.insertionPoint.frontendClipId;
+      const clipIdToArchive =
+        state.insertionPoint.type === "after-clip"
+          ? state.insertionPoint.frontendClipId
+          : state.insertionPoint.frontendClipSectionId;
 
       const archiveResult = archiveClips(
-        state.clips,
+        state.items,
         [clipIdToArchive],
         state.insertionPoint
       );
@@ -494,7 +558,7 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: archiveResult.clips,
+        items: archiveResult.items,
         insertionPoint: archiveResult.insertionPoint,
       };
     }
@@ -508,12 +572,21 @@ export const clipStateReducer: EffectReducer<
       }
 
       if (state.insertionPoint.type === "end") {
-        clipToToggle = state.clips[state.clips.length - 1];
+        const lastItem = state.items[state.items.length - 1];
+        if (lastItem && (lastItem.type === "on-database" || lastItem.type === "optimistically-added")) {
+          clipToToggle = lastItem;
+        }
       } else if (state.insertionPoint.type === "after-clip") {
         const targetFrontendId = state.insertionPoint.frontendClipId;
-        clipToToggle = state.clips.find(
+        const item = state.items.find(
           (c) => c.frontendId === targetFrontendId
         );
+        if (item && (item.type === "on-database" || item.type === "optimistically-added")) {
+          clipToToggle = item;
+        }
+      } else if (state.insertionPoint.type === "after-clip-section") {
+        // Don't toggle beat for clip sections
+        return state;
       }
 
       if (!clipToToggle) {
@@ -534,22 +607,23 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: state.clips.map((clip) =>
-          clip.frontendId === clipToToggle!.frontendId
-            ? { ...clip, beatType: newBeatType }
-            : clip
+        items: state.items.map((item) =>
+          item.frontendId === clipToToggle!.frontendId && (item.type === "on-database" || item.type === "optimistically-added")
+            ? { ...item, beatType: newBeatType }
+            : item
         ),
       };
     }
     case "toggle-beat-for-clip": {
-      const clipToToggle = state.clips.find(
+      const item = state.items.find(
         (c) => c.frontendId === action.clipId
       );
 
-      if (!clipToToggle) {
+      if (!item || (item.type !== "on-database" && item.type !== "optimistically-added")) {
         return state;
       }
 
+      const clipToToggle = item;
       const newBeatType: BeatType =
         clipToToggle.beatType === "none" ? "long" : "none";
 
@@ -564,15 +638,15 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: state.clips.map((clip) =>
-          clip.frontendId === action.clipId
-            ? { ...clip, beatType: newBeatType }
-            : clip
+        items: state.items.map((item) =>
+          item.frontendId === action.clipId && (item.type === "on-database" || item.type === "optimistically-added")
+            ? { ...item, beatType: newBeatType }
+            : item
         ),
       };
     }
     case "move-clip": {
-      const clipIndex = state.clips.findIndex(
+      const clipIndex = state.items.findIndex(
         (c) => c.frontendId === action.clipId
       );
 
@@ -580,17 +654,17 @@ export const clipStateReducer: EffectReducer<
         return state;
       }
 
-      const clip = state.clips[clipIndex]!;
+      const clip = state.items[clipIndex]!;
       const targetIndex =
         action.direction === "up" ? clipIndex - 1 : clipIndex + 1;
 
       // Check boundaries
-      if (targetIndex < 0 || targetIndex >= state.clips.length) {
+      if (targetIndex < 0 || targetIndex >= state.items.length) {
         return state;
       }
 
       // Swap clips in the array
-      const newClips = [...state.clips];
+      const newClips = [...state.items];
       newClips[clipIndex] = newClips[targetIndex]!;
       newClips[targetIndex] = clip;
 
@@ -605,7 +679,7 @@ export const clipStateReducer: EffectReducer<
 
       return {
         ...state,
-        clips: newClips,
+        items: newClips,
       };
     }
   }
@@ -613,45 +687,65 @@ export const clipStateReducer: EffectReducer<
 };
 
 const insertClip = (
-  clips: (Clip | undefined)[],
+  items: (TimelineItem | undefined)[],
   newClip: Clip,
   insertionPoint: FrontendInsertionPoint
 ) => {
   let newInsertionPoint: FrontendInsertionPoint = insertionPoint;
 
-  let newClips: (Clip | undefined)[];
+  let newItems: (TimelineItem | undefined)[];
   if (insertionPoint.type === "end") {
     // Append to end
-    newClips = [...clips, newClip];
+    newItems = [...items, newClip];
   } else if (insertionPoint.type === "start") {
     // Insert at start
-    newClips = [newClip, ...clips];
+    newItems = [newClip, ...items];
     newInsertionPoint = {
       type: "after-clip",
       frontendClipId: newClip.frontendId,
     };
-  } else {
+  } else if (insertionPoint.type === "after-clip") {
     const targetClipId = insertionPoint.frontendClipId;
     // Insert at insertion point
-    const insertionPointIndex = clips.findIndex(
+    const insertionPointIndex = items.findIndex(
       (c) => c?.frontendId === targetClipId
     );
     if (insertionPointIndex === -1) {
       throw new Error("Target clip not found when inserting after");
     }
-    newClips = [
-      ...clips.slice(0, insertionPointIndex + 1),
+    newItems = [
+      ...items.slice(0, insertionPointIndex + 1),
       newClip,
-      ...clips.slice(insertionPointIndex + 1),
+      ...items.slice(insertionPointIndex + 1),
     ];
     newInsertionPoint = {
       type: "after-clip",
       frontendClipId: targetClipId,
     };
+  } else if (insertionPoint.type === "after-clip-section") {
+    const targetClipSectionId = insertionPoint.frontendClipSectionId;
+    // Insert at insertion point
+    const insertionPointIndex = items.findIndex(
+      (c) => c?.frontendId === targetClipSectionId
+    );
+    if (insertionPointIndex === -1) {
+      throw new Error("Target clip section not found when inserting after");
+    }
+    newItems = [
+      ...items.slice(0, insertionPointIndex + 1),
+      newClip,
+      ...items.slice(insertionPointIndex + 1),
+    ];
+    newInsertionPoint = {
+      type: "after-clip",
+      frontendClipId: newClip.frontendId,
+    };
+  } else {
+    throw new Error("Unknown insertion point type");
   }
 
   return {
-    clips: newClips,
+    clips: newItems,
     insertionPoint: newInsertionPoint,
   };
 };
@@ -666,11 +760,11 @@ type ArchiveClipMode =
     };
 
 const archiveClips = (
-  allClips: Clip[],
+  allItems: TimelineItem[],
   frontendIds: FrontendId[],
   insertionPoint: FrontendInsertionPoint
 ): {
-  clips: Clip[];
+  items: TimelineItem[];
   insertionPoint: FrontendInsertionPoint;
   clipsToArchive: Set<DatabaseId>;
 } => {
@@ -683,7 +777,7 @@ const archiveClips = (
     frontendIds.includes(insertionPoint.frontendClipId)
   ) {
     const clipId = insertionPoint.frontendClipId;
-    const prevClipIndex = allClips.findIndex((c) => c.frontendId === clipId);
+    const prevClipIndex = allItems.findIndex((c) => c.frontendId === clipId);
     if (prevClipIndex === -1) {
       throw new Error("Previous clip not found when archiving");
     }
@@ -697,36 +791,48 @@ const archiveClips = (
     };
   }
 
-  const clips: (Clip | undefined)[] = [...allClips];
+  const items: (TimelineItem | undefined)[] = [...allItems];
   for (const clipId of frontendIds) {
-    const index = clips.findIndex((c) => c?.frontendId === clipId);
+    const index = items.findIndex((c) => c?.frontendId === clipId);
     if (index === -1) continue;
 
-    const clipToReplace = clips[index]!;
-    if (clipToReplace.type === "optimistically-added") {
-      clipToReplace.shouldArchive = true;
-    } else if (clipToReplace.type === "on-database") {
-      clipsToArchive.add(clipToReplace.databaseId);
-      clips[index] = undefined;
+    const itemToReplace = items[index]!;
+    if (itemToReplace.type === "optimistically-added") {
+      itemToReplace.shouldArchive = true;
+    } else if (itemToReplace.type === "on-database") {
+      clipsToArchive.add(itemToReplace.databaseId);
+      items[index] = undefined;
+    } else if (itemToReplace.type === "clip-section-optimistically-added") {
+      itemToReplace.shouldArchive = true;
+    } else if (itemToReplace.type === "clip-section-on-database") {
+      // TODO: Archive clip sections via separate endpoint
+      items[index] = undefined;
     }
   }
 
   // If the insertion point is after a clip, and that clip has been deleted,
   // we need to find a candidate for the insertion point
   if (archiveClipMode.type === "move-insertion-point-to-previous-clip") {
-    const slicedClips = clips.slice(0, archiveClipMode.originalClipIndex);
+    const slicedItems = items.slice(0, archiveClipMode.originalClipIndex);
 
-    const previousNonUndefinedClip = slicedClips.findLast(
+    const previousNonUndefinedItem = slicedItems.findLast(
       (c) => c !== undefined
     );
 
     let newInsertionPoint: FrontendInsertionPoint;
 
-    if (previousNonUndefinedClip) {
-      newInsertionPoint = {
-        type: "after-clip",
-        frontendClipId: previousNonUndefinedClip.frontendId,
-      };
+    if (previousNonUndefinedItem) {
+      if (previousNonUndefinedItem.type === "on-database" || previousNonUndefinedItem.type === "optimistically-added") {
+        newInsertionPoint = {
+          type: "after-clip",
+          frontendClipId: previousNonUndefinedItem.frontendId,
+        };
+      } else {
+        newInsertionPoint = {
+          type: "after-clip-section",
+          frontendClipSectionId: previousNonUndefinedItem.frontendId,
+        };
+      }
     } else {
       newInsertionPoint = {
         type: "end",
@@ -734,14 +840,14 @@ const archiveClips = (
     }
 
     return {
-      clips: clips.filter((c) => c !== undefined),
+      items: items.filter((c) => c !== undefined),
       insertionPoint: newInsertionPoint,
       clipsToArchive,
     };
   }
 
   return {
-    clips: clips.filter((c) => c !== undefined),
+    items: items.filter((c) => c !== undefined),
     insertionPoint: insertionPoint,
     clipsToArchive: clipsToArchive,
   };
