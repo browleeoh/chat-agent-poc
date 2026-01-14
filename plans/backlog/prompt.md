@@ -10,7 +10,7 @@ The tasks should biased small. We don't want to bite off more than we can chew.
 
 # TASK SELECTION
 
-Pick the next task. Prioritize:
+Pick the next task. Prioritize from this list (where 1 is highest priority):
 
 1. Architectural decisions and core abstractions
 2. Integration points between modules
