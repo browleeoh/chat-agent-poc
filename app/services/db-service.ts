@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { clips, lessons, repos, repoVersions, sections, videos } from "@/db/schema";
+import { clips, clipSections, lessons, repos, repoVersions, sections, videos } from "@/db/schema";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 import {
   AmbiguousRepoUpdateError,
@@ -154,6 +154,181 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           .update(clips)
           .set({ order: newOrderForMovingClip })
           .where(eq(clips.id, clipId))
+      );
+
+      return { success: true };
+    });
+
+    const createClipSection = Effect.fn("createClipSection")(function* (
+      videoId: string,
+      name: string,
+      order: string
+    ) {
+      const [clipSection] = yield* makeDbCall(() =>
+        db
+          .insert(clipSections)
+          .values({
+            videoId,
+            name,
+            order,
+            archived: false,
+          })
+          .returning()
+      );
+
+      if (!clipSection) {
+        return yield* new UnknownDBServiceError({
+          cause: "No clip section was returned from the database",
+        });
+      }
+
+      return clipSection;
+    });
+
+    const getClipSectionById = Effect.fn("getClipSectionById")(function* (
+      clipSectionId: string
+    ) {
+      const clipSection = yield* makeDbCall(() =>
+        db.query.clipSections.findFirst({
+          where: eq(clipSections.id, clipSectionId),
+        })
+      );
+
+      if (!clipSection) {
+        return yield* new NotFoundError({
+          type: "getClipSectionById",
+          params: { clipSectionId },
+        });
+      }
+
+      return clipSection;
+    });
+
+    const updateClipSection = Effect.fn("updateClipSection")(function* (
+      clipSectionId: string,
+      updates: {
+        name?: string;
+      }
+    ) {
+      const [clipSection] = yield* makeDbCall(() =>
+        db
+          .update(clipSections)
+          .set(updates)
+          .where(eq(clipSections.id, clipSectionId))
+          .returning()
+      );
+
+      if (!clipSection) {
+        return yield* new NotFoundError({
+          type: "updateClipSection",
+          params: { clipSectionId },
+        });
+      }
+
+      return clipSection;
+    });
+
+    const archiveClipSection = Effect.fn("archiveClipSection")(function* (
+      clipSectionId: string
+    ) {
+      const clipSectionExists = yield* makeDbCall(() =>
+        db.query.clipSections.findFirst({
+          where: eq(clipSections.id, clipSectionId),
+        })
+      );
+
+      if (!clipSectionExists) {
+        return yield* new NotFoundError({
+          type: "archiveClipSection",
+          params: { clipSectionId },
+        });
+      }
+
+      yield* makeDbCall(() =>
+        db
+          .update(clipSections)
+          .set({ archived: true })
+          .where(eq(clipSections.id, clipSectionId))
+      );
+
+      return { success: true };
+    });
+
+    const reorderClipSection = Effect.fn("reorderClipSection")(function* (
+      clipSectionId: string,
+      direction: "up" | "down"
+    ) {
+      // Get the clip section to know what video we're working with
+      const clipSection = yield* makeDbCall(() =>
+        db.query.clipSections.findFirst({
+          where: eq(clipSections.id, clipSectionId),
+        })
+      );
+
+      if (!clipSection) {
+        return yield* new NotFoundError({
+          type: "reorderClipSection",
+          params: { clipSectionId },
+        });
+      }
+
+      // Get all non-archived clips and clip sections for this video, ordered
+      const allClips = yield* makeDbCall(() =>
+        db.query.clips.findMany({
+          where: and(eq(clips.videoId, clipSection.videoId), eq(clips.archived, false)),
+          orderBy: asc(clips.order),
+        })
+      );
+
+      const allClipSections = yield* makeDbCall(() =>
+        db.query.clipSections.findMany({
+          where: and(
+            eq(clipSections.videoId, clipSection.videoId),
+            eq(clipSections.archived, false)
+          ),
+          orderBy: asc(clipSections.order),
+        })
+      );
+
+      // Combine and sort by order
+      const allItems = [
+        ...allClips.map((c) => ({ type: "clip" as const, ...c })),
+        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+      ].sort((a, b) => a.order.localeCompare(b.order));
+
+      const itemIndex = allItems.findIndex(
+        (item) => item.type === "clip-section" && item.id === clipSectionId
+      );
+      const targetIndex = direction === "up" ? itemIndex - 1 : itemIndex + 1;
+
+      // Check boundaries
+      if (targetIndex < 0 || targetIndex >= allItems.length) {
+        return { success: false, reason: "boundary" };
+      }
+
+      // Calculate new order
+      let newOrder: string;
+      if (direction === "up") {
+        const prevItem = allItems[targetIndex - 1];
+        const nextItem = allItems[targetIndex];
+        const prevOrder = prevItem?.order ?? null;
+        const nextOrder = nextItem!.order;
+        const [order] = generateNKeysBetween(prevOrder, nextOrder, 1);
+        newOrder = order!;
+      } else {
+        const prevItem = allItems[targetIndex];
+        const nextItem = allItems[targetIndex + 1];
+        const prevOrder = prevItem!.order;
+        const nextOrder = nextItem?.order ?? null;
+        const [order] = generateNKeysBetween(prevOrder, nextOrder, 1);
+        newOrder = order!;
+      }
+
+      yield* makeDbCall(() =>
+        db
+          .update(clipSections)
+          .set({ order: newOrder })
+          .where(eq(clipSections.id, clipSectionId))
       );
 
       return { success: true };
@@ -390,6 +565,11 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       getClipsByIds,
       updateClip,
       reorderClip,
+      createClipSection,
+      getClipSectionById,
+      updateClipSection,
+      archiveClipSection,
+      reorderClipSection,
       getLessonById,
       getLessonWithHierarchyById,
       appendClips: Effect.fn("addClips")(function* (opts: {

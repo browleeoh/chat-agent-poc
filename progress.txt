@@ -157,3 +157,15 @@
   - app/features/video-editor/video-editor.tsx:76-77, 148, 653-661 (removed)
   - app/features/video-editor/volume-indicator.tsx (deleted)
   - app/features/video-editor/use-volume-level.ts (deleted)
+
+## Issue #18 - Video Editor Clip Sections (Part 1: Database Layer)
+- Created `clipSections` database table with schema matching PRD specifications
+- Table includes: id (UUID), videoId (FK with cascade delete), name (text), order (varchar COLLATE "C"), archived (boolean), createdAt (timestamp)
+- Added Drizzle relations for clipSections to videos (one-to-many)
+- Implemented DB operations in DBService: createClipSection, getClipSectionById, updateClipSection, archiveClipSection, reorderClipSection
+- reorderClipSection implements unified ordering by fetching both clips and clip sections, combining them, sorting by order field, and calculating new fractional position
+- Key decision: Clip sections and clips share the same fractional ordering space using varchar COLLATE "C" for proper sorting
+- All tests and typecheck pass
+- Files changed:
+  - app/db/schema.ts:151-168, 180-182, 187 (added clipSections table and relations)
+  - app/services/db-service.ts:2, 162-335, 568-572 (added clipSections import and CRUD operations)

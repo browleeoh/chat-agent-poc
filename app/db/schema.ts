@@ -148,6 +148,25 @@ export const clips = createTable("clip", {
   beatType: varchar("beat_type", { length: 255 }).notNull().default("none"),
 });
 
+export const clipSections = createTable("clip_section", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  videoId: varchar("video_id", { length: 255 })
+    .references(() => videos.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  order: varcharCollateC("order").notNull(),
+  archived: boolean("archived").notNull().default(false),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 export namespace DB {
   export interface Clip extends Omit<InferSelectModel<typeof clips>, "id"> {
     id: DatabaseId;
@@ -158,9 +177,14 @@ export const clipsRelations = relations(clips, ({ one }) => ({
   video: one(videos, { fields: [clips.videoId], references: [videos.id] }),
 }));
 
+export const clipSectionsRelations = relations(clipSections, ({ one }) => ({
+  video: one(videos, { fields: [clipSections.videoId], references: [videos.id] }),
+}));
+
 export const videosRelations = relations(videos, ({ one, many }) => ({
   lesson: one(lessons, { fields: [videos.lessonId], references: [lessons.id] }),
   clips: many(clips),
+  clipSections: many(clipSections),
 }));
 
 export const lessonsRelations = relations(lessons, ({ one, many }) => ({
