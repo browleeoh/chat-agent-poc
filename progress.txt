@@ -133,3 +133,15 @@
 - Only removed `border rounded-lg p-2` classes from the wrapper div
 - Kept scrollbar styling and max-height for overflow handling
 - File: app/components/FileTree.tsx:213
+
+## Issue #16 - Add icons to writing modes in the selector
+- Added icons to each writing mode in the selector dropdown to make them visually distinct
+- Icons chosen:
+  - Article: FileTextIcon (writing text content)
+  - Project Steps: ListChecksIcon (checklist)
+  - Skill Building Steps: GraduationCapIcon (learning/education)
+  - Style Guide Pass - Skill Building: RefreshCwIcon (refinement)
+  - Style Guide Pass - Project: RefreshCwIcon (refinement)
+  - SEO Description: SearchIcon (search optimization)
+- Updated SelectItem components to include flex layout with icon on the left
+- File: app/routes/videos.$videoId.write.tsx:43-57, 479-544

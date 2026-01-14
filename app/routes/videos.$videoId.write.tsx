@@ -49,6 +49,11 @@ import {
   CheckIcon,
   PlusIcon,
   FilmIcon,
+  FileTextIcon,
+  ListChecksIcon,
+  GraduationCapIcon,
+  RefreshCwIcon,
+  SearchIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher } from "react-router";
@@ -472,50 +477,68 @@ export function InnerComponent(props: Route.ComponentProps) {
                   <SelectTrigger>{modeToLabel[mode]}</SelectTrigger>
                   <SelectContent>
                     <SelectItem value="article">
-                      <div>
-                        <div>Article</div>
-                        <div className="text-xs text-muted-foreground">
-                          Educational content and explanations
+                      <div className="flex items-start gap-2">
+                        <FileTextIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Article</div>
+                          <div className="text-xs text-muted-foreground">
+                            Educational content and explanations
+                          </div>
                         </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="project">
-                      <div>
-                        <div>Steps - Project</div>
-                        <div className="text-xs text-muted-foreground">
-                          Write steps for project
+                      <div className="flex items-start gap-2">
+                        <ListChecksIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Steps - Project</div>
+                          <div className="text-xs text-muted-foreground">
+                            Write steps for project
+                          </div>
                         </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="skill-building">
-                      <div>
-                        <div>Steps - Skill Building</div>
-                        <div className="text-xs text-muted-foreground">
-                          Write steps for skill building problem
+                      <div className="flex items-start gap-2">
+                        <GraduationCapIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Steps - Skill Building</div>
+                          <div className="text-xs text-muted-foreground">
+                            Write steps for skill building problem
+                          </div>
                         </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="style-guide-skill-building">
-                      <div>
-                        <div>Style Guide Pass - Skill Building</div>
-                        <div className="text-xs text-muted-foreground">
-                          Refine existing skill-building steps with style guide
+                      <div className="flex items-start gap-2">
+                        <RefreshCwIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Style Guide Pass - Skill Building</div>
+                          <div className="text-xs text-muted-foreground">
+                            Refine existing skill-building steps with style guide
+                          </div>
                         </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="style-guide-project">
-                      <div>
-                        <div>Style Guide Pass - Project</div>
-                        <div className="text-xs text-muted-foreground">
-                          Refine existing project steps with style guide
+                      <div className="flex items-start gap-2">
+                        <RefreshCwIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Style Guide Pass - Project</div>
+                          <div className="text-xs text-muted-foreground">
+                            Refine existing project steps with style guide
+                          </div>
                         </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="seo-description">
-                      <div>
-                        <div>SEO Description</div>
-                        <div className="text-xs text-muted-foreground">
-                          Generate SEO description (max 160 characters)
+                      <div className="flex items-start gap-2">
+                        <SearchIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>SEO Description</div>
+                          <div className="text-xs text-muted-foreground">
+                            Generate SEO description (max 160 characters)
+                          </div>
                         </div>
                       </div>
                     </SelectItem>
