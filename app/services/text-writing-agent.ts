@@ -162,7 +162,7 @@ export const ALWAYS_EXCLUDED_DIRECTORIES = ["node_modules", ".vite"];
 export const DEFAULT_UNCHECKED_PATHS = ["readme.md", "speaker-notes.md"];
 
 export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
-  function* (props: { videoId: string; enabledFiles: string[] | undefined; includeTranscript?: boolean }) {
+  function* (props: { videoId: string; enabledFiles: string[] | undefined; includeTranscript?: boolean; enabledSections?: string[] }) {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
 
@@ -249,12 +249,53 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
       }));
 
     const includeTranscript = props.includeTranscript ?? true;
-    const transcript = includeTranscript
-      ? video.clips
-          .map((clip) => clip.text)
-          .join(" ")
-          .trim()
-      : "";
+
+    // Build transcript with section filtering
+    let transcript = "";
+    if (includeTranscript) {
+      const enabledSectionIds = new Set(props.enabledSections ?? []);
+      const allSectionsEnabled = enabledSectionIds.size === 0 || (props.enabledSections?.length === 0 && video.clipSections.length === 0);
+
+      // Combine clips and clip sections, sort by order (ASCII ordering to match PostgreSQL COLLATE "C")
+      const allItems = [
+        ...video.clips.map((clip) => ({ type: "clip" as const, order: clip.order, clip })),
+        ...video.clipSections.map((section) => ({ type: "clip-section" as const, order: section.order, section })),
+      ].sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0));
+
+      // Build formatted transcript with sections as H2 headers
+      const transcriptParts: string[] = [];
+      let currentParagraph: string[] = [];
+      let currentSectionEnabled = allSectionsEnabled; // If no sections exist, include clips before first section
+
+      for (const item of allItems) {
+        if (item.type === "clip-section") {
+          // Flush current paragraph before starting a new section
+          if (currentParagraph.length > 0 && currentSectionEnabled) {
+            transcriptParts.push(currentParagraph.join(" "));
+            currentParagraph = [];
+          } else {
+            currentParagraph = [];
+          }
+
+          // Check if this section is enabled
+          currentSectionEnabled = allSectionsEnabled || enabledSectionIds.has(item.section.id);
+
+          // Add section as H2 header if enabled
+          if (currentSectionEnabled) {
+            transcriptParts.push(`## ${item.section.name}`);
+          }
+        } else if (item.clip.text && currentSectionEnabled) {
+          currentParagraph.push(item.clip.text);
+        }
+      }
+
+      // Flush remaining paragraph
+      if (currentParagraph.length > 0 && currentSectionEnabled) {
+        transcriptParts.push(currentParagraph.join(" "));
+      }
+
+      transcript = transcriptParts.join("\n\n").trim();
+    }
 
     // Calculate YouTube chapters from clip sections
     const youtubeChapters: { timestamp: string; name: string }[] = [];

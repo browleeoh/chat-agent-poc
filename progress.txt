@@ -635,3 +635,29 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/video-editor.tsx:1465
+
+## Issue #47 - Selective section inclusion in Write Article page
+- Added ability to selectively include/exclude clip sections in AI prompts
+- Write page now shows section checkboxes (only visible when video has clip sections)
+- Each section checkbox shows word count for that section
+- Main transcript toggle still works - can turn entire transcript off/on
+- Implementation details:
+  - Loader calculates word count per section while building transcript
+  - Added `sectionsWithWordCount` array with id, name, order, and wordCount
+  - Added `enabledSections` state (Set<string>) - defaults to all sections enabled
+  - Added ScrollArea with section checkboxes showing name and word count
+  - Updated completions endpoint schema to accept `enabledSections: string[]`
+  - Updated `acquireTextWritingContext` to accept and filter by `enabledSections`
+  - Transcript building now filters clips based on enabled sections
+  - Maintains section headers (H2) for enabled sections only
+- Key decisions:
+  - Used same ASCII ordering logic as video editor for consistency
+  - Clips before first section are included if no sections exist or all enabled
+  - Section filtering works independently from file selection
+  - Word counts calculated in loader to avoid recalculation on every render
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (loader, UI, state, handler)
+  - app/routes/videos.$videoId.completions.ts (schema, action)
+  - app/services/text-writing-agent.ts (acquireTextWritingContext signature and logic)

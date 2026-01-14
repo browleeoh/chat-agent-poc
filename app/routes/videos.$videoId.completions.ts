@@ -26,6 +26,7 @@ const chatSchema = Schema.Struct({
   ),
   model: Schema.String,
   includeTranscript: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+  enabledSections: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
 });
 
 export const action = async (args: Route.ActionArgs) => {
@@ -39,11 +40,13 @@ export const action = async (args: Route.ActionArgs) => {
     const mode = parsed.mode;
     const model: string = parsed.model;
     const includeTranscript = parsed.includeTranscript;
+    const enabledSections: string[] = [...parsed.enabledSections];
 
     const videoContext = yield* acquireTextWritingContext({
       videoId,
       enabledFiles,
       includeTranscript,
+      enabledSections,
     });
 
     const modelMessages = createModelMessagesForTextWritingAgent({

@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { AIMessage, AIMessageContent } from "components/ui/kibo-ui/ai/message";
 import { AIResponse } from "components/ui/kibo-ui/ai/response";
 import {
@@ -140,6 +141,36 @@ export const loader = async (args: Route.LoaderArgs) => {
       ? transcript.split(/\s+/).length
       : 0;
 
+    // Calculate word count per section
+    type SectionWithWordCount = {
+      id: string;
+      name: string;
+      order: string;
+      wordCount: number;
+    };
+    const sectionsWithWordCount: SectionWithWordCount[] = [];
+    let currentSectionIndex = -1;
+
+    for (const item of sortedItems) {
+      if (item.type === "clip-section") {
+        // Start tracking a new section
+        const section = video.clipSections.find((s) => s.order === item.order);
+        if (section) {
+          currentSectionIndex = sectionsWithWordCount.length;
+          sectionsWithWordCount.push({
+            id: section.id,
+            name: item.name,
+            order: item.order,
+            wordCount: 0,
+          });
+        }
+      } else if (item.text && currentSectionIndex >= 0) {
+        // Add this clip's word count to the current section
+        const wordCount = item.text.split(/\s+/).length;
+        sectionsWithWordCount[currentSectionIndex]!.wordCount += wordCount;
+      }
+    }
+
     // For standalone videos (no lesson), return minimal data
     if (!lesson) {
       const nextVideoId = yield* db.getNextVideoId(videoId);
@@ -157,6 +188,7 @@ export const loader = async (args: Route.LoaderArgs) => {
         previousVideoId,
         isStandalone: true,
         transcriptWordCount,
+        clipSections: sectionsWithWordCount,
       };
     }
 
@@ -222,6 +254,7 @@ export const loader = async (args: Route.LoaderArgs) => {
       previousVideoId,
       isStandalone: false,
       transcriptWordCount,
+      clipSections: sectionsWithWordCount,
     };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
@@ -289,6 +322,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     previousVideoId,
     isStandalone,
     transcriptWordCount,
+    clipSections,
   } = props.loaderData;
   const [text, setText] = useState<string>("");
   const [mode, setMode] = useState<Mode>(() => {
@@ -317,6 +351,10 @@ export function InnerComponent(props: Route.ComponentProps) {
     return new Set(files.filter((f) => f.defaultEnabled).map((f) => f.path));
   });
   const [includeTranscript, setIncludeTranscript] = useState(true);
+  const [enabledSections, setEnabledSections] = useState<Set<string>>(() => {
+    // By default, all sections are enabled
+    return new Set(clipSections.map((s) => s.id));
+  });
 
   // Check if explainer or problem folder exists
   const hasExplainerOrProblem = files.some(
@@ -391,7 +429,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     e.preventDefault();
     sendMessage(
       { text: text.trim() || "Go" },
-      { body: { enabledFiles: Array.from(enabledFiles), mode, model, includeTranscript } }
+      { body: { enabledFiles: Array.from(enabledFiles), mode, model, includeTranscript, enabledSections: Array.from(enabledSections) } }
     );
 
     setText("");
@@ -458,6 +496,39 @@ export function InnerComponent(props: Route.ComponentProps) {
                 ({transcriptWordCount.toLocaleString()} words)
               </span>
             </div>
+            {/* Section checkboxes - only show when sections exist */}
+            {clipSections.length > 0 && (
+              <ScrollArea className="max-h-48">
+                <div className="space-y-1 px-2">
+                  {clipSections.map((section) => (
+                    <div key={section.id} className="flex items-center gap-2 py-1">
+                      <Checkbox
+                        id={`section-${section.id}`}
+                        checked={enabledSections.has(section.id)}
+                        onCheckedChange={(checked) => {
+                          const newSet = new Set(enabledSections);
+                          if (checked) {
+                            newSet.add(section.id);
+                          } else {
+                            newSet.delete(section.id);
+                          }
+                          setEnabledSections(newSet);
+                        }}
+                      />
+                      <label
+                        htmlFor={`section-${section.id}`}
+                        className="text-sm flex-1 cursor-pointer"
+                      >
+                        {section.name}
+                      </label>
+                      <span className="text-xs text-muted-foreground">
+                        ({section.wordCount.toLocaleString()} words)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
             <FileTree
               files={files}
               enabledFiles={enabledFiles}
