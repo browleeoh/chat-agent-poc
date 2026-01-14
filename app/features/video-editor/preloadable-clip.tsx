@@ -120,6 +120,7 @@ export const PreloadableClip = (props: {
       key={props.clip.frontendId}
       src={`/view-video?videoPath=${props.clip.videoFilename}#t=${preloadFrom},${modifiedEndTime}`}
       className={cn(
+        "w-full",
         props.hidden && "hidden",
         props.profile === "TikTok" && "w-92 aspect-[9/16]"
       )}

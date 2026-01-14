@@ -611,3 +611,16 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/video-editor.tsx
+
+## Issue #46 - Fix video playback in video editor
+- Video element was rendering with no dimensions (0x0), causing video to be invisible while audio played
+- Root cause: PreloadableClipManager wrapper div and video elements had no explicit sizing
+- Added `w-full aspect-[16/9]` classes to wrapper div around PreloadableClipManager
+- Added `w-full` class to video element in PreloadableClip component
+- This ensures video elements have proper dimensions and are visible during playback
+- Key decision: Applied aspect ratio to wrapper rather than individual video elements for cleaner layout
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/video-editor.tsx (wrapper div sizing)
+  - app/features/video-editor/preloadable-clip.tsx (video element sizing)

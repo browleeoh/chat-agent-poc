@@ -553,7 +553,12 @@ export const VideoEditor = (props: {
                   )}
               </div>
             )}
-            <div className={cn(viewMode !== "video-player" && "hidden")}>
+            <div
+              className={cn(
+                "w-full aspect-[16/9]",
+                viewMode !== "video-player" && "hidden"
+              )}
+            >
               <PreloadableClipManager
                 clipsToAggressivelyPreload={clipsToAggressivelyPreload}
                 clips={clips
