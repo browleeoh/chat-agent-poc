@@ -498,36 +498,38 @@ export function InnerComponent(props: Route.ComponentProps) {
             </div>
             {/* Section checkboxes - only show when sections exist */}
             {clipSections.length > 0 && (
-              <ScrollArea className="max-h-48">
-                <div className="space-y-1 px-2">
-                  {clipSections.map((section) => (
-                    <div key={section.id} className="flex items-center gap-2 py-1">
-                      <Checkbox
-                        id={`section-${section.id}`}
-                        checked={enabledSections.has(section.id)}
-                        onCheckedChange={(checked) => {
-                          const newSet = new Set(enabledSections);
-                          if (checked) {
-                            newSet.add(section.id);
-                          } else {
-                            newSet.delete(section.id);
-                          }
-                          setEnabledSections(newSet);
-                        }}
-                      />
-                      <label
-                        htmlFor={`section-${section.id}`}
-                        className="text-sm flex-1 cursor-pointer"
-                      >
-                        {section.name}
-                      </label>
-                      <span className="text-xs text-muted-foreground">
-                        ({section.wordCount.toLocaleString()} words)
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+              <div className="shrink-0">
+                <ScrollArea className="h-48">
+                  <div className="space-y-1 px-2">
+                    {clipSections.map((section) => (
+                      <div key={section.id} className="flex items-center gap-2 py-1">
+                        <Checkbox
+                          id={`section-${section.id}`}
+                          checked={enabledSections.has(section.id)}
+                          onCheckedChange={(checked) => {
+                            const newSet = new Set(enabledSections);
+                            if (checked) {
+                              newSet.add(section.id);
+                            } else {
+                              newSet.delete(section.id);
+                            }
+                            setEnabledSections(newSet);
+                          }}
+                        />
+                        <label
+                          htmlFor={`section-${section.id}`}
+                          className="text-sm flex-1 cursor-pointer"
+                        >
+                          {section.name}
+                        </label>
+                        <span className="text-xs text-muted-foreground">
+                          ({section.wordCount.toLocaleString()} words)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
             )}
             <FileTree
               files={files}

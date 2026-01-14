@@ -34,3 +34,14 @@
   - app/routes/videos.$videoId.write.tsx (loader, UI, state, handler)
   - app/routes/videos.$videoId.completions.ts (schema, action)
   - app/services/text-writing-agent.ts (acquireTextWritingContext signature and logic)
+
+## Issue #48 - Fixed section checkboxes overflowing into file tree
+- Fixed visual bug where section checkboxes were overlapping with files in context
+- Changed ScrollArea from `max-h-48` to fixed `h-48` height
+- Wrapped ScrollArea in container with `shrink-0` to prevent height collapse
+- Key decisions:
+  - Fixed height ensures consistent layout and prevents overflow
+  - shrink-0 prevents flex container from collapsing the section area
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/videos.$videoId.write.tsx:501-502
