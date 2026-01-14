@@ -4,9 +4,9 @@ Fetch the issues from the repo via the GitHub CLI. Tasks will be available as op
 
 # TASK BREAKDOWN
 
-Break down the issues into tasks. Each issue may contain multiple tasks.
+Break down the issues into tasks. An issue may contain a single task (a small bugfix or visual tweak) or many, many tasks (a PRD or a large refactor).
 
-The tasks should biased small. We don't want to bite off more than we can chew.
+Make each task the smallest possible unit of work. We don't want to outrun our headlights. Aim for one small change per task.
 
 # TASK SELECTION
 
@@ -21,6 +21,14 @@ Pick the next task. Prioritize from this list (where 1 is highest priority):
 # EXPLORATION
 
 Explore the repo and fill your context window with relevant information that will allow you to complete the task.
+
+# EXECUTION
+
+Complete the task.
+
+If you find that the task is larger than you expected (for instance, requires a refactor first), output "HANG ON A SECOND".
+
+Then, find a way to break it into a smaller chunk and only do that chunk (i.e. complete the smaller refactor).
 
 # FEEDBACK LOOPS
 

@@ -946,6 +946,20 @@ export const VideoEditor = (props: {
                             name={item.name}
                             isSelected={state.selectedClipsSet.has(item.frontendId)}
                             onClick={(e) => {
+                              // If already selected and clicked again (without modifiers),
+                              // play from the next clip after this section
+                              if (
+                                !e.ctrlKey &&
+                                !e.shiftKey &&
+                                state.selectedClipsSet.has(item.frontendId) &&
+                                state.selectedClipsSet.size === 1
+                              ) {
+                                dispatch({
+                                  type: "play-from-clip-section",
+                                  clipSectionId: item.frontendId,
+                                });
+                                return;
+                              }
                               dispatch({
                                 type: "click-clip",
                                 clipId: item.frontendId,

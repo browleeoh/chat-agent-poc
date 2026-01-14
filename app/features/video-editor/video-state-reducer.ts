@@ -108,6 +108,10 @@ export namespace videoStateReducer {
       }
     | {
         type: "press-alt-arrow-down";
+      }
+    | {
+        type: "play-from-clip-section";
+        clipSectionId: FrontendId;
       };
 }
 
@@ -233,9 +237,46 @@ export const makeVideoEditorReducer =
             showLastFrameOfVideo: newShowLastFrameOfVideo,
           };
         }
-        const mostRecentClipId = Array.from(state.selectedClipsSet).pop()!;
+        const mostRecentItemId = Array.from(state.selectedClipsSet).pop()!;
 
-        if (state.currentClipId === mostRecentClipId) {
+        // Check if the selected item is a clip section (not in clipIds)
+        const clipIdsSet = new Set(clipIds);
+        const isClipSection = !clipIdsSet.has(mostRecentItemId);
+
+        if (isClipSection) {
+          // If it's a clip section, find the first clip after it and play from there
+          const clipSectionIndex = itemIds.findIndex(
+            (id) => id === mostRecentItemId
+          );
+
+          if (clipSectionIndex === -1) {
+            return state;
+          }
+
+          // Find the first clip that comes after this clip section
+          let firstClipAfterSection: FrontendId | undefined;
+          for (let i = clipSectionIndex + 1; i < itemIds.length; i++) {
+            if (clipIdsSet.has(itemIds[i]!)) {
+              firstClipAfterSection = itemIds[i];
+              break;
+            }
+          }
+
+          if (!firstClipAfterSection) {
+            // No clip after this section
+            return state;
+          }
+
+          return preloadSelectedClips(clipIds, {
+            ...state,
+            currentClipId: firstClipAfterSection,
+            runningState: "playing",
+            currentTimeInClip: 0,
+            selectedClipsSet: new Set([firstClipAfterSection]),
+          });
+        }
+
+        if (state.currentClipId === mostRecentItemId) {
           return {
             ...state,
             selectedClipsSet: new Set([state.currentClipId]),
@@ -246,10 +287,49 @@ export const makeVideoEditorReducer =
 
         return preloadSelectedClips(clipIds, {
           ...state,
-          currentClipId: mostRecentClipId,
+          currentClipId: mostRecentItemId,
           runningState: "playing",
           currentTimeInClip: 0,
-          selectedClipsSet: new Set([mostRecentClipId]),
+          selectedClipsSet: new Set([mostRecentItemId]),
+        });
+      }
+      case "play-from-clip-section": {
+        // Find the clip section's position in itemIds
+        const clipSectionIndex = itemIds.findIndex(
+          (id) => id === action.clipSectionId
+        );
+
+        if (clipSectionIndex === -1) {
+          return state;
+        }
+
+        // Find the first clip that comes after this clip section in itemIds
+        // by looking for the first item after clipSectionIndex that exists in clipIds
+        const clipIdsSet = new Set(clipIds);
+        let firstClipAfterSection: FrontendId | undefined;
+
+        for (let i = clipSectionIndex + 1; i < itemIds.length; i++) {
+          if (clipIdsSet.has(itemIds[i]!)) {
+            firstClipAfterSection = itemIds[i];
+            break;
+          }
+        }
+
+        if (!firstClipAfterSection) {
+          // No clip after this section, just select the clip section
+          return {
+            ...state,
+            selectedClipsSet: new Set([action.clipSectionId]),
+          };
+        }
+
+        // Play from the first clip after the section
+        return preloadSelectedClips(clipIds, {
+          ...state,
+          currentClipId: firstClipAfterSection,
+          runningState: "playing",
+          currentTimeInClip: 0,
+          selectedClipsSet: new Set([firstClipAfterSection]),
         });
       }
       case "click-clip":

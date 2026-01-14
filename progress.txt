@@ -404,3 +404,17 @@
 - Files changed:
   - app/services/db-service.ts (added compareOrderStrings helper, updated 3 sort calls)
   - app/routes/videos.$videoId.edit.tsx (fixed sort in loader)
+
+## Issue #28 - Play from clip section
+- Added ability to play from the next clip after a clip section
+- When a clip section is selected and clicked again, playback starts from the first clip after that section
+- When a clip section is selected and Enter/Return is pressed, playback starts from the first clip after that section
+- Implementation:
+  - Added `play-from-clip-section` action type to video-state-reducer.ts
+  - New action finds clip section in itemIds, then finds first clip after it in clipIds
+  - Updated `press-return` handler to detect if selected item is a clip section (not in clipIds)
+  - Updated ClipSectionDivider click handler to dispatch `play-from-clip-section` when already selected
+- If no clip exists after the section, no playback occurs
+- Files changed:
+  - app/features/video-editor/video-state-reducer.ts (new action type, handler, updated press-return)
+  - app/features/video-editor/video-editor.tsx (updated ClipSectionDivider click handler)

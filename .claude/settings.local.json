@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm typecheck:*)",
+      "Read(//tmp/ccstatusline/src/widgets/**)",
+      "Read(//tmp/ccstatusline/src/types/**)",
+      "Read(//tmp/ccstatusline/**)",
+      "Read(//home/mattpocock/repos/ai/ai-sdk-tips/exercises/05-claude-code/05.01-status-line/explainer/**)",
+      "Read(//home/mattpocock/.claude/**)",
+      "WebSearch",
+      "Bash(cat:*)",
+      "WebFetch(domain:tailcolors.com)",
+      "WebFetch(domain:uicolors.app)",
+      "WebFetch(domain:tailkits.com)",
+      "WebFetch(domain:medium.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(pnpm test:*)",
+      "Bash(ls:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue close:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
