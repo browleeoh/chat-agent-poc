@@ -501,6 +501,12 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
                 ? {}
                 : { where: eq(clips.archived, false) }),
             },
+            clipSections: {
+              orderBy: asc(clipSections.order),
+              ...(opts?.withArchived
+                ? {}
+                : { where: eq(clipSections.archived, false) }),
+            },
           },
         })
       );

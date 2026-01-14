@@ -207,3 +207,18 @@
   - app/features/video-editor/video-editor.tsx (items prop, isClip helper)
   - app/features/video-editor/obs-connector.tsx (ApiInsertionPoint type)
   - app/routes/videos.$videoId.edit.tsx (items prop, ApiInsertionPoint)
+
+## Issue #18 - Video Editor Clip Sections (Part 4: Loader Fetches ClipSections)
+- Updated `getVideoWithClipsById` in DBService to also fetch clipSections
+- Query now includes `clipSections` relation with same ordering and archived filtering as clips
+- Updated video editor loader to combine clips and clipSections into unified sorted `items` array
+- Items are sorted by `order` field using localeCompare (matches varchar COLLATE "C" behavior)
+- Loader now returns `items` instead of `clips` - each item tagged with `type: "clip"` or `type: "clip-section"`
+- ComponentInner maps loader items to proper TimelineItem types:
+  - Clips become `ClipOnDatabase` with `type: "on-database"`
+  - ClipSections become `ClipSectionOnDatabase` with `type: "clip-section-on-database"`
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/services/db-service.ts:504-509 (added clipSections to query)
+  - app/routes/videos.$videoId.edit.tsx:45-70, 89-117 (loader returns items, component maps to TimelineItem)

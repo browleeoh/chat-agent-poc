@@ -2,6 +2,7 @@ import type { DB } from "@/db/schema";
 import type {
   ApiInsertionPoint,
   ClipOnDatabase,
+  ClipSectionOnDatabase,
   DatabaseId,
   FrontendId,
   FrontendInsertionPoint,
@@ -41,9 +42,28 @@ export const loader = async (args: Route.LoaderArgs) => {
         )
       : false;
 
+    // Combine clips and clipSections into a unified items array, sorted by order
+    const clipItems: Array<{ type: "clip"; order: string; data: DB.Clip }> =
+      (video.clips as DB.Clip[]).map((clip) => ({
+        type: "clip" as const,
+        order: clip.order,
+        data: clip,
+      }));
+
+    const clipSectionItems: Array<{ type: "clip-section"; order: string; data: DB.ClipSection }> =
+      (video.clipSections as DB.ClipSection[]).map((clipSection) => ({
+        type: "clip-section" as const,
+        order: clipSection.order,
+        data: clipSection,
+      }));
+
+    const sortedItems = [...clipItems, ...clipSectionItems].sort((a, b) =>
+      a.order.localeCompare(b.order)
+    );
+
     return {
       video,
-      clips: video.clips as DB.Clip[],
+      items: sortedItems,
       waveformData: undefined,
       hasExplainerFolder,
       videoCount: lesson?.videos.length ?? 1,
@@ -69,16 +89,28 @@ export const ComponentInner = (props: Route.ComponentProps) => {
   const [clipState, dispatch] = useEffectReducer(
     clipStateReducer,
     {
-      items: props.loaderData.clips.map(
-        (clip): ClipOnDatabase => ({
-          ...clip,
-          type: "on-database",
-          frontendId: createFrontendId(),
-          databaseId: clip.id,
-          insertionOrder: null,
-          beatType: clip.beatType as BeatType,
-        })
-      ),
+      items: props.loaderData.items.map((item): TimelineItem => {
+        if (item.type === "clip") {
+          const clip = item.data;
+          return {
+            ...clip,
+            type: "on-database",
+            frontendId: createFrontendId(),
+            databaseId: clip.id,
+            insertionOrder: null,
+            beatType: clip.beatType as BeatType,
+          } satisfies ClipOnDatabase;
+        } else {
+          const clipSection = item.data;
+          return {
+            type: "clip-section-on-database",
+            frontendId: createFrontendId(),
+            databaseId: clipSection.id,
+            name: clipSection.name,
+            insertionOrder: null,
+          } satisfies ClipSectionOnDatabase;
+        }
+      }),
       clipIdsBeingTranscribed: new Set() satisfies Set<FrontendId>,
       insertionOrder: 0,
       insertionPoint: { type: "end" },
