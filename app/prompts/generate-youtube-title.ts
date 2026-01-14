@@ -52,40 +52,40 @@ Each title should:
 Use these framing devices (one title per device):
 
 1. **Problem-focused**: Identify the pain point immediately
-   - Example: "Stop reading paragraphs from Claude Code"
+   - Example: "Stop writing the same API boilerplate in every project"
 
 2. **Practical outcome**: Promise a specific result
-   - Example: "Make Claude Code 10x more readable with one line"
+   - Example: "Build a full-stack app in 30 minutes with this pattern"
 
 3. **Before/After revelation**: Show transformation
-   - Example: "I changed one setting in Claude Code and look what happened"
+   - Example: "I refactored my database queries and cut response time by 80%"
 
 4. **Curiosity/mystery**: Create intrigue
-   - Example: "The hidden setting that fixes Claude Code verbosity"
+   - Example: "The React hook that changed how I think about state"
 
 5. **Contrarian/counter-intuitive**: Challenge assumptions
-   - Example: "Why you should tell Claude to sacrifice grammar"
+   - Example: "Why you shouldn't always use async/await"
 
 6. **Question format**: Pose the problem as a question
-   - Example: "Why does Claude Code give you essays instead of answers?"
+   - Example: "Why are your TypeScript types so complicated?"
 
 7. **Numbers/Lists**: Promise specific takeaways
-   - Example: "3 settings that transform Claude Code output"
+   - Example: "5 mistakes every developer makes with error handling"
 
 8. **Direct command**: Tell them what to do
-   - Example: "Get faster answers from Claude Code"
+   - Example: "Write better tests without mocking everything"
 
 9. **Social proof**: Reference what others don't know
-   - Example: "Most people don't know Claude Code can do this"
+   - Example: "Most developers don't know JavaScript has this feature"
 
 10. **This/That structure**: Create clear contrast
-    - Example: "This one line transforms Claude Code output"
+    - Example: "This one pattern eliminates prop drilling forever"
 
 Examples of good YouTube titles:
-- "How I use Claude Code for real engineering"
-- "Most devs don't understand how context windows work"
-- "Ship working code while you sleep with the Ralph Wiggum technique"
-- "Frontend is HARDER for AI than backend (here's how to fix it)"
+- "How I structure components for maximum reusability"
+- "Most devs don't understand how closures actually work"
+- "Ship production-ready code with this testing strategy"
+- "Backend scaling is EASIER than you think (here's the secret)"
 </the-ask>
 
 <output-format>

@@ -470,21 +470,13 @@
   - app/routes/videos.$videoId.completions.ts (added mode to schema)
   - app/routes/videos.$videoId.write.tsx (added mode type, label, icon, UI SelectItem)
 
-## Issue #33 - YouTube title generator now generates 10 options
-- Modified YouTube title generator prompt to output 10 different titles instead of 1
-- Each title uses a different framing device for variety:
-  1. Problem-focused: Identify pain point immediately
-  2. Practical outcome: Promise specific result
-  3. Before/After revelation: Show transformation
-  4. Curiosity/mystery: Create intrigue
-  5. Contrarian/counter-intuitive: Challenge assumptions
-  6. Question format: Pose problem as question
-  7. Numbers/Lists: Promise specific takeaways
-  8. Direct command: Tell them what to do
-  9. Social proof: Reference what others don't know
-  10. This/That structure: Create clear contrast
-- Output format changed to numbered list (1-10), one title per line
-- Key decision: Included specific examples for each framing device in the prompt to guide AI
-- All tests pass, typecheck passes
-- Files changed:
-  - app/prompts/generate-youtube-title.ts (updated prompt and output format)
+## Issue #34 - Diversify YouTube title generator examples
+- The prompt examples all referenced "Claude Code" which biased the AI to always generate titles about Claude Code
+- Updated all 10 framing device examples to use diverse coding topics:
+  - API boilerplate, full-stack apps, database queries, React hooks, async/await, TypeScript types, error handling, testing, JavaScript features, prop drilling
+- Updated the 4 example titles at the bottom to use general programming topics instead of Claude Code
+- Examples now cover: components, closures, testing, backend scaling
+- Key decision: Kept examples relevant to coding/development (the domain) but removed the specific "Claude Code" bias
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/prompts/generate-youtube-title.ts
