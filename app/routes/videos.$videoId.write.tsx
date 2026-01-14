@@ -427,9 +427,14 @@ export function InnerComponent(props: Route.ComponentProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // When sections exist, derive includeTranscript from enabledSections
+    const transcriptEnabled = clipSections.length > 0
+      ? enabledSections.size > 0
+      : includeTranscript;
+
     sendMessage(
       { text: text.trim() || "Go" },
-      { body: { enabledFiles: Array.from(enabledFiles), mode, model, includeTranscript, enabledSections: Array.from(enabledSections) } }
+      { body: { enabledFiles: Array.from(enabledFiles), mode, model, includeTranscript: transcriptEnabled, enabledSections: Array.from(enabledSections) } }
     );
 
     setText("");
@@ -483,8 +488,28 @@ export function InnerComponent(props: Route.ComponentProps) {
             <div className="flex items-center gap-2 py-1 px-2">
               <Checkbox
                 id="include-transcript"
-                checked={includeTranscript}
-                onCheckedChange={(checked) => setIncludeTranscript(!!checked)}
+                checked={
+                  clipSections.length > 0
+                    ? enabledSections.size === clipSections.length
+                      ? true
+                      : enabledSections.size > 0
+                      ? "indeterminate"
+                      : false
+                    : includeTranscript
+                }
+                onCheckedChange={(checked) => {
+                  if (clipSections.length > 0) {
+                    // If sections exist, toggle all sections
+                    if (checked) {
+                      setEnabledSections(new Set(clipSections.map((s) => s.id)));
+                    } else {
+                      setEnabledSections(new Set());
+                    }
+                  } else {
+                    // If no sections, just toggle transcript
+                    setIncludeTranscript(!!checked);
+                  }
+                }}
               />
               <label
                 htmlFor="include-transcript"
@@ -502,7 +527,7 @@ export function InnerComponent(props: Route.ComponentProps) {
                 <ScrollArea className="h-48">
                   <div className="space-y-1 px-2">
                     {clipSections.map((section) => (
-                      <div key={section.id} className="flex items-center gap-2 py-1">
+                      <div key={section.id} className="flex items-center gap-2 py-1 pl-6">
                         <Checkbox
                           id={`section-${section.id}`}
                           checked={enabledSections.has(section.id)}

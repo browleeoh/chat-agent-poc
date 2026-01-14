@@ -45,3 +45,21 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/videos.$videoId.write.tsx:501-502
+
+## Issue #49 - Transcript checkbox controls section checkboxes
+- Implemented parent-child checkbox relationship between transcript and sections
+- Transcript checkbox now shows indeterminate state when some sections selected
+- Clicking transcript checkbox toggles all section checkboxes
+- Implementation details:
+  - Transcript checkbox state derived from enabledSections count when sections exist
+  - Shows true when all sections enabled, indeterminate when some enabled, false when none
+  - Clicking transcript checkbox sets/clears all sections at once
+  - Section checkboxes indented with pl-6 to show parent-child relationship visually
+  - Submit handler derives includeTranscript from enabledSections when sections exist
+- Key decisions:
+  - Matches FileTree behavior for nested folder checkboxes (indeterminate state)
+  - Maintains backward compatibility for videos without sections (uses includeTranscript state)
+  - Visual indentation makes hierarchy clear to users
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/videos.$videoId.write.tsx:483-553
