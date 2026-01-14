@@ -294,6 +294,44 @@ export const VideoEditor = (props: {
     }
   };
 
+  // Generate YouTube chapters from clip sections
+  // Format: "0:00 Section Name" for each clip section
+  const youtubeChapters = useMemo(() => {
+    const chapters: { timestamp: string; name: string }[] = [];
+    let cumulativeDuration = 0;
+
+    for (const item of props.items) {
+      if (isClipSection(item)) {
+        // Record the timestamp at the start of this clip section
+        chapters.push({
+          timestamp: formatSecondsToTimeCode(cumulativeDuration),
+          name: item.name,
+        });
+      } else if (isClip(item) && item.type === "on-database") {
+        // Add the clip's duration to cumulative total
+        cumulativeDuration += item.sourceEndTime - item.sourceStartTime;
+      }
+    }
+
+    return chapters;
+  }, [props.items]);
+
+  const [isChaptersCopied, setIsChaptersCopied] = useState(false);
+
+  const copyYoutubeChaptersToClipboard = async () => {
+    try {
+      const chaptersText = youtubeChapters
+        .map((chapter) => `${chapter.timestamp} ${chapter.name}`)
+        .join("\n");
+
+      await navigator.clipboard.writeText(chaptersText);
+      setIsChaptersCopied(true);
+      setTimeout(() => setIsChaptersCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy YouTube chapters to clipboard:", error);
+    }
+  };
+
   const totalDuration = clips.reduce((acc, clip) => {
     if (clip.type === "on-database") {
       return acc + (clip.sourceEndTime - clip.sourceStartTime);
@@ -612,6 +650,34 @@ export const VideoEditor = (props: {
                               and TikTok under the given title.
                             </p>
                           </div>
+                          {youtubeChapters.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label>YouTube Chapters</Label>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={copyYoutubeChaptersToClipboard}
+                                  className="h-7 px-2"
+                                >
+                                  {isChaptersCopied ? (
+                                    <CheckIcon className="w-4 h-4 mr-1" />
+                                  ) : (
+                                    <CopyIcon className="w-4 h-4 mr-1" />
+                                  )}
+                                  {isChaptersCopied ? "Copied" : "Copy"}
+                                </Button>
+                              </div>
+                              <div className="bg-muted rounded-md p-3 text-sm font-mono">
+                                {youtubeChapters.map((chapter, index) => (
+                                  <div key={index}>
+                                    {chapter.timestamp} {chapter.name}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div className="flex justify-end space-x-2">
                             <Button
                               variant="outline"

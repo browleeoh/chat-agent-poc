@@ -302,3 +302,19 @@
   - app/features/video-editor/clip-state-reducer.ts (new action and effect types, new reducer case)
   - app/features/video-editor/video-editor.tsx (modal state, modal component, context menu Edit option)
   - app/routes/videos.$videoId.edit.tsx (effect handler, onUpdateClipSection prop)
+
+## Issue #18 - Video Editor Clip Sections (Part 9: YouTube Timestamp Export)
+- Added YouTube chapter generation and copy functionality to export modal
+- Chapters automatically calculated from clip durations before each clip section
+- Format follows YouTube standard: "0:00 Section Name" per line
+- Implementation details:
+  - Added `youtubeChapters` useMemo that iterates through all items (clips and clip sections)
+  - Tracks cumulative duration, records timestamp at each clip section
+  - Added `copyYoutubeChaptersToClipboard` function with copy feedback state
+  - Export modal conditionally shows "YouTube Chapters" section when chapters exist
+  - Chapters displayed in monospace font with "Copy" button
+- User Stories addressed: 26, 27, 28, 29 (YouTube timestamp export functionality)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/video-editor.tsx (youtubeChapters calculation, copy function, export modal UI)
