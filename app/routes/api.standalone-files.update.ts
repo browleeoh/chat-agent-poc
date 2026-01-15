@@ -1,4 +1,4 @@
-import { Console, Effect, Schema } from "effect";
+import { Console, Effect } from "effect";
 import { FileSystem } from "@effect/platform";
 import type { Route } from "./+types/api.standalone-files.update";
 import { DBService } from "@/services/db-service";
@@ -7,25 +7,35 @@ import { withDatabaseDump } from "@/services/dump-service";
 import { getStandaloneVideoFilePath } from "@/services/standalone-video-files";
 import { data } from "react-router";
 
-const updateFileSchema = Schema.Struct({
-  videoId: Schema.String,
-  filename: Schema.String,
-  content: Schema.String,
-});
-
 export const action = async (args: Route.ActionArgs) => {
   const formData = await args.request.formData();
-  const formDataObject = Object.fromEntries(formData);
 
   return Effect.gen(function* () {
-    const parsed =
-      yield* Schema.decodeUnknown(updateFileSchema)(formDataObject);
+    const videoId = formData.get("videoId");
+    const filename = formData.get("filename");
+    const textContent = formData.get("content");
+
+    if (typeof videoId !== "string" || !videoId) {
+      return yield* Effect.die(data("videoId is required", { status: 400 }));
+    }
+
+    if (typeof filename !== "string" || !filename) {
+      return yield* Effect.die(data("filename is required", { status: 400 }));
+    }
+
+    if (typeof textContent !== "string") {
+      return yield* Effect.die(
+        data("content must be a string (only text files can be edited)", {
+          status: 400,
+        })
+      );
+    }
 
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
 
     // Validate video exists and is a standalone video
-    const video = yield* db.getVideoById(parsed.videoId);
+    const video = yield* db.getVideoById(videoId);
     if (video.lessonId !== null) {
       return yield* Effect.die(
         data("Cannot modify files for lesson-connected videos", { status: 400 })
@@ -33,10 +43,7 @@ export const action = async (args: Route.ActionArgs) => {
     }
 
     // Construct file path
-    const filePath = getStandaloneVideoFilePath(
-      parsed.videoId,
-      parsed.filename
-    );
+    const filePath = getStandaloneVideoFilePath(videoId, filename);
 
     // Check if file exists
     const fileExists = yield* fs.exists(filePath);
@@ -44,16 +51,14 @@ export const action = async (args: Route.ActionArgs) => {
       return yield* Effect.die(data("File not found", { status: 404 }));
     }
 
-    // Update file
-    yield* fs.writeFileString(filePath, parsed.content);
+    // Update file (write as binary to handle all encodings properly)
+    const fileData = new TextEncoder().encode(textContent);
+    yield* fs.writeFile(filePath, fileData);
 
-    return { success: true, filename: parsed.filename };
+    return { success: true, filename };
   }).pipe(
     withDatabaseDump,
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
-    Effect.catchTag("ParseError", () => {
-      return Effect.die(data("Invalid request", { status: 400 }));
-    }),
     Effect.catchTag("NotFoundError", () => {
       return Effect.die(data("Video not found", { status: 404 }));
     }),

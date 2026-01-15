@@ -281,3 +281,45 @@
 - Testing:
   - All tests pass
   - TypeScript type checking passes
+
+
+## Issue #78 - Upload non-text files to standalone files modal
+- Implemented file upload support for binary files (images, PDFs, etc.)
+- Implementation details:
+  - Updated StandaloneFileManagementModal component:
+    - Create mode: shows file input with auto-filename population
+    - Edit mode: keeps textarea (text files only can be edited)
+    - Added file size display and filename override option
+    - Changed button text from "Create File" to "Upload File"
+    - Added encType="multipart/form-data" to form
+  - Updated api.standalone-files.create.ts:
+    - Handles FormData with File objects
+    - Supports both file uploads (binary) and text content (for backwards compatibility)
+    - Writes all files as binary data using fs.writeFile
+    - Allows filename override via optional filename field
+  - Updated api.standalone-files.update.ts:
+    - Only supports text content updates (binary files must be re-uploaded)
+    - Writes text as binary using TextEncoder for consistent handling
+    - Clear error message if non-text content provided
+  - Updated api.standalone-files.read.ts:
+    - Reads all files as binary using fs.readFile
+    - Detects MIME type from file extension
+    - Serves files with proper Content-Type headers
+    - Supports images, PDFs, documents, text, code, and archives
+    - Converts Uint8Array to Buffer for Response compatibility
+- Key decisions:
+  - Create mode supports any file type via upload
+  - Edit mode only supports text files (binary files cannot be edited in UI)
+  - All files stored as binary for consistency
+  - MIME type detection based on extension (simple but effective)
+  - File system already supported binary files - only UI/API needed changes
+- Files changed:
+  - app/components/standalone-file-management-modal.tsx (added file upload UI)
+  - app/routes/api.standalone-files.create.ts (binary file upload support)
+  - app/routes/api.standalone-files.update.ts (text-only updates with binary write)
+  - app/routes/api.standalone-files.read.ts (binary file serving with MIME types)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #78 is complete - users can now upload images, PDFs, and other binary files
