@@ -340,3 +340,19 @@
   - app/routes/api.videos.$videoId.archive.ts (new endpoint)
   - app/components/app-sidebar.tsx:53,152-179 (added archive context menu to sidebar videos)
   - app/routes/videos._index.tsx:17,19,32,45,59,65,143-172,174-236 (added archived videos section and context menus)
+
+## Issue #62 - Remove archive icon from archived repos link
+- Removed Archive icon from "Archived Repos" link in sidebar
+- Link now displays just text without icon for cleaner appearance
+- Key decision: Keeps visual hierarchy clean and reduces icon clutter
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/components/app-sidebar.tsx:124
+
+## Issue #63 - Make Videos section default open in sidebar
+- Added defaultOpen attribute to Videos Collapsible component in sidebar
+- Videos section now expands by default matching Repos section behavior
+- Key decision: Improves discoverability of standalone videos in sidebar
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/components/app-sidebar.tsx:132

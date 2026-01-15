@@ -121,7 +121,6 @@ export function AppSidebar({
                     size="sm"
                     className="w-full justify-start text-muted-foreground"
                   >
-                    <Archive className="w-4 h-4 mr-2" />
                     Archived Repos
                   </Button>
                 </Link>
@@ -130,7 +129,7 @@ export function AppSidebar({
           </Collapsible>
 
           {/* Videos */}
-          <Collapsible>
+          <Collapsible defaultOpen>
             <div className="flex items-center justify-between">
               <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
                 <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
