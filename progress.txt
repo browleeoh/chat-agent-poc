@@ -154,3 +154,24 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/api.repos.$repoId.archive.ts:8-15
+
+## Issue #56 - Show sidebar on archived repos page
+- Added full sidebar structure to archived repos page matching main index page
+- Root cause: archived-repos.tsx only rendered content without sidebar wrapper
+- Implementation details:
+  - Added sidebar with Repos and Videos collapsible sections
+  - Repos section shows all non-archived repos with archive context menu
+  - Videos section shows standalone videos with add video button
+  - Added Archived Repos and Diagram Playground navigation links
+  - Loader now fetches repos and standaloneVideos in addition to archivedRepos
+  - Added necessary state management (isAddRepoModalOpen, isAddStandaloneVideoModalOpen)
+  - Added modals for adding repos and videos (AddRepoModal, AddStandaloneVideoModal)
+  - Sidebar maintains consistent navigation experience across pages
+- Key decisions:
+  - Duplicated sidebar structure instead of extracting component to keep task simple and focused
+  - Used same layout pattern as _index.tsx (flex container with sidebar and main content)
+  - Repos in sidebar navigate to main index page with repoId query param
+  - Archive functionality works from sidebar context menu on archived repos page
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/archived-repos.tsx:1-257
