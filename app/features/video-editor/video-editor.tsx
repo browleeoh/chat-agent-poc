@@ -1,12 +1,6 @@
 import { AddVideoModal } from "@/components/add-video-modal";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -19,8 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -42,6 +34,7 @@ import { LiveMediaStream } from "./components/live-media-stream";
 import { ExportModal } from "./components/export-modal";
 import { TableOfContents } from "./components/table-of-contents";
 import { ClipSectionDivider } from "./components/clip-section-divider";
+import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -699,101 +692,13 @@ export const VideoEditor = (props: {
       />
 
       {/* Clip Section Naming Modal */}
-      <Dialog
-        open={clipSectionNamingModal !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            // On dismiss, create with default name if in create mode
-            if (clipSectionNamingModal?.mode === "create") {
-              props.onAddClipSection(clipSectionNamingModal.defaultName);
-            } else if (clipSectionNamingModal?.mode === "add-at") {
-              props.onAddClipSectionAt(
-                clipSectionNamingModal.defaultName,
-                clipSectionNamingModal.position,
-                clipSectionNamingModal.itemId
-              );
-            }
-            setClipSectionNamingModal(null);
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {clipSectionNamingModal?.mode === "create"
-                ? "Name Clip Section"
-                : clipSectionNamingModal?.mode === "add-at"
-                  ? "Name Clip Section"
-                  : "Edit Clip Section"}
-            </DialogTitle>
-          </DialogHeader>
-          <form
-            className="space-y-4 py-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const name = formData.get("name") as string;
-              if (clipSectionNamingModal?.mode === "create") {
-                props.onAddClipSection(name);
-              } else if (clipSectionNamingModal?.mode === "edit") {
-                props.onUpdateClipSection(
-                  clipSectionNamingModal.clipSectionId,
-                  name
-                );
-              } else if (clipSectionNamingModal?.mode === "add-at") {
-                props.onAddClipSectionAt(
-                  name,
-                  clipSectionNamingModal.position,
-                  clipSectionNamingModal.itemId
-                );
-              }
-              setClipSectionNamingModal(null);
-            }}
-          >
-            <div className="space-y-2">
-              <Label htmlFor="clip-section-name">Section Name</Label>
-              <Input
-                id="clip-section-name"
-                name="name"
-                autoFocus
-                defaultValue={
-                  clipSectionNamingModal?.mode === "create"
-                    ? clipSectionNamingModal.defaultName
-                    : clipSectionNamingModal?.mode === "add-at"
-                      ? clipSectionNamingModal.defaultName
-                      : (clipSectionNamingModal?.currentName ?? "")
-                }
-                required
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  // On cancel in create or add-at mode, create with default name
-                  if (clipSectionNamingModal?.mode === "create") {
-                    props.onAddClipSection(clipSectionNamingModal.defaultName);
-                  } else if (clipSectionNamingModal?.mode === "add-at") {
-                    props.onAddClipSectionAt(
-                      clipSectionNamingModal.defaultName,
-                      clipSectionNamingModal.position,
-                      clipSectionNamingModal.itemId
-                    );
-                  }
-                  setClipSectionNamingModal(null);
-                }}
-                type="button"
-              >
-                {clipSectionNamingModal?.mode === "create" ||
-                clipSectionNamingModal?.mode === "add-at"
-                  ? "Skip"
-                  : "Cancel"}
-              </Button>
-              <Button type="submit">Save</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ClipSectionNamingModalComponent
+        modalState={clipSectionNamingModal}
+        onClose={() => setClipSectionNamingModal(null)}
+        onAddClipSection={props.onAddClipSection}
+        onUpdateClipSection={props.onUpdateClipSection}
+        onAddClipSectionAt={props.onAddClipSectionAt}
+      />
 
       {/* Clips Section - Shows second on mobile, first on desktop */}
       <div className="lg:flex-1 flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">

@@ -671,3 +671,27 @@
 - Files changed:
   - app/features/video-editor/components/clip-section-divider.tsx (new file, 42 lines)
   - app/features/video-editor/video-editor.tsx:33-35,45,69,1237-1262 (added import, removed React import, removed ClipSectionDividerProps import, removed component definition)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ClipSectionNamingModal component
+- Extracted ClipSectionNamingModal component from video-editor.tsx into separate file
+- Component handles modal dialog for creating, editing, or adding clip sections
+- Implementation details:
+  - Created app/features/video-editor/components/clip-section-naming-modal.tsx with ClipSectionNamingModal component
+  - Component supports three modes: create (new section at end), edit (rename existing), add-at (new section before/after item)
+  - When dismissed or cancelled in create/add-at mode, automatically uses default name
+  - Refactored handlers into separate functions (handleDismiss, handleSubmit, handleCancel) for clarity
+  - Updated video-editor.tsx to use new component with cleaner props interface
+  - Removed Dialog, DialogContent, DialogHeader, DialogTitle imports (only used by modal)
+  - Removed Input and Label imports (only used by modal)
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives callbacks as props rather than dispatching internally
+  - Modal state management remains in parent component
+  - Maintains all existing behavior including default name on dismiss/cancel
+  - Props interface is cleaner and more explicit than inline JSX
+  - video-editor.tsx reduced from 1,257 to 1,163 lines (94 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/clip-section-naming-modal.tsx (new file, 138 lines)
+  - app/features/video-editor/video-editor.tsx:1-8,45,696-803 (removed Dialog imports, removed Input/Label imports, added import, replaced inline modal with component)
