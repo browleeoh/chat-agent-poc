@@ -213,3 +213,22 @@
 - Files changed:
   - app/routes/_index.tsx:311-315
   - app/routes/archived-repos.tsx:79-83
+
+## Issue #54 - Add archive/unarchive to actions menu on repo page
+- Added Archive/Unarchive option to Actions dropdown menu on repo page
+- Menu item dynamically shows "Archive Course" or "Unarchive Course" based on current state
+- Implementation details:
+  - Added new DropdownMenuItem in Course section of Actions menu
+  - Uses existing archiveRepoFetcher to submit to /api/repos/:repoId/archive endpoint
+  - Conditionally toggles archived state: sends "true" if not archived, "false" if archived
+  - Menu text changes based on currentRepo.archived property
+  - Description changes: "Hide course from main view" when archiving, "Restore course to active repos" when unarchiving
+  - Uses Archive icon from lucide-react
+- Key decisions:
+  - Placed in Course section alongside other course-level actions (Rename, Rewrite Path)
+  - Dynamic text provides clear indication of current state and action
+  - Uses same API endpoint and pattern as sidebar context menu for consistency
+  - No confirmation dialog (matches other menu actions like rename)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/_index.tsx:550-573

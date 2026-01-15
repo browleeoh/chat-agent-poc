@@ -547,6 +547,29 @@ export default function Component(props: Route.ComponentProps) {
                             </span>
                           </div>
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            archiveRepoFetcher.submit(
+                              { archived: currentRepo.archived ? "false" : "true" },
+                              {
+                                method: "post",
+                                action: `/api/repos/${currentRepo.id}/archive`,
+                              }
+                            );
+                          }}
+                        >
+                          <Archive className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {currentRepo.archived ? "Unarchive" : "Archive"} Course
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {currentRepo.archived
+                                ? "Restore course to active repos"
+                                : "Hide course from main view"}
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
                       </DropdownMenuGroup>
 
                       {data.selectedVersion && (
