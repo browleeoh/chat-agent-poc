@@ -439,3 +439,22 @@
 - Next steps:
   - Task 5: Add image preview functionality
   - Task 6: Update create API to handle base64 image data
+
+### Task 5: Add image preview functionality
+- Implemented image preview in paste modal for pasted images
+- Implementation details:
+  - Replaced placeholder text "Image pasted (preview coming soon)" with actual <img> element
+  - Image displays base64 data URL directly from pastedContent.data
+  - Preview styling: max-h-96 (limits height), max-w-full (prevents overflow), object-contain (maintains aspect ratio), rounded (matches container)
+  - Preview appears in same container as text preview, with consistent styling
+- Key decisions:
+  - Used max-h-96 to prevent oversized images from dominating the modal
+  - object-contain ensures images display properly regardless of aspect ratio
+  - No additional state needed - base64 data already available from paste handler
+- Files changed:
+  - app/components/standalone-file-paste-modal.tsx (replaced placeholder with img element)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 6: Update create API to handle base64 image data

@@ -170,9 +170,11 @@ export function StandaloneFilePasteModal(props: {
                       {pastedContent.data}
                     </pre>
                   ) : (
-                    <div className="text-sm text-muted-foreground">
-                      Image pasted (preview coming soon)
-                    </div>
+                    <img
+                      src={pastedContent.data}
+                      alt="Pasted image preview"
+                      className="max-h-96 max-w-full object-contain rounded"
+                    />
                   )}
                 </div>
                 <Button
