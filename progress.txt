@@ -824,3 +824,31 @@
   - app/features/video-editor/components/clip-section-item.tsx (new file, 151 lines)
   - app/features/video-editor/video-editor.tsx:1-21,441-479 (removed imports, added ClipSectionItem import and usage)
 
+## Issue #64 - Progressive Disclosure Refactor - Phase 5: Extract ClipTimeline component
+- Extracted ClipTimeline component from video-editor.tsx into separate file
+- Component displays the main timeline of clips and clip sections
+- Implementation details:
+  - Created `app/features/video-editor/components/clip-timeline.tsx` with ClipTimeline component
+  - Renders pre-recording checklist when no clips exist
+  - Handles insertion point indicators (start/end/after-clip positions)
+  - Maps over items array to render both clip sections and clips
+  - Integrates ClipSectionItem for section rendering with context menu
+  - Integrates ClipItem for clip rendering with context menu
+  - Shows beat indicators between clips when appropriate
+  - All callbacks passed through props for modal state management
+  - Component receives generateDefaultClipSectionName function for section naming
+  - Updated video-editor.tsx to use ClipTimeline component
+  - Removed unused PreRecordingChecklist, InsertionPointIndicator, BeatIndicator imports from video-editor.tsx
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component encapsulates entire timeline rendering logic in one place
+  - Props drilling maintained (no Context added)
+  - Callbacks simplified - onEditSection, onAddSectionBefore, onAddSectionAfter receive IDs and names directly
+  - video-editor.tsx reduced from 561 to 480 lines (81 lines saved)
+  - Total reduction so far: 1,592 → 480 lines (1,112 lines saved / 70% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/clip-timeline.tsx (new file, 153 lines)
+  - app/features/video-editor/video-editor.tsx:7-16,416-456 (removed imports, added ClipTimeline import and usage)
+

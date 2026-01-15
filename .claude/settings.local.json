@@ -23,7 +23,9 @@
       "Bash(gh issue list:*)",
       "Bash(gh issue close:*)",
       "Bash(wc:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git -C /home/mattpocock/repos/matt/course-video-manager diff plans/backlog/)",
+      "Bash(git -C /home/mattpocock/repos/matt/course-video-manager log --oneline -5)"
     ],
     "deny": [],
     "ask": []

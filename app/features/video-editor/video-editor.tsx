@@ -4,15 +4,9 @@ import type {
   ClipSectionNamingModal,
   ClipComputedProps,
 } from "./types";
-import {
-  InsertionPointIndicator,
-  BeatIndicator,
-} from "./components/timeline-indicators";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
-import { ClipItem } from "./components/clip-item";
-import { ClipSectionItem } from "./components/clip-section-item";
-import { PreRecordingChecklist } from "./components/pre-recording-checklist";
 import { VideoPlayerPanel } from "./components/video-player-panel";
+import { ClipTimeline } from "./components/clip-timeline";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -420,119 +414,45 @@ export const VideoEditor = (props: {
       />
 
       {/* Clips Section - Shows second on mobile, first on desktop */}
-      <div className="lg:flex-1 flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
-        <div className="grid gap-4 w-full p-2">
-          {clips.length === 0 && (
-            <PreRecordingChecklist
-              onAddIntroSection={() => props.onAddClipSection("Intro")}
-            />
-          )}
-
-          {props.items.length > 0 && (
-            <>
-              {props.insertionPoint.type === "start" && (
-                <InsertionPointIndicator />
-              )}
-              {props.items.map((item, itemIndex) => {
-                const isFirstItem = itemIndex === 0;
-                const isLastItem = itemIndex === props.items.length - 1;
-
-                // Render clip section divider
-                if (isClipSection(item)) {
-                  return (
-                    <ClipSectionItem
-                      key={item.frontendId}
-                      section={item}
-                      isFirstItem={isFirstItem}
-                      isLastItem={isLastItem}
-                      isSelected={state.selectedClipsSet.has(item.frontendId)}
-                      insertionPoint={props.insertionPoint}
-                      selectedClipsSet={state.selectedClipsSet}
-                      dispatch={dispatch}
-                      onSetInsertionPoint={props.onSetInsertionPoint}
-                      onMoveClip={props.onMoveClip}
-                      onEditSection={() => {
-                        setClipSectionNamingModal({
-                          mode: "edit",
-                          clipSectionId: item.frontendId,
-                          currentName: item.name,
-                        });
-                      }}
-                      onAddSectionBefore={() => {
-                        setClipSectionNamingModal({
-                          mode: "add-at",
-                          position: "before",
-                          itemId: item.frontendId,
-                          defaultName: generateDefaultClipSectionName(),
-                        });
-                      }}
-                      onAddSectionAfter={() => {
-                        setClipSectionNamingModal({
-                          mode: "add-at",
-                          position: "after",
-                          itemId: item.frontendId,
-                          defaultName: generateDefaultClipSectionName(),
-                        });
-                      }}
-                    />
-                  );
-                }
-
-                // Render clip
-                const clip = item;
-                const computedProps = clipComputedProps.get(clip.frontendId);
-                const timecode = computedProps?.timecode ?? "";
-                const nextLevenshtein = computedProps?.nextLevenshtein ?? 0;
-
-                return (
-                  <div key={clip.frontendId}>
-                    <ClipItem
-                      clip={clip}
-                      isFirstItem={isFirstItem}
-                      isLastItem={isLastItem}
-                      isSelected={state.selectedClipsSet.has(clip.frontendId)}
-                      isCurrentClip={clip.frontendId === currentClipId}
-                      currentTimeInClip={state.currentTimeInClip}
-                      timecode={timecode}
-                      nextLevenshtein={nextLevenshtein}
-                      clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}
-                      onSetInsertionPoint={props.onSetInsertionPoint}
-                      onMoveClip={props.onMoveClip}
-                      onToggleBeatForClip={props.onToggleBeatForClip}
-                      onAddSectionBefore={() => {
-                        setClipSectionNamingModal({
-                          mode: "add-at",
-                          position: "before",
-                          itemId: clip.frontendId,
-                          defaultName: generateDefaultClipSectionName(),
-                        });
-                      }}
-                      onAddSectionAfter={() => {
-                        setClipSectionNamingModal({
-                          mode: "add-at",
-                          position: "after",
-                          itemId: clip.frontendId,
-                          defaultName: generateDefaultClipSectionName(),
-                        });
-                      }}
-                      dispatch={dispatch}
-                    />
-                    {/* Beat indicator dots below clip */}
-                    {clip.beatType === "long" && <BeatIndicator />}
-                    {props.insertionPoint.type === "after-clip" &&
-                      props.insertionPoint.frontendClipId ===
-                        clip.frontendId && <InsertionPointIndicator />}
-                  </div>
-                );
-              })}
-
-              {props.insertionPoint.type === "end" && (
-                <InsertionPointIndicator />
-              )}
-            </>
-          )}
-        </div>
-      </div>
+      <ClipTimeline
+        items={props.items}
+        clips={clips}
+        insertionPoint={props.insertionPoint}
+        selectedClipsSet={state.selectedClipsSet}
+        currentClipId={currentClipId}
+        currentTimeInClip={state.currentTimeInClip}
+        clipComputedProps={clipComputedProps}
+        clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}
+        generateDefaultClipSectionName={generateDefaultClipSectionName}
+        onAddIntroSection={() => props.onAddClipSection("Intro")}
+        onSetInsertionPoint={props.onSetInsertionPoint}
+        onMoveClip={props.onMoveClip}
+        onToggleBeatForClip={props.onToggleBeatForClip}
+        onEditSection={(sectionId, currentName) => {
+          setClipSectionNamingModal({
+            mode: "edit",
+            clipSectionId: sectionId,
+            currentName,
+          });
+        }}
+        onAddSectionBefore={(itemId, defaultName) => {
+          setClipSectionNamingModal({
+            mode: "add-at",
+            position: "before",
+            itemId,
+            defaultName,
+          });
+        }}
+        onAddSectionAfter={(itemId, defaultName) => {
+          setClipSectionNamingModal({
+            mode: "add-at",
+            position: "after",
+            itemId,
+            defaultName,
+          });
+        }}
+        dispatch={dispatch}
+      />
     </div>
   );
 };
