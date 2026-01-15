@@ -63,6 +63,7 @@ import {
   VideoIcon,
   ImageIcon,
   AlignLeftIcon,
+  ClipboardIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -495,11 +496,11 @@ export function InnerComponent(props: Route.ComponentProps) {
     setText("");
   };
 
-  const handleAddFile = (mode: "text" | "file") => {
+  const handleAddFile = (mode: "text" | "file" | "paste") => {
     setFileModalMode("create");
     setSelectedFilename("");
     setSelectedFileContent("");
-    setFileUploadMode(mode);
+    setFileUploadMode(mode === "paste" ? "text" : mode);
     setIsFileModalOpen(true);
   };
 
@@ -751,6 +752,15 @@ export function InnerComponent(props: Route.ComponentProps) {
                         <span className="font-medium">Add from File</span>
                         <span className="text-xs text-muted-foreground">
                           Upload a file from disk
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleAddFile("paste")}>
+                      <ClipboardIcon className="h-4 w-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Add from Copy-Paste</span>
+                        <span className="text-xs text-muted-foreground">
+                          Paste text or image from clipboard
                         </span>
                       </div>
                     </DropdownMenuItem>

@@ -351,3 +351,28 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #79 is complete - users can now choose between pasting text or uploading files
+
+
+## Issue #80 - Add "Add from Copy-Paste" option (Task 1 of 6)
+### Task 1: Add "Add from Copy-Paste" option to dropdown menu
+- Added third option to the Add File dropdown menu
+- Implementation details:
+  - Added ClipboardIcon to lucide-react imports
+  - Added new DropdownMenuItem for "Add from Copy-Paste"
+  - Updated handleAddFile function signature to accept "paste" mode
+  - Currently maps to existing text modal (foundation for future enhancements)
+- Key decisions:
+  - Used ClipboardIcon for visual consistency with clipboard operations
+  - "paste" mode maps to "text" uploadMode as a reasonable starting point
+  - UI positioned between "Add from File" and "Add from Text" options
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (added ClipboardIcon import, new menu item, updated handler)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 2: Implement clipboard paste detection in modal
+  - Task 3: Add content type detection (text vs image)
+  - Task 4: Implement smart sequential filename generation
+  - Task 5: Add image preview functionality
+  - Task 6: Update create API to handle base64 image data
