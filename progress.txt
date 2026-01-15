@@ -897,3 +897,49 @@
   - app/features/video-editor/hooks/use-clipboard-operations.ts (new file, 95 lines)
   - app/features/video-editor/video-editor.tsx:10-12,134-163 (added import, replaced inline code with hook usage)
 
+## Issue #70 - RFC: Video Editor Context Refactor (Part 1: Core Implementation)
+- Implemented two React Contexts using `use-context-selector` for selective subscriptions
+- Created ClipStateContext - Route level context for clip state, OBS state, loader data, and actions
+- Created VideoStateContext - VideoEditor level context for video playback state and dispatch
+- Created 4 shared selector hooks in use-clip-state-selectors.ts:
+  - useClips() - Derives clips array from items (used in 10+ places)
+  - useCurrentClip() - Derives current clip by combining currentClipId with clips
+  - useIsSelected(itemId) - Checks if item is selected
+  - useIsCurrentClip(clipId) - Checks if clip is currently playing
+- Updated route file (videos.$videoId.edit.tsx):
+  - Created stable callbacks with useCallback for all context actions
+  - Wrapped VideoEditor with ClipStateContext.Provider
+  - Removed all 24 props from VideoEditor invocation
+- Updated VideoEditor component (video-editor.tsx):
+  - Removed 24 props from component signature (now accepts no props)
+  - Added useContextSelector calls to access all ClipStateContext values
+  - Wrapped return with VideoStateContext.Provider for video playback state
+  - All existing functionality preserved
+- Updated useKeyboardShortcuts hook:
+  - Removed dispatch parameter
+  - Now uses VideoStateContext internally via useContextSelector
+- Updated useWebSocket hook:
+  - Removed dispatch, onDeleteLatestInsertedClip, and onToggleBeat parameters
+  - Now uses VideoStateContext and ClipStateContext internally
+- Key decisions:
+  - Used inline useContextSelector calls in components (not custom hooks for every value)
+  - Only created shared hooks where derived logic exists (useClips, useCurrentClip, etc.)
+  - All callbacks wrapped in useCallback for stability
+  - Maintained existing behavior - zero functional changes
+  - Components still receive props (LiveMediaStream, PreloadableClipManager) - can be migrated later
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/clip-state-context.ts (new file, 67 lines)
+  - app/features/video-editor/video-state-context.ts (new file, 30 lines)
+  - app/features/video-editor/hooks/use-clip-state-selectors.ts (new file, 62 lines)
+  - app/routes/videos.$videoId.edit.tsx (added context provider, stable callbacks)
+  - app/features/video-editor/video-editor.tsx (removed 24 props, added context selectors, wrapped with provider)
+  - app/features/video-editor/hooks/use-keyboard-shortcuts.ts (uses context internally)
+  - app/features/video-editor/hooks/use-websocket.ts (uses context internally)
+- Notes:
+  - LiveMediaStream and PreloadableClipManager components still receive props
+  - These can be migrated to use context selectors in a follow-up task
+  - This foundational work eliminates prop drilling and excessive re-renders
+  - Hooks now have stable dependencies, preventing unnecessary re-subscriptions
+

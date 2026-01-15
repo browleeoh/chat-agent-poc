@@ -21,9 +21,10 @@ import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
 import { useEffectReducer } from "use-effect-reducer";
 import type { Route } from "./+types/videos.$videoId.edit";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { INSERTION_POINT_ID } from "@/features/video-editor/constants";
 import { data } from "react-router";
+import { ClipStateContext } from "@/features/video-editor/clip-state-context";
 
 // Core data model - flat array of clips
 
@@ -403,106 +404,185 @@ export const ComponentInner = (props: Route.ComponentProps) => {
     },
   });
 
-  return (
-    <VideoEditor
-      onClipsRemoved={(clipIds) => {
-        dispatch({ type: "clips-deleted", clipIds: clipIds });
-      }}
-      onClipsRetranscribe={(clipIds) => {
-        const databaseIds = clipIds
-          .map((frontendId) => {
-            const clip = clipState.items.find(
-              (c) => c.frontendId === frontendId
-            );
-            return clip?.type === "on-database" ? clip.databaseId : null;
-          })
-          .filter((id): id is DatabaseId => id !== null);
+  // Create stable callbacks for context
+  const onSetInsertionPoint = useCallback(
+    (mode: "after" | "before", clipId: FrontendId) => {
+      if (mode === "after") {
+        dispatch({ type: "set-insertion-point-after", clipId });
+      } else {
+        dispatch({ type: "set-insertion-point-before", clipId });
+      }
+    },
+    [dispatch]
+  );
 
-        fetch("/clips/transcribe", {
-          method: "POST",
-          body: JSON.stringify({ clipIds: databaseIds }),
+  const onDeleteLatestInsertedClip = useCallback(() => {
+    dispatch({ type: "delete-latest-inserted-clip" });
+  }, [dispatch]);
+
+  const onToggleBeat = useCallback(() => {
+    dispatch({ type: "toggle-beat-at-insertion-point" });
+  }, [dispatch]);
+
+  const onToggleBeatForClip = useCallback(
+    (clipId: FrontendId) => {
+      dispatch({ type: "toggle-beat-for-clip", clipId });
+    },
+    [dispatch]
+  );
+
+  const onMoveClip = useCallback(
+    (clipId: FrontendId, direction: "up" | "down") => {
+      dispatch({ type: "move-clip", clipId, direction });
+    },
+    [dispatch]
+  );
+
+  const onAddClipSection = useCallback(
+    (name: string) => {
+      dispatch({ type: "add-clip-section", name });
+    },
+    [dispatch]
+  );
+
+  const onUpdateClipSection = useCallback(
+    (clipSectionId: FrontendId, name: string) => {
+      dispatch({ type: "update-clip-section", clipSectionId, name });
+    },
+    [dispatch]
+  );
+
+  const onAddClipSectionAt = useCallback(
+    (name: string, position: "before" | "after", itemId: FrontendId) => {
+      dispatch({ type: "add-clip-section-at", name, position, itemId });
+    },
+    [dispatch]
+  );
+
+  const onClipsRemoved = useCallback(
+    (clipIds: FrontendId[]) => {
+      dispatch({ type: "clips-deleted", clipIds: clipIds });
+    },
+    [dispatch]
+  );
+
+  const onClipsRetranscribe = useCallback(
+    (clipIds: FrontendId[]) => {
+      const databaseIds = clipIds
+        .map((frontendId) => {
+          const clip = clipState.items.find((c) => c.frontendId === frontendId);
+          return clip?.type === "on-database" ? clip.databaseId : null;
         })
-          .then((res) => {
-            if (!res.ok) {
-              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
-            return res.json();
-          })
-          .then((clips: DB.Clip[]) => {
-            dispatch({
-              type: "clips-transcribed",
-              clips: clips.map((clip) => ({
-                databaseId: clip.id,
-                text: clip.text,
-              })),
-            });
-          })
-          .catch((error) => {
-            dispatch({
-              type: "effect-failed",
-              effectType: "transcribe-clips",
-              message:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to transcribe clips",
-            });
+        .filter((id): id is DatabaseId => id !== null);
+
+      fetch("/clips/transcribe", {
+        method: "POST",
+        body: JSON.stringify({ clipIds: databaseIds }),
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
+        .then((clips: DB.Clip[]) => {
+          dispatch({
+            type: "clips-transcribed",
+            clips: clips.map((clip) => ({
+              databaseId: clip.id,
+              text: clip.text,
+            })),
           });
-      }}
-      insertionPoint={clipState.insertionPoint}
-      onSetInsertionPoint={(mode, clipId) => {
-        if (mode === "after") {
-          dispatch({ type: "set-insertion-point-after", clipId });
-        } else {
-          dispatch({ type: "set-insertion-point-before", clipId });
-        }
-      }}
-      onDeleteLatestInsertedClip={() => {
-        dispatch({ type: "delete-latest-inserted-clip" });
-      }}
-      onToggleBeat={() => {
-        dispatch({ type: "toggle-beat-at-insertion-point" });
-      }}
-      onToggleBeatForClip={(clipId) => {
-        dispatch({ type: "toggle-beat-for-clip", clipId });
-      }}
-      onMoveClip={(clipId, direction) => {
-        dispatch({ type: "move-clip", clipId, direction });
-      }}
-      onAddClipSection={(name) => {
-        dispatch({ type: "add-clip-section", name });
-      }}
-      onUpdateClipSection={(clipSectionId, name) => {
-        dispatch({ type: "update-clip-section", clipSectionId, name });
-      }}
-      onAddClipSectionAt={(name, position, itemId) => {
-        dispatch({ type: "add-clip-section-at", name, position, itemId });
-      }}
-      obsConnectorState={obsConnector.state}
-      items={clipState.items.filter((item) => {
+        })
+        .catch((error) => {
+          dispatch({
+            type: "effect-failed",
+            effectType: "transcribe-clips",
+            message:
+              error instanceof Error ? error.message : "Failed to transcribe clips",
+          });
+        });
+    },
+    [clipState.items, dispatch]
+  );
+
+  // Filter items to remove archived optimistic items
+  const filteredItems = useMemo(
+    () =>
+      clipState.items.filter((item) => {
         if (item.type === "optimistically-added" && item.shouldArchive) {
           return false;
         }
-        if (
-          item.type === "clip-section-optimistically-added" &&
-          item.shouldArchive
-        ) {
+        if (item.type === "clip-section-optimistically-added" && item.shouldArchive) {
           return false;
         }
         return true;
-      })}
-      repoId={props.loaderData.video.lesson?.section.repoVersion.repo.id}
-      lessonId={props.loaderData.video.lesson?.id}
-      videoPath={props.loaderData.video.path}
-      lessonPath={props.loaderData.video.lesson?.path}
-      repoName={props.loaderData.video.lesson?.section.repoVersion.repo.name}
-      videoId={props.loaderData.video.id}
-      liveMediaStream={obsConnector.mediaStream}
-      speechDetectorState={obsConnector.speechDetectorState}
-      clipIdsBeingTranscribed={clipState.clipIdsBeingTranscribed}
-      hasExplainerFolder={props.loaderData.hasExplainerFolder}
-      videoCount={props.loaderData.videoCount}
-      error={clipState.error}
-    />
+      }),
+    [clipState.items]
+  );
+
+  // Build context value with stable callbacks
+  const clipStateContextValue = useMemo(
+    () => ({
+      items: filteredItems,
+      clipIdsBeingTranscribed: clipState.clipIdsBeingTranscribed,
+      insertionPoint: clipState.insertionPoint,
+      error: clipState.error,
+      obsConnectorState: obsConnector.state,
+      liveMediaStream: obsConnector.mediaStream,
+      speechDetectorState: obsConnector.speechDetectorState,
+      videoId: props.loaderData.video.id,
+      videoPath: props.loaderData.video.path,
+      lessonPath: props.loaderData.video.lesson?.path,
+      repoName: props.loaderData.video.lesson?.section.repoVersion.repo.name,
+      repoId: props.loaderData.video.lesson?.section.repoVersion.repo.id,
+      lessonId: props.loaderData.video.lesson?.id,
+      hasExplainerFolder: props.loaderData.hasExplainerFolder,
+      videoCount: props.loaderData.videoCount,
+      onSetInsertionPoint,
+      onDeleteLatestInsertedClip,
+      onToggleBeat,
+      onToggleBeatForClip,
+      onMoveClip,
+      onAddClipSection,
+      onUpdateClipSection,
+      onAddClipSectionAt,
+      onClipsRemoved,
+      onClipsRetranscribe,
+    }),
+    [
+      filteredItems,
+      clipState.clipIdsBeingTranscribed,
+      clipState.insertionPoint,
+      clipState.error,
+      obsConnector.state,
+      obsConnector.mediaStream,
+      obsConnector.speechDetectorState,
+      props.loaderData.video.id,
+      props.loaderData.video.path,
+      props.loaderData.video.lesson?.path,
+      props.loaderData.video.lesson?.section.repoVersion.repo.name,
+      props.loaderData.video.lesson?.section.repoVersion.repo.id,
+      props.loaderData.video.lesson?.id,
+      props.loaderData.hasExplainerFolder,
+      props.loaderData.videoCount,
+      onSetInsertionPoint,
+      onDeleteLatestInsertedClip,
+      onToggleBeat,
+      onToggleBeatForClip,
+      onMoveClip,
+      onAddClipSection,
+      onUpdateClipSection,
+      onAddClipSectionAt,
+      onClipsRemoved,
+      onClipsRetranscribe,
+    ]
+  );
+
+  return (
+    <ClipStateContext.Provider value={clipStateContextValue}>
+      <VideoEditor />
+    </ClipStateContext.Provider>
   );
 };
 
