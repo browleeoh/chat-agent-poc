@@ -42,6 +42,8 @@ import {
   BeatIndicator,
   RecordingSignalIndicator,
 } from "./components/timeline-indicators";
+import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
+import { useWebSocket } from "./hooks/use-websocket";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -69,7 +71,6 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useFetcher } from "react-router";
-import { streamDeckForwarderMessageSchema } from "stream-deck-forwarder/stream-deck-forwarder-types";
 import { useEffectReducer } from "use-effect-reducer";
 import type {
   Clip,
@@ -191,87 +192,6 @@ export const VideoEditor = (props: {
 
   const currentClipId = state.currentClipId;
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLButtonElement &&
-          !e.target.classList.contains("allow-keydown"))
-      ) {
-        return;
-      }
-      if (e.key === " ") {
-        e.preventDefault();
-        if (e.repeat) return;
-        dispatch({ type: "press-space-bar" });
-      } else if (e.key === "Delete") {
-        dispatch({ type: "press-delete" });
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        dispatch({ type: "press-return" });
-      } else if (e.key === "ArrowLeft") {
-        dispatch({ type: "press-arrow-left" });
-      } else if (e.key === "ArrowRight") {
-        dispatch({ type: "press-arrow-right" });
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (e.altKey) {
-          dispatch({ type: "press-alt-arrow-up" });
-        } else {
-          dispatch({ type: "press-arrow-up" });
-        }
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        if (e.altKey) {
-          dispatch({ type: "press-alt-arrow-down" });
-        } else {
-          dispatch({ type: "press-arrow-down" });
-        }
-      } else if (e.key === "l") {
-        dispatch({ type: "press-l" });
-      } else if (e.key === "k") {
-        dispatch({ type: "press-k" });
-      } else if (e.key === "Home") {
-        dispatch({ type: "press-home" });
-      } else if (e.key === "End") {
-        dispatch({ type: "press-end" });
-      } else if (e.key === "b" || e.key === "B") {
-        dispatch({ type: "beat-toggle-key-pressed" });
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  useEffect(() => {
-    const socket = new WebSocket("ws://localhost:5172");
-    socket.addEventListener("message", (event) => {
-      const data = streamDeckForwarderMessageSchema.parse(
-        JSON.parse(event.data)
-      );
-      if (data.type === "delete-last-clip") {
-        props.onDeleteLatestInsertedClip();
-      } else if (data.type === "toggle-last-frame-of-video") {
-        dispatch({ type: "toggle-last-frame-of-video" });
-      } else if (data.type === "toggle-beat") {
-        props.onToggleBeat();
-      } else if (data.type === "add-clip-section") {
-        setClipSectionNamingModal({
-          mode: "create",
-          defaultName: generateDefaultClipSectionName(),
-        });
-      }
-    });
-    return () => {
-      socket.close();
-    };
-  }, []);
-
   const exportVideoClipsFetcher = useFetcher();
   const exportToDavinciResolveFetcher = useFetcher();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -281,6 +201,18 @@ export const VideoEditor = (props: {
   // State for clip section naming modal
   const [clipSectionNamingModal, setClipSectionNamingModal] =
     useState<ClipSectionNamingModal>(null);
+
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts(dispatch);
+
+  // Setup WebSocket connection for Stream Deck integration
+  useWebSocket({
+    dispatch,
+    onDeleteLatestInsertedClip: props.onDeleteLatestInsertedClip,
+    onToggleBeat: props.onToggleBeat,
+    setClipSectionNamingModal,
+    generateDefaultClipSectionName,
+  });
 
   const copyTranscriptToClipboard = async () => {
     try {

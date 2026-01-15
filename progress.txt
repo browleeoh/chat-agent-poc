@@ -427,3 +427,35 @@
 - Files changed:
   - app/features/video-editor/components/timeline-indicators.tsx (new file, 48 lines)
   - app/features/video-editor/video-editor.tsx:40-44,94 (added import, removed INSERTION_POINT_ID import, removed 3 component definitions)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 3: Extract hooks
+- Extracted keyboard shortcuts and WebSocket logic from video-editor.tsx into custom hooks
+- Created hooks/ subdirectory within video-editor feature
+- Implementation details:
+  - Created app/features/video-editor/hooks/use-keyboard-shortcuts.ts
+    - Handles all keyboard shortcuts (Space, Delete, Enter, Arrow keys, l, k, Home, End, b/B)
+    - Ignores events when focus is on input fields or textareas
+    - Allows keyboard events on buttons with "allow-keydown" class
+    - Dispatches appropriate actions to video editor state reducer
+  - Created app/features/video-editor/hooks/use-websocket.ts
+    - Manages WebSocket connection to Stream Deck forwarder (localhost:5172)
+    - Handles 4 message types: delete-last-clip, toggle-last-frame-of-video, toggle-beat, add-clip-section
+    - Automatically closes socket on component unmount
+    - Uses streamDeckForwarderMessageSchema for message validation
+  - Updated video-editor.tsx to use both hooks
+  - Removed inline useEffect implementations (~80 lines)
+  - Removed unused streamDeckForwarderMessageSchema import
+  - Added JSDoc comments to both hooks for better documentation
+- Key decisions:
+  - Created separate hooks/ directory following RFC structure
+  - Hooks maintain all existing behavior (no breaking changes)
+  - useWebSocket accepts params object with all required callbacks
+  - useKeyboardShortcuts accepts dispatch function directly
+  - Hooks called after state initialization to avoid TS errors
+  - video-editor.tsx reduced from ~1,529 to ~1,459 lines (70 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/hooks/use-keyboard-shortcuts.ts (new file, 99 lines)
+  - app/features/video-editor/hooks/use-websocket.ts (new file, 51 lines)
+  - app/features/video-editor/video-editor.tsx:40-47,72-74,195-205 (added imports, removed inline hooks)
