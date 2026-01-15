@@ -1,0 +1,4 @@
+{
+  "*": "prettier --ignore-unknown --write",
+  "*.{ts,tsx,js,jsx}": ["npm run typecheck", "npm run test -- --run"]
+}

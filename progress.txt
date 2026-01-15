@@ -943,3 +943,34 @@
   - This foundational work eliminates prop drilling and excessive re-renders
   - Hooks now have stable dependencies, preventing unnecessary re-subscriptions
 
+## Issue #72 - Precommit hooks with Husky and Prettier
+- Configured Prettier, Husky, and lint-staged for automatic code formatting and validation
+- Implementation details:
+  - Created .prettierrc configuration (2 spaces, semicolons, standard settings)
+  - Created .prettierignore to exclude build outputs and dependencies
+  - Created .lintstagedrc to run prettier, typecheck, and tests on staged files
+  - Added prettier, husky, and lint-staged to devDependencies in package.json
+  - Added npm scripts: format, format:check, and prepare (for husky)
+  - Created .husky/pre-commit hook to run lint-staged
+  - Made pre-commit hook executable
+- Pre-commit hook behavior:
+  - Automatically formats all staged files with Prettier
+  - Runs TypeScript type checking on staged files
+  - Runs tests on staged files
+  - Provides immediate feedback to LLMs and developers
+- Key decisions:
+  - Used standard Prettier configuration for consistency
+  - Configured lint-staged to run both typecheck and tests for maximum safety
+  - No CI workflow exists yet, so format:check not added to CI
+  - User must run `pnpm install` to complete setup (permission issue prevents automated install)
+- Files changed:
+  - .prettierrc (new file)
+  - .prettierignore (new file)
+  - .lintstagedrc (new file)
+  - .husky/pre-commit (new file)
+  - package.json (added scripts and devDependencies)
+  - SETUP_PRECOMMIT.md (new file with setup instructions)
+- Blockers:
+  - User needs to resolve pnpm permission issue and run `pnpm install`
+  - User should run `npm run format` to format entire codebase before first commit
+
