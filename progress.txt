@@ -119,3 +119,25 @@
   - app/services/db-service.ts:930-945 (updated getRepos, added getArchivedRepos)
   - app/services/db-service.ts:1344-1365 (added updateRepoArchiveStatus)
   - app/routes/api.repos.$repoId.archive.ts (new endpoint)
+
+## Issue #52 - Repo Archiving (Part 2: UI implementation)
+- Added right-click context menu to repo items in sidebar with "Archive" option
+- Created `/archived-repos` page route to display archived repos
+- Added "Archived Repos" link to sidebar navigation
+- Implementation details:
+  - Wrapped repo buttons in ContextMenu with ContextMenuTrigger
+  - Added archiveRepoFetcher to submit archive requests
+  - Created new archived-repos.tsx route with loader to fetch archived repos
+  - Archive page shows repo name and filePath with "Unarchive" button
+  - Added Archive icon import from lucide-react
+  - Sidebar link placed between Videos collapsible and Diagram Playground
+- Key decisions:
+  - Used existing ContextMenu pattern from lessons/videos for consistency
+  - Archive context menu item submits to /api/repos/:repoId/archive endpoint
+  - Unarchive button on archived page sets archived: false via same endpoint
+  - Empty state message when no archived repos exist
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/routes/_index.tsx:51,267,329-364,410-416 (added Archive icon, archiveRepoFetcher, context menu, sidebar link)
+  - app/routes/archived-repos.tsx (new page)

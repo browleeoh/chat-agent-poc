@@ -48,6 +48,7 @@ import { formatSecondsToTimeCode } from "@/services/utils";
 import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
 import {
+  Archive,
   ChevronDown,
   ChevronRight,
   Copy,
@@ -263,6 +264,7 @@ export default function Component(props: Route.ComponentProps) {
   const deleteVideoFileFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
   const exportVideoFetcher = useFetcher();
+  const archiveRepoFetcher = useFetcher();
 
   const data = props.loaderData;
 
@@ -324,23 +326,42 @@ export default function Component(props: Route.ComponentProps) {
               <CollapsibleContent>
                 <div className="ml-6 mt-2 space-y-1">
                   {repos.map((repo) => (
-                    <Button
-                      key={repo.id}
-                      variant={selectedRepoId === repo.id ? "default" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "w-full justify-start whitespace-normal text-left h-auto py-1.5",
-                        selectedRepoId === repo.id &&
-                          "bg-muted text-foreground/90 hover:bg-muted/90"
-                      )}
-                      onClick={() => {
-                        navigate(`?repoId=${repo.id}`, {
-                          preventScrollReset: true,
-                        });
-                      }}
-                    >
-                      {repo.name}
-                    </Button>
+                    <ContextMenu key={repo.id}>
+                      <ContextMenuTrigger asChild>
+                        <Button
+                          variant={selectedRepoId === repo.id ? "default" : "ghost"}
+                          size="sm"
+                          className={cn(
+                            "w-full justify-start whitespace-normal text-left h-auto py-1.5",
+                            selectedRepoId === repo.id &&
+                              "bg-muted text-foreground/90 hover:bg-muted/90"
+                          )}
+                          onClick={() => {
+                            navigate(`?repoId=${repo.id}`, {
+                              preventScrollReset: true,
+                            });
+                          }}
+                        >
+                          {repo.name}
+                        </Button>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        <ContextMenuItem
+                          onSelect={() => {
+                            archiveRepoFetcher.submit(
+                              { archived: "true" },
+                              {
+                                method: "post",
+                                action: `/api/repos/${repo.id}/archive`,
+                              }
+                            );
+                          }}
+                        >
+                          <Archive className="w-4 h-4" />
+                          Archive
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
                   ))}
                 </div>
               </CollapsibleContent>
@@ -384,6 +405,15 @@ export default function Component(props: Route.ComponentProps) {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+
+            {/* Archived Repos */}
+            <Link
+              to="/archived-repos"
+              className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors pl-6"
+            >
+              <Archive className="w-5 h-5" />
+              Archived Repos
+            </Link>
 
             {/* Diagram Playground */}
             <Link
