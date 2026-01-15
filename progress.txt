@@ -481,3 +481,30 @@
 - Next steps:
   - Task 6 is complete
   - Issue #80 is complete - full paste workflow working for both text and images
+
+
+## Issue #81 - Remove "Add from Text" option
+- Removed "Add from Text" and "Add from File" options from standalone video file management
+- Implementation details:
+  - Replaced dropdown menu with single "Add from Clipboard" button
+  - Button directly opens StandaloneFilePasteModal (setIsPasteModalOpen)
+  - Removed handleAddFile function (no longer needed)
+  - Removed fileUploadMode and fileModalMode state variables
+  - Simplified StandaloneFileManagementModal to edit-only mode
+  - Modal now only supports text editing (no create or file upload modes)
+  - Removed all conditional rendering for create/upload modes
+  - Kept edit functionality for existing files via Edit button
+  - Updated help text: "Binary files must be re-uploaded via clipboard"
+- Key decisions:
+  - Paste modal is now the only way to create new files (text or images)
+  - Edit modal still needed for editing text content of existing files
+  - Simplified component props and state management
+  - Removed unused imports (then restored ones still needed elsewhere)
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (simplified button, removed dropdown, cleaned state)
+  - app/components/standalone-file-management-modal.tsx (edit-only mode)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #81 is complete - clipboard paste is now the only creation method
