@@ -4,11 +4,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
 import { useEffect } from "react";
 import { useFetcher } from "react-router";
 
@@ -28,12 +26,6 @@ export function AddRepoModal({ isOpen, onOpenChange }: AddRepoModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full bg-transparent">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Repo
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Repository</DialogTitle>

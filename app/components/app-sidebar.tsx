@@ -12,7 +12,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
   Archive,
@@ -181,7 +180,6 @@ export function AppSidebar({
             Diagram Playground
           </Link>
         </div>
-        <Separator className="my-4" />
         <AddRepoModal
           isOpen={isAddRepoModalOpen}
           onOpenChange={setIsAddRepoModalOpen}

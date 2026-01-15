@@ -288,3 +288,22 @@
   - app/components/app-sidebar.tsx (new file, 213 lines)
   - app/routes/_index.tsx (removed 140 lines, added AppSidebar usage)
   - app/routes/archived-repos.tsx (removed 140 lines, added AppSidebar usage)
+
+## Issue #60 - Remove unwanted Add Repo button from sidebar
+- Removed DialogTrigger button from AddRepoModal component that was rendering a large "Add Repo" button
+- Removed unnecessary Separator from AppSidebar since there's no content below it
+- Root cause: AddRepoModal had both a DialogTrigger button (unintended) and external control via isOpen prop (intended)
+- Implementation details:
+  - Removed DialogTrigger import from AddRepoModal
+  - Removed DialogTrigger JSX wrapper and the "Add Repo" Button it contained
+  - Modal is now purely controlled by the isOpen prop, triggered by the + icon in sidebar header
+  - Removed unused Separator and its import from AppSidebar component
+- Key decisions:
+  - DialogTrigger was rendering an unnecessary trigger button when the modal is externally controlled
+  - Small + icon button next to "Repos" header remains as the intended way to open the modal
+  - Separator removed for cleaner UI without orphaned dividers
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/components/add-repo-modal.tsx:1-36 (removed DialogTrigger import and button)
+  - app/components/app-sidebar.tsx:15,183 (removed Separator import and element)
