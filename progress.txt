@@ -852,3 +852,25 @@
   - app/features/video-editor/components/clip-timeline.tsx (new file, 153 lines)
   - app/features/video-editor/video-editor.tsx:7-16,416-456 (removed imports, added ClipTimeline import and usage)
 
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract ErrorOverlay component
+- Extracted ErrorOverlay component from video-editor.tsx into separate file
+- Component displays full-screen error overlay when a fatal error occurs
+- Implementation details:
+  - Created `app/features/video-editor/components/error-overlay.tsx` with ErrorOverlay component
+  - Shows warning icon, error message, operation details, and refresh button
+  - Removed AlertTriangleIcon and RefreshCwIcon imports from video-editor.tsx
+  - Removed Button import from video-editor.tsx (now only used in ErrorOverlay)
+  - Updated video-editor.tsx to use ErrorOverlay component
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component is self-contained with clear single responsibility
+  - All error display logic encapsulated in one place
+  - Maintains all existing behavior and visual styling
+  - video-editor.tsx reduced from 481 to 448 lines (33 lines saved)
+  - Total reduction so far: 1,592 → 448 lines (1,144 lines saved / 72% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/error-overlay.tsx (new file, 48 lines)
+  - app/features/video-editor/video-editor.tsx:1-14,295-327 (removed imports, replaced error overlay with component)
+
