@@ -21,7 +21,9 @@
       "Bash(pnpm test:*)",
       "Bash(ls:*)",
       "Bash(gh issue list:*)",
-      "Bash(gh issue close:*)"
+      "Bash(gh issue close:*)",
+      "Bash(wc:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

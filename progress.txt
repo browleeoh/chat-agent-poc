@@ -405,3 +405,25 @@
   - app/features/article-writer/types.ts (new file)
   - app/features/video-editor/video-editor.tsx:34-39,278-279,390,1429-1431,1456 (added import, updated type usage)
   - app/routes/videos.$videoId.write.tsx:5,146,279 (added import, removed inline types)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 2: Extract timeline-indicators.tsx
+- Extracted small presentational components from video-editor.tsx into timeline-indicators.tsx
+- Moved InsertionPointIndicator, BeatIndicator, and RecordingSignalIndicator components
+- Implementation details:
+  - Created app/features/video-editor/components/timeline-indicators.tsx with 3 components
+  - InsertionPointIndicator: Visual indicator showing where new clips will be inserted (blue dashed line with plus icon)
+  - BeatIndicator: Visual indicator showing beat/pause between clips (three gray dots)
+  - RecordingSignalIndicator: Visual indicator showing recording in progress (pulsing red circle)
+  - Added JSDoc comments for better documentation
+  - Updated video-editor.tsx to import from timeline-indicators instead of defining locally
+  - Removed INSERTION_POINT_ID import from video-editor.tsx (now only used in timeline-indicators)
+- Key decisions:
+  - Created components/ subdirectory within video-editor feature for extracted components
+  - Maintained all existing component signatures and behavior (no breaking changes)
+  - Components remain as simple presentational components with no props (except InsertionPointIndicator uses INSERTION_POINT_ID constant)
+  - video-editor.tsx reduced from 1,560 to 1,529 lines (31 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/timeline-indicators.tsx (new file, 48 lines)
+  - app/features/video-editor/video-editor.tsx:40-44,94 (added import, removed INSERTION_POINT_ID import, removed 3 component definitions)

@@ -38,6 +38,11 @@ import type {
   LiveMediaStreamProps,
 } from "./types";
 import {
+  InsertionPointIndicator,
+  BeatIndicator,
+  RecordingSignalIndicator,
+} from "./components/timeline-indicators";
+import {
   AlertTriangleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
@@ -86,7 +91,6 @@ import {
   makeVideoEditorReducer,
   type videoStateReducer,
 } from "./video-state-reducer";
-import { INSERTION_POINT_ID } from "./constants";
 
 export const VideoEditor = (props: {
   obsConnectorState: OBSConnectionState;
@@ -1400,32 +1404,6 @@ export const VideoEditor = (props: {
   );
 };
 
-export const InsertionPointIndicator = () => {
-  return (
-    <div
-      id={INSERTION_POINT_ID}
-      className="flex items-center justify-center gap-4"
-    >
-      <div className="border-t-2 w-full border-blue-200 border-dashed flex-1" />
-      <div className="flex items-center justify-center">
-        <PlusIcon className="size-5 text-blue-200" />
-        {/* <span className="text-blue-200 text-sm">New Clips</span> */}
-      </div>
-      <div className="border-t-2 w-full border-blue-200 border-dashed flex-1" />
-    </div>
-  );
-};
-
-export const BeatIndicator = () => {
-  return (
-    <div className="flex items-center justify-center gap-1 pt-5 pb-1">
-      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-      <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-    </div>
-  );
-};
-
 export const ClipSectionDivider = React.forwardRef<
   HTMLButtonElement,
   ClipSectionDividerProps
@@ -1523,14 +1501,6 @@ export const LiveMediaStream = (props: LiveMediaStreamProps) => {
             "outline-red-600"
         )}
       />
-    </div>
-  );
-};
-
-export const RecordingSignalIndicator = () => {
-  return (
-    <div className="absolute top-6 right-6 flex items-center justify-center">
-      <div className="w-10 h-10 bg-red-700 rounded-full animate-pulse" />
     </div>
   );
 };

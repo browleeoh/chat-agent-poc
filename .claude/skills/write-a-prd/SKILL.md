@@ -1,9 +1,19 @@
 ---
-name: writing-a-prd
+name: write-a-prd
 description: Use this skill when writing a PRD for a feature.
 ---
 
-When creating a PRD, always use the template below:
+This skill will be invoked when the user wants to create a PRD. You should go through the steps below. You may skip steps if you don't consider them necessary.
+
+1. Ask the user for a long, detailed description of the problem they want to solve and any potential ideas for solutions.
+
+2. Explore the repo to verify their assertions and understand the current state of the codebase.
+
+3. Ask whether they have considered other options, and present other options to them.
+
+4. Interview the user about the implementation. Be extremely detailed and thorough.
+
+5. Once you have a complete understanding of the problem and solution, use the template below to write the PRD. The PRD should be submitted as a GitHub issue.
 
 <prd-template>
 

@@ -8,7 +8,10 @@ fi
 
 for ((i=1; i<=$1; i++)); do
   result=$(docker sandbox run --credentials host claude -p "@progress.txt @plans/backlog/prompt.md \
-If all tasks are complete, output <promise>COMPLETE</promise>.")
+  Once you've completed your task, run gh issue list again to check the status of the issues. \
+  Some issues may have been added while you were working on your task. \
+  You are running in a loop. Each loop iteration, you complete one task at a time.
+  If there are no more tasks to complete, and the loop should stop, output <promise>COMPLETE</promise>.")
 
   echo "$result"
 
