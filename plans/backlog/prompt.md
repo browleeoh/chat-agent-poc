@@ -19,6 +19,8 @@ Pick the next task. Prioritize from this list (where 1 is highest priority):
 5. Polish and quick wins
 6. Refactors
 
+If all tasks are complete, output <promise>COMPLETE</promise>.
+
 # EXPLORATION
 
 Explore the repo and fill your context window with relevant information that will allow you to complete the task.
