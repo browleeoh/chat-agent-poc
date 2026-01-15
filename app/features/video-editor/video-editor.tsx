@@ -30,6 +30,7 @@ import { ClipSectionDivider } from "./components/clip-section-divider";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
 import { ActionsDropdown } from "./components/actions-dropdown";
 import { ClipItem } from "./components/clip-item";
+import { PreRecordingChecklist } from "./components/pre-recording-checklist";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -38,14 +39,10 @@ import {
   ArrowUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CircleQuestionMarkIcon,
-  Columns2,
-  MonitorIcon,
   PencilIcon,
   PlusIcon,
   RefreshCwIcon,
   Trash2Icon,
-  UserRound,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useFetcher } from "react-router";
@@ -573,33 +570,9 @@ export const VideoEditor = (props: {
       <div className="lg:flex-1 flex gap-2 h-full order-2 lg:order-1 overflow-y-auto">
         <div className="grid gap-4 w-full p-2">
           {clips.length === 0 && (
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-bold text-gray-100 mb-4 flex items-center gap-2">
-                <CircleQuestionMarkIcon className="size-6" />
-                Pre-recording checklist
-              </h2>
-              <ol className="space-y-3 text-base mb-6">
-                <li className="flex items-center gap-3">
-                  <MonitorIcon className="size-5 flex-shrink-0 text-gray-300" />
-                  <span>Close the windows</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Columns2 className="size-5 flex-shrink-0 text-gray-300" />
-                  <span>Close the blinds</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <UserRound className="size-5 flex-shrink-0 text-gray-300" />
-                  <span>Check bookshelf books are standing up properly</span>
-                </li>
-              </ol>
-              <Button
-                onClick={() => props.onAddClipSection("Intro")}
-                className="w-full"
-                variant="outline"
-              >
-                Add Intro Section
-              </Button>
-            </div>
+            <PreRecordingChecklist
+              onAddIntroSection={() => props.onAddClipSection("Intro")}
+            />
           )}
 
           {props.items.length > 0 && (

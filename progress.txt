@@ -747,3 +747,25 @@
 - Files changed:
   - app/features/video-editor/components/clip-item.tsx (new file, 267 lines)
   - app/features/video-editor/video-editor.tsx:31-47,752-797 (added import, replaced inline clip rendering with component)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 2: Extract PreRecordingChecklist component
+- Extracted PreRecordingChecklist component from video-editor.tsx into separate file
+- Component displays pre-recording checklist when no clips exist yet
+- Implementation details:
+  - Created app/features/video-editor/components/pre-recording-checklist.tsx with PreRecordingChecklist component
+  - Component shows checklist of items to verify before recording (close windows, close blinds, check bookshelf)
+  - Includes "Add Intro Section" button that calls onAddIntroSection callback
+  - Updated video-editor.tsx to import and use PreRecordingChecklist component
+  - Removed unused icon imports from video-editor.tsx (CircleQuestionMarkIcon, Columns2, MonitorIcon, UserRound)
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component receives callback as prop (no Context needed)
+  - Maintains all existing behavior and visual styling
+  - Small, self-contained presentational component
+  - video-editor.tsx reduced from 833 to 806 lines (27 lines saved)
+  - Total reduction so far: 1,592 → 806 lines (786 lines saved / 49% reduction)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/pre-recording-checklist.tsx (new file, 48 lines)
+  - app/features/video-editor/video-editor.tsx:32-48,574-603 (added import, removed unused icon imports, replaced inline checklist with component)
