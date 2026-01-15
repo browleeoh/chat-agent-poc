@@ -241,3 +241,22 @@
 - Next steps:
   - Task 1 is complete
   - Issue #76 is complete - standalone files now have same context functionality as lesson files
+
+
+## Issue #76 (continued) - Add Select All/Deselect All buttons to lesson video files
+- Added Select All and Deselect All buttons to lesson video file tree (matching standalone files)
+- Implementation details:
+  - Wrapped lesson video FileTree component in a container div with space-y-2
+  - Added "Files" header (matching standalone files UI)
+  - Added Select All button that adds all file paths to enabledFiles Set
+  - Added Deselect All button that clears all selections
+  - Buttons only visible when files.length > 0
+  - Buttons use same styling as standalone file buttons (variant="ghost", size="sm", h-7, text-xs)
+- Key decisions:
+  - Kept exact same button styling and positioning as standalone files for consistency
+  - Both lesson videos and standalone videos now have identical Select All/Deselect All treatment
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (added Select All/Deselect All buttons to lesson video section)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes

@@ -660,11 +660,40 @@ export function InnerComponent(props: Route.ComponentProps) {
           )}
           {/* File tree - only show for lesson-connected videos */}
           {!isStandalone && (
-            <FileTree
-              files={files}
-              enabledFiles={enabledFiles}
-              onEnabledFilesChange={setEnabledFiles}
-            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-sm font-semibold">Files</h3>
+              </div>
+              {files.length > 0 && (
+                <div className="flex gap-2 px-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setEnabledFiles(new Set(files.map((f) => f.path)));
+                    }}
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      setEnabledFiles(new Set());
+                    }}
+                  >
+                    Deselect All
+                  </Button>
+                </div>
+              )}
+              <FileTree
+                files={files}
+                enabledFiles={enabledFiles}
+                onEnabledFilesChange={setEnabledFiles}
+              />
+            </div>
           )}
           {/* Standalone file tree with management UI */}
           {isStandalone && (
