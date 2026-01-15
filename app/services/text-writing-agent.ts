@@ -169,84 +169,92 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
     const video = yield* db.getVideoWithClipsById(props.videoId);
 
     const lesson = video.lesson;
-    if (!lesson) {
-      throw new Error("Cannot write for standalone videos");
-    }
-    const repo = lesson.section.repoVersion.repo;
-    const section = lesson.section;
 
-    const lessonPath = path.join(repo.filePath, section.path, lesson.path);
+    // For standalone videos (no lesson), return empty files but include transcript
+    let textFiles: { path: string; content: string }[] = [];
+    let imageFiles: { path: string; content: Uint8Array<ArrayBufferLike> }[] = [];
+    let sectionPath: string | undefined;
+    let lessonPath: string | undefined;
 
-    const allFilesInDirectory = yield* fs
-      .readDirectory(lessonPath, {
-        recursive: true,
-      })
-      .pipe(
-        Effect.map((files) => files.map((file) => path.join(lessonPath, file)))
-      );
+    if (lesson) {
+      const repo = lesson.section.repoVersion.repo;
+      const section = lesson.section;
+      sectionPath = section.path;
+      lessonPath = lesson.path;
 
-    const filteredFiles = allFilesInDirectory.filter((filePath) => {
-      const relativePath = path.relative(lessonPath, filePath);
-      return (
-        !ALWAYS_EXCLUDED_DIRECTORIES.some((excludedDir) =>
-          filePath.includes(excludedDir)
-        ) &&
-        (props.enabledFiles === undefined ||
-          props.enabledFiles.includes(relativePath))
-      );
-    });
+      const fullLessonPath = path.join(repo.filePath, section.path, lesson.path);
 
-    const allFiles = yield* Effect.forEach(filteredFiles, (filePath) => {
-      return Effect.gen(function* () {
-        const stat = yield* fs.stat(filePath);
+      const allFilesInDirectory = yield* fs
+        .readDirectory(fullLessonPath, {
+          recursive: true,
+        })
+        .pipe(
+          Effect.map((files) => files.map((file) => path.join(fullLessonPath, file)))
+        );
 
-        if (stat.type !== "File") {
-          return NOT_A_FILE;
-        }
-
-        const relativePath = path.relative(lessonPath, filePath);
-        const imageExtensions = [
-          ".png",
-          ".jpg",
-          ".jpeg",
-          ".gif",
-          ".svg",
-          ".webp",
-          ".bmp",
-        ];
-        const isImage = imageExtensions.some((ext) => filePath.endsWith(ext));
-
-        if (isImage) {
-          const fileContent = yield* fs.readFile(filePath);
-          return {
-            type: "image" as const,
-            path: relativePath,
-            content: fileContent,
-          };
-        } else {
-          const fileContent = yield* fs.readFileString(filePath);
-          return {
-            type: "text" as const,
-            filePath,
-            fileContent,
-          };
-        }
+      const filteredFiles = allFilesInDirectory.filter((filePath) => {
+        const relativePath = path.relative(fullLessonPath, filePath);
+        return (
+          !ALWAYS_EXCLUDED_DIRECTORIES.some((excludedDir) =>
+            filePath.includes(excludedDir)
+          ) &&
+          (props.enabledFiles === undefined ||
+            props.enabledFiles.includes(relativePath))
+        );
       });
-    }).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
 
-    const textFiles = allFiles
-      .filter((f) => f.type === "text")
-      .map((f) => ({
-        path: f.filePath,
-        content: f.fileContent,
-      }));
+      const allFiles = yield* Effect.forEach(filteredFiles, (filePath) => {
+        return Effect.gen(function* () {
+          const stat = yield* fs.stat(filePath);
 
-    const imageFiles = allFiles
-      .filter((f) => f.type === "image")
-      .map((f) => ({
-        path: f.path,
-        content: f.content,
-      }));
+          if (stat.type !== "File") {
+            return NOT_A_FILE;
+          }
+
+          const relativePath = path.relative(fullLessonPath, filePath);
+          const imageExtensions = [
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".webp",
+            ".bmp",
+          ];
+          const isImage = imageExtensions.some((ext) => filePath.endsWith(ext));
+
+          if (isImage) {
+            const fileContent = yield* fs.readFile(filePath);
+            return {
+              type: "image" as const,
+              path: relativePath,
+              content: fileContent,
+            };
+          } else {
+            const fileContent = yield* fs.readFileString(filePath);
+            return {
+              type: "text" as const,
+              filePath,
+              fileContent,
+            };
+          }
+        });
+      }).pipe(Effect.map(Array.filter((r) => r !== NOT_A_FILE)));
+
+      textFiles = allFiles
+        .filter((f) => f.type === "text")
+        .map((f) => ({
+          path: f.filePath,
+          content: f.fileContent,
+        }));
+
+      imageFiles = allFiles
+        .filter((f) => f.type === "image")
+        .map((f) => ({
+          path: f.path,
+          content: f.content,
+        }));
+    }
 
     const includeTranscript = props.includeTranscript ?? true;
 
@@ -324,8 +332,8 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
       textFiles,
       imageFiles,
       transcript,
-      sectionPath: section.path,
-      lessonPath: lesson.path,
+      sectionPath,
+      lessonPath,
       youtubeChapters,
     };
   }

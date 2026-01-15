@@ -583,3 +583,22 @@
 - Files changed:
   - app/features/video-editor/components/export-modal.tsx (new file, 131 lines)
   - app/features/video-editor/video-editor.tsx:3-7,44,47-67,614-707 (added import, removed unused imports, replaced inline modal with component)
+
+## Issue #69 - Fix standalone video article writing
+- Fixed bug preventing users from writing articles for standalone videos
+- Root cause: acquireTextWritingContext threw error "Cannot write for standalone videos"
+- Implementation details:
+  - Removed error throw when video has no lesson
+  - Added conditional logic to handle standalone videos (no lesson) vs lesson-connected videos
+  - For standalone videos: return empty textFiles and imageFiles arrays (no lesson directory to read from)
+  - For lesson videos: maintain existing file reading logic
+  - Transcript building works for both standalone and lesson videos
+  - YouTube chapters work for both video types
+  - Return undefined for sectionPath and lessonPath when video is standalone
+- Key decisions:
+  - Matches the pattern from videos.$videoId.write.tsx loader (lines 169-188)
+  - Standalone videos can use transcript for article generation but have no code files
+  - No breaking changes to return type (sectionPath/lessonPath now optional)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/services/text-writing-agent.ts:164-257,335-336
