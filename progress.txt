@@ -29,3 +29,34 @@
   - User needs to resolve pnpm permission issue and run `pnpm install`
   - User should run `npm run format` to format entire codebase before first commit
 
+
+
+## Issue #74 - Video Editor Context Refactor with use-context-selector
+- Implemented use-context-selector to eliminate prop drilling and improve performance
+- Implementation details:
+  - Updated video-editor-context.tsx to use createContext from use-context-selector
+  - Expanded VideoEditorContextType to include all state, computed values, and callbacks
+  - Built and memoized contextValue in VideoEditor with all necessary state
+  - Refactored VideoPlayerPanel to have zero props, uses only useContextSelector
+  - Refactored ClipTimeline to have zero props, uses only useContextSelector
+  - Refactored ClipItem to compute isSelected/isCurrentClip via selectors, keeps minimal props (clip, isFirstItem, isLastItem, timecode, nextLevenshtein, callback props)
+  - Refactored ClipSectionItem to use selectors for dispatch and state, keeps minimal props (section, isFirstItem, isLastItem, callback props)
+- Key decisions:
+  - Modal state (isExportModalOpen, isAddVideoModalOpen) stays as local useState but passes through context
+  - Section management callbacks (onEditSection, onAddSectionBefore, onAddSectionAfter) added to context
+  - ClipItem and ClipSectionItem keep some props for callbacks that are created inline in parent component
+  - Conservative approach: minimal component restructuring, no Container/Presentation split
+- Files changed:
+  - app/features/video-editor/video-editor-context.tsx (expanded context type, switched to use-context-selector)
+  - app/features/video-editor/video-editor.tsx (built memoized contextValue, removed prop passing)
+  - app/features/video-editor/components/video-player-panel.tsx (zero props, uses selectors)
+  - app/features/video-editor/components/clip-timeline.tsx (zero props, uses selectors)
+  - app/features/video-editor/components/clip-item.tsx (reduced props, uses selectors for state)
+  - app/features/video-editor/components/clip-section-item.tsx (reduced props, uses selectors for state)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Monitor re-render performance with React DevTools Profiler to verify improvements
+  - Consider further optimizations if needed
+

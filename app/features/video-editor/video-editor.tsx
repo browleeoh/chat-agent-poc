@@ -252,6 +252,195 @@ export const VideoEditor = (props: {
     return props && props.nextLevenshtein > DANGEROUS_TEXT_SIMILARITY_THRESHOLD;
   });
 
+  // Section modal management callbacks
+  const onEditSection = useCallback(
+    (sectionId: FrontendId, currentName: string) => {
+      setClipSectionNamingModal({
+        mode: "edit",
+        clipSectionId: sectionId,
+        currentName,
+      });
+    },
+    []
+  );
+
+  const onAddSectionBefore = useCallback(
+    (itemId: FrontendId, defaultName: string) => {
+      setClipSectionNamingModal({
+        mode: "add-at",
+        position: "before",
+        itemId,
+        defaultName,
+      });
+    },
+    []
+  );
+
+  const onAddSectionAfter = useCallback(
+    (itemId: FrontendId, defaultName: string) => {
+      setClipSectionNamingModal({
+        mode: "add-at",
+        position: "after",
+        itemId,
+        defaultName,
+      });
+    },
+    []
+  );
+
+  const onAddIntroSection = useCallback(() => {
+    props.onAddClipSection("Intro");
+  }, [props]);
+
+  // Build context value with all state and callbacks
+  const contextValue = useMemo(
+    () => ({
+      // From videoStateReducer
+      runningState: state.runningState,
+      currentClipId: state.currentClipId,
+      currentTimeInClip: state.currentTimeInClip,
+      selectedClipsSet: state.selectedClipsSet,
+      clipIdsPreloaded: state.clipIdsPreloaded,
+      playbackRate: state.playbackRate,
+      showLastFrameOfVideo: state.showLastFrameOfVideo,
+      dispatch,
+
+      // Computed
+      clips,
+      currentClip,
+      currentClipProfile: currentClip?.profile ?? undefined,
+      viewMode,
+      clipComputedProps,
+      totalDuration,
+      clipsToAggressivelyPreload,
+      allClipsHaveText,
+      allClipsHaveSilenceDetected,
+      areAnyClipsDangerous,
+      databaseClipToShowLastFrameOf,
+
+      // Route-level props
+      items: props.items,
+      videoPath: props.videoPath,
+      videoId: props.videoId,
+      repoName: props.repoName,
+      lessonPath: props.lessonPath,
+      repoId: props.repoId,
+      lessonId: props.lessonId,
+      hasExplainerFolder: props.hasExplainerFolder,
+      videoCount: props.videoCount,
+      insertionPoint: props.insertionPoint,
+      obsConnectorState: props.obsConnectorState,
+      liveMediaStream: props.liveMediaStream,
+      speechDetectorState: props.speechDetectorState,
+      clipIdsBeingTranscribed: props.clipIdsBeingTranscribed,
+
+      // Callbacks
+      onSetInsertionPoint: props.onSetInsertionPoint,
+      onMoveClip: props.onMoveClip,
+      onToggleBeatForClip: props.onToggleBeatForClip,
+      onAddClipSection: props.onAddClipSection,
+      onUpdateClipSection: props.onUpdateClipSection,
+      onAddClipSectionAt: props.onAddClipSectionAt,
+      onClipFinished: () => {
+        dispatch({ type: "clip-finished" });
+      },
+      onUpdateCurrentTime: (time: number) => {
+        dispatch({ type: "update-clip-current-time", time });
+      },
+      onSectionClick: (sectionId: FrontendId, index: number) => {
+        // Select the section
+        dispatch({
+          type: "click-clip",
+          clipId: sectionId,
+          ctrlKey: false,
+          shiftKey: false,
+        });
+
+        // Scroll to the section in the timeline after React finishes re-rendering
+        // Use the index to find the section since IDs change on re-render
+        requestAnimationFrame(() => {
+          const allSections = document.querySelectorAll('[id^="section-"]');
+          if (allSections[index]) {
+            allSections[index].scrollIntoView({
+              behavior: "instant",
+              block: "center",
+            });
+          }
+        });
+      },
+      onAddIntroSection,
+      onEditSection,
+      onAddSectionBefore,
+      onAddSectionAfter,
+      generateDefaultClipSectionName,
+
+      // Clipboard
+      copyTranscriptToClipboard,
+      copyYoutubeChaptersToClipboard,
+      youtubeChapters,
+      isCopied,
+      isChaptersCopied,
+
+      // Modal state (local useState, passed through context for access)
+      exportVideoClipsFetcher,
+      exportToDavinciResolveFetcher,
+      isExportModalOpen,
+      setIsExportModalOpen,
+      isAddVideoModalOpen,
+      setIsAddVideoModalOpen,
+    }),
+    [
+      state,
+      dispatch,
+      clips,
+      currentClip,
+      viewMode,
+      clipComputedProps,
+      totalDuration,
+      clipsToAggressivelyPreload,
+      allClipsHaveText,
+      allClipsHaveSilenceDetected,
+      areAnyClipsDangerous,
+      databaseClipToShowLastFrameOf,
+      props.items,
+      props.videoPath,
+      props.videoId,
+      props.repoName,
+      props.lessonPath,
+      props.repoId,
+      props.lessonId,
+      props.hasExplainerFolder,
+      props.videoCount,
+      props.insertionPoint,
+      props.obsConnectorState,
+      props.liveMediaStream,
+      props.speechDetectorState,
+      props.clipIdsBeingTranscribed,
+      props.onSetInsertionPoint,
+      props.onMoveClip,
+      props.onToggleBeatForClip,
+      props.onAddClipSection,
+      props.onUpdateClipSection,
+      props.onAddClipSectionAt,
+      copyTranscriptToClipboard,
+      copyYoutubeChaptersToClipboard,
+      youtubeChapters,
+      isCopied,
+      isChaptersCopied,
+      exportVideoClipsFetcher,
+      exportToDavinciResolveFetcher,
+      isExportModalOpen,
+      setIsExportModalOpen,
+      isAddVideoModalOpen,
+      setIsAddVideoModalOpen,
+      onAddIntroSection,
+      onEditSection,
+      onAddSectionBefore,
+      onAddSectionAfter,
+      generateDefaultClipSectionName,
+    ]
+  );
+
   // Show error overlay if there's a fatal error
   if (props.error) {
     return <ErrorOverlay error={props.error} />;
@@ -260,76 +449,8 @@ export const VideoEditor = (props: {
   return (
     <div className="flex flex-col lg:flex-row p-6 gap-6 gap-y-10">
       {/* Video Player Section - Shows first on mobile, second on desktop */}
-      <VideoEditorContext.Provider
-        value={{ currentTimeInClip: state.currentTimeInClip }}
-      >
-        <VideoPlayerPanel
-          videoPath={props.videoPath}
-          videoId={props.videoId}
-          repoName={props.repoName}
-          lessonPath={props.lessonPath}
-          repoId={props.repoId}
-          lessonId={props.lessonId}
-          totalDuration={totalDuration}
-          areAnyClipsDangerous={areAnyClipsDangerous}
-          items={props.items}
-          clips={clips}
-          viewMode={viewMode}
-          databaseClipToShowLastFrameOf={databaseClipToShowLastFrameOf}
-          clipsToAggressivelyPreload={clipsToAggressivelyPreload}
-          runningState={state.runningState}
-          currentClipId={currentClipId}
-          currentClipProfile={currentClip?.profile ?? undefined}
-          selectedClipsSet={state.selectedClipsSet}
-          clipIdsPreloaded={state.clipIdsPreloaded}
-          playbackRate={state.playbackRate}
-          obsConnectorState={props.obsConnectorState}
-          liveMediaStream={props.liveMediaStream}
-          speechDetectorState={props.speechDetectorState}
-          allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
-          allClipsHaveText={allClipsHaveText}
-          exportVideoClipsFetcher={exportVideoClipsFetcher}
-          exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
-          isExportModalOpen={isExportModalOpen}
-          setIsExportModalOpen={setIsExportModalOpen}
-          isCopied={isCopied}
-          copyTranscriptToClipboard={copyTranscriptToClipboard}
-          youtubeChapters={youtubeChapters}
-          isChaptersCopied={isChaptersCopied}
-          copyYoutubeChaptersToClipboard={copyYoutubeChaptersToClipboard}
-          isAddVideoModalOpen={isAddVideoModalOpen}
-          setIsAddVideoModalOpen={setIsAddVideoModalOpen}
-          hasExplainerFolder={props.hasExplainerFolder}
-          videoCount={props.videoCount}
-          dispatch={dispatch}
-          onClipFinished={() => {
-            dispatch({ type: "clip-finished" });
-          }}
-          onUpdateCurrentTime={(time) => {
-            dispatch({ type: "update-clip-current-time", time });
-          }}
-          onSectionClick={(sectionId, index) => {
-            // Select the section
-            dispatch({
-              type: "click-clip",
-              clipId: sectionId,
-              ctrlKey: false,
-              shiftKey: false,
-            });
-
-            // Scroll to the section in the timeline after React finishes re-rendering
-            // Use the index to find the section since IDs change on re-render
-            requestAnimationFrame(() => {
-              const allSections = document.querySelectorAll('[id^="section-"]');
-              if (allSections[index]) {
-                allSections[index].scrollIntoView({
-                  behavior: "instant",
-                  block: "center",
-                });
-              }
-            });
-          }}
-        />
+      <VideoEditorContext.Provider value={contextValue}>
+        <VideoPlayerPanel />
 
         {/* Clip Section Naming Modal */}
         <ClipSectionNamingModalComponent
@@ -341,44 +462,7 @@ export const VideoEditor = (props: {
         />
 
         {/* Clips Section - Shows second on mobile, first on desktop */}
-        <ClipTimeline
-          items={props.items}
-          clips={clips}
-          insertionPoint={props.insertionPoint}
-          selectedClipsSet={state.selectedClipsSet}
-          currentClipId={currentClipId}
-          clipComputedProps={clipComputedProps}
-          clipIdsBeingTranscribed={props.clipIdsBeingTranscribed}
-          generateDefaultClipSectionName={generateDefaultClipSectionName}
-          onAddIntroSection={() => props.onAddClipSection("Intro")}
-          onSetInsertionPoint={props.onSetInsertionPoint}
-          onMoveClip={props.onMoveClip}
-          onToggleBeatForClip={props.onToggleBeatForClip}
-          onEditSection={useCallback((sectionId, currentName) => {
-            setClipSectionNamingModal({
-              mode: "edit",
-              clipSectionId: sectionId,
-              currentName,
-            });
-          }, [])}
-          onAddSectionBefore={useCallback((itemId, defaultName) => {
-            setClipSectionNamingModal({
-              mode: "add-at",
-              position: "before",
-              itemId,
-              defaultName,
-            });
-          }, [])}
-          onAddSectionAfter={useCallback((itemId, defaultName) => {
-            setClipSectionNamingModal({
-              mode: "add-at",
-              position: "after",
-              itemId,
-              defaultName,
-            });
-          }, [])}
-          dispatch={dispatch}
-        />
+        <ClipTimeline />
       </VideoEditorContext.Provider>
     </div>
   );

@@ -18,10 +18,9 @@ import {
   RefreshCwIcon,
   Trash2Icon,
 } from "lucide-react";
-import { use } from "react";
-import type { Clip, FrontendId } from "../clip-state-reducer";
+import type { Clip } from "../clip-state-reducer";
 import { VideoEditorContext } from "../video-editor-context";
-import type { videoStateReducer } from "../video-state-reducer";
+import { useContextSelector } from "use-context-selector";
 
 const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
 
@@ -32,17 +31,10 @@ export type ClipItemProps = {
   clip: Clip;
   isFirstItem: boolean;
   isLastItem: boolean;
-  isSelected: boolean;
-  isCurrentClip: boolean;
   timecode: string;
   nextLevenshtein: number;
-  clipIdsBeingTranscribed: Set<FrontendId>;
-  onSetInsertionPoint: (mode: "after" | "before", clipId: FrontendId) => void;
-  onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
-  onToggleBeatForClip: (clipId: FrontendId) => void;
   onAddSectionBefore: () => void;
   onAddSectionAfter: () => void;
-  dispatch: (action: videoStateReducer.Action) => void;
 };
 
 /**
@@ -53,25 +45,49 @@ export const ClipItem = (props: ClipItemProps) => {
     clip,
     isFirstItem,
     isLastItem,
-    isSelected,
-    isCurrentClip,
     timecode,
     nextLevenshtein,
-    clipIdsBeingTranscribed,
-    onSetInsertionPoint,
-    onMoveClip,
-    onToggleBeatForClip,
     onAddSectionBefore,
     onAddSectionAfter,
-    dispatch,
   } = props;
+
+  // Compute isSelected and isCurrentClip via context selectors
+  const isSelected = useContextSelector(VideoEditorContext, (ctx) =>
+    ctx.selectedClipsSet.has(clip.frontendId)
+  );
+  const isCurrentClip = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.currentClipId === clip.frontendId
+  );
+  const currentTimeInClip = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.currentTimeInClip
+  );
+  const clipIdsBeingTranscribed = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.clipIdsBeingTranscribed
+  );
+  const dispatch = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.dispatch
+  );
+  const onSetInsertionPoint = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onSetInsertionPoint
+  );
+  const onMoveClip = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onMoveClip
+  );
+  const onToggleBeatForClip = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onToggleBeatForClip
+  );
 
   const duration =
     clip.type === "on-database"
       ? clip.sourceEndTime - clip.sourceStartTime
       : null;
-
-  const currentTimeInClip = use(VideoEditorContext).currentTimeInClip;
 
   const percentComplete = duration ? currentTimeInClip / duration : 0;
 

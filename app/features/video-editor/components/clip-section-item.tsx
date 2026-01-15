@@ -14,11 +14,11 @@ import {
   PlusIcon,
   Trash2Icon,
 } from "lucide-react";
-import type { ClipSection, FrontendId } from "../clip-state-reducer";
-import type { videoStateReducer } from "../video-state-reducer";
+import type { ClipSection } from "../clip-state-reducer";
 import { ClipSectionDivider } from "./clip-section-divider";
 import { InsertionPointIndicator } from "./timeline-indicators";
-import type { FrontendInsertionPoint } from "../clip-state-reducer";
+import { useContextSelector } from "use-context-selector";
+import { VideoEditorContext } from "../video-editor-context";
 
 /**
  * ClipSectionItem component displays a clip section divider with context menu
@@ -31,16 +31,34 @@ export const ClipSectionItem = (props: {
   section: ClipSection;
   isFirstItem: boolean;
   isLastItem: boolean;
-  isSelected: boolean;
-  insertionPoint: FrontendInsertionPoint;
-  selectedClipsSet: Set<FrontendId>;
-  dispatch: (action: videoStateReducer.Action) => void;
-  onSetInsertionPoint: (mode: "after" | "before", clipId: FrontendId) => void;
-  onMoveClip: (clipId: FrontendId, direction: "up" | "down") => void;
   onEditSection: () => void;
   onAddSectionBefore: () => void;
   onAddSectionAfter: () => void;
 }) => {
+  // Use context selectors
+  const isSelected = useContextSelector(VideoEditorContext, (ctx) =>
+    ctx.selectedClipsSet.has(props.section.frontendId)
+  );
+  const insertionPoint = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.insertionPoint
+  );
+  const selectedClipsSet = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.selectedClipsSet
+  );
+  const dispatch = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.dispatch
+  );
+  const onSetInsertionPoint = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onSetInsertionPoint
+  );
+  const onMoveClip = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onMoveClip
+  );
   return (
     <div>
       <ContextMenu>
@@ -48,23 +66,23 @@ export const ClipSectionItem = (props: {
           <ClipSectionDivider
             id={`section-${props.section.frontendId}`}
             name={props.section.name}
-            isSelected={props.isSelected}
+            isSelected={isSelected}
             onClick={(e) => {
               // If already selected and clicked again (without modifiers),
               // play from the next clip after this section
               if (
                 !e.ctrlKey &&
                 !e.shiftKey &&
-                props.selectedClipsSet.has(props.section.frontendId) &&
-                props.selectedClipsSet.size === 1
+                selectedClipsSet.has(props.section.frontendId) &&
+                selectedClipsSet.size === 1
               ) {
-                props.dispatch({
+                dispatch({
                   type: "play-from-clip-section",
                   clipSectionId: props.section.frontendId,
                 });
                 return;
               }
-              props.dispatch({
+              dispatch({
                 type: "click-clip",
                 clipId: props.section.frontendId,
                 ctrlKey: e.ctrlKey,
@@ -76,7 +94,7 @@ export const ClipSectionItem = (props: {
         <ContextMenuContent>
           <ContextMenuItem
             onSelect={() => {
-              props.onSetInsertionPoint("before", props.section.frontendId);
+              onSetInsertionPoint("before", props.section.frontendId);
             }}
           >
             <ChevronLeftIcon />
@@ -84,7 +102,7 @@ export const ClipSectionItem = (props: {
           </ContextMenuItem>
           <ContextMenuItem
             onSelect={() => {
-              props.onSetInsertionPoint("after", props.section.frontendId);
+              onSetInsertionPoint("after", props.section.frontendId);
             }}
           >
             <ChevronRightIcon />
@@ -107,7 +125,7 @@ export const ClipSectionItem = (props: {
           <ContextMenuItem
             disabled={props.isFirstItem}
             onSelect={() => {
-              props.onMoveClip(props.section.frontendId, "up");
+              onMoveClip(props.section.frontendId, "up");
             }}
           >
             <ArrowUpIcon />
@@ -116,7 +134,7 @@ export const ClipSectionItem = (props: {
           <ContextMenuItem
             disabled={props.isLastItem}
             onSelect={() => {
-              props.onMoveClip(props.section.frontendId, "down");
+              onMoveClip(props.section.frontendId, "down");
             }}
           >
             <ArrowDownIcon />
@@ -126,7 +144,7 @@ export const ClipSectionItem = (props: {
           <ContextMenuItem
             variant="destructive"
             onSelect={() => {
-              props.dispatch({
+              dispatch({
                 type: "delete-clip",
                 clipId: props.section.frontendId,
               });
@@ -137,9 +155,10 @@ export const ClipSectionItem = (props: {
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      {props.insertionPoint.type === "after-clip-section" &&
-        props.insertionPoint.frontendClipSectionId ===
-          props.section.frontendId && <InsertionPointIndicator />}
+      {insertionPoint.type === "after-clip-section" &&
+        insertionPoint.frontendClipSectionId === props.section.frontendId && (
+          <InsertionPointIndicator />
+        )}
     </div>
   );
 };

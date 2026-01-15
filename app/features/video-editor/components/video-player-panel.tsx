@@ -12,78 +12,167 @@ import { LiveMediaStream } from "./live-media-stream";
 import { RecordingSignalIndicator } from "./timeline-indicators";
 import { TableOfContents } from "./table-of-contents";
 import { ActionsDropdown } from "./actions-dropdown";
-import type {
-  Clip,
-  ClipOnDatabase,
-  FrontendId,
-  TimelineItem,
-} from "../clip-state-reducer";
 import { isClipSection } from "../clip-utils";
-import type { OBSConnectionOuterState } from "../obs-connector";
-import type { FrontendSpeechDetectorState } from "../use-speech-detector";
 import { PreloadableClipManager } from "../preloadable-clip";
-import type { FetcherWithComponents } from "react-router";
 import { AlertTriangleIcon, ChevronLeftIcon } from "lucide-react";
 import { Link } from "react-router";
+import { useContextSelector } from "use-context-selector";
+import { VideoEditorContext } from "../video-editor-context";
 
 /**
  * Video player panel component displaying video preview, controls, and metadata.
  * Includes live stream, video player, table of contents, and action buttons.
  */
-export const VideoPlayerPanel = (props: {
-  // Video metadata
-  videoPath: string;
-  videoId: string;
-  repoName?: string;
-  lessonPath?: string;
-  repoId?: string;
-  lessonId?: string;
-  totalDuration: number;
-  areAnyClipsDangerous: boolean;
-
-  // Video state
-  items: TimelineItem[];
-  clips: Clip[];
-  viewMode: "video-player" | "live-stream" | "last-frame";
-  databaseClipToShowLastFrameOf?: ClipOnDatabase;
-  clipsToAggressivelyPreload: FrontendId[];
-  runningState: "playing" | "paused";
-  currentClipId: FrontendId | undefined;
-  currentClipProfile: string | undefined;
-  selectedClipsSet: Set<FrontendId>;
-  clipIdsPreloaded: Set<FrontendId>;
-  playbackRate: number;
-
-  // OBS and media
-  obsConnectorState: OBSConnectionOuterState;
-  liveMediaStream: MediaStream | null;
-  speechDetectorState: FrontendSpeechDetectorState;
-
-  // Completion flags
-  allClipsHaveSilenceDetected: boolean;
-  allClipsHaveText: boolean;
-
-  // Export and actions state
-  exportVideoClipsFetcher: FetcherWithComponents<unknown>;
-  exportToDavinciResolveFetcher: FetcherWithComponents<unknown>;
-  isExportModalOpen: boolean;
-  setIsExportModalOpen: (value: boolean) => void;
-  isCopied: boolean;
-  copyTranscriptToClipboard: () => Promise<void>;
-  youtubeChapters: { timestamp: string; name: string }[];
-  isChaptersCopied: boolean;
-  copyYoutubeChaptersToClipboard: () => Promise<void>;
-  isAddVideoModalOpen: boolean;
-  setIsAddVideoModalOpen: (value: boolean) => void;
-  hasExplainerFolder: boolean;
-  videoCount: number;
-
-  // Callbacks
-  dispatch: (action: any) => void;
-  onClipFinished: () => void;
-  onUpdateCurrentTime: (time: number) => void;
-  onSectionClick: (sectionId: FrontendId, index: number) => void;
-}) => {
+export const VideoPlayerPanel = () => {
+  // Use context selectors for all state
+  const videoPath = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.videoPath
+  );
+  const totalDuration = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.totalDuration
+  );
+  const areAnyClipsDangerous = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.areAnyClipsDangerous
+  );
+  const repoName = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.repoName
+  );
+  const lessonPath = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.lessonPath
+  );
+  const repoId = useContextSelector(VideoEditorContext, (ctx) => ctx.repoId);
+  const lessonId = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.lessonId
+  );
+  const liveMediaStream = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.liveMediaStream
+  );
+  const viewMode = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.viewMode
+  );
+  const obsConnectorState = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.obsConnectorState
+  );
+  const speechDetectorState = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.speechDetectorState
+  );
+  const databaseClipToShowLastFrameOf = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.databaseClipToShowLastFrameOf
+  );
+  const clipsToAggressivelyPreload = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.clipsToAggressivelyPreload
+  );
+  const clips = useContextSelector(VideoEditorContext, (ctx) => ctx.clips);
+  const clipIdsPreloaded = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.clipIdsPreloaded
+  );
+  const runningState = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.runningState
+  );
+  const currentClipId = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.currentClipId
+  );
+  const currentClipProfile = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.currentClipProfile
+  );
+  const onClipFinished = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onClipFinished
+  );
+  const onUpdateCurrentTime = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onUpdateCurrentTime
+  );
+  const playbackRate = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.playbackRate
+  );
+  const allClipsHaveSilenceDetected = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.allClipsHaveSilenceDetected
+  );
+  const allClipsHaveText = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.allClipsHaveText
+  );
+  const exportVideoClipsFetcher = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.exportVideoClipsFetcher
+  );
+  const exportToDavinciResolveFetcher = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.exportToDavinciResolveFetcher
+  );
+  const videoId = useContextSelector(VideoEditorContext, (ctx) => ctx.videoId);
+  const isExportModalOpen = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.isExportModalOpen
+  );
+  const setIsExportModalOpen = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.setIsExportModalOpen
+  );
+  const isCopied = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.isCopied
+  );
+  const copyTranscriptToClipboard = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.copyTranscriptToClipboard
+  );
+  const youtubeChapters = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.youtubeChapters
+  );
+  const isChaptersCopied = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.isChaptersCopied
+  );
+  const copyYoutubeChaptersToClipboard = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.copyYoutubeChaptersToClipboard
+  );
+  const isAddVideoModalOpen = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.isAddVideoModalOpen
+  );
+  const setIsAddVideoModalOpen = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.setIsAddVideoModalOpen
+  );
+  const items = useContextSelector(VideoEditorContext, (ctx) => ctx.items);
+  const selectedClipsSet = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.selectedClipsSet
+  );
+  const onSectionClick = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.onSectionClick
+  );
+  const videoCount = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.videoCount
+  );
+  const hasExplainerFolder = useContextSelector(
+    VideoEditorContext,
+    (ctx) => ctx.hasExplainerFolder
+  );
   return (
     <>
       <div className="lg:flex-1 relative order-1 lg:order-2">
@@ -91,70 +180,69 @@ export const VideoPlayerPanel = (props: {
           <div className="">
             <div className="mb-4">
               <h1 className="text-2xl font-bold mb-1 flex items-center">
-                {props.videoPath}
-                {" (" + formatSecondsToTimeCode(props.totalDuration) + ")"}
-                {props.areAnyClipsDangerous && (
+                {videoPath}
+                {" (" + formatSecondsToTimeCode(totalDuration) + ")"}
+                {areAnyClipsDangerous && (
                   <span className="text-orange-500 ml-4 text-base font-medium inline-flex items-center">
                     <AlertTriangleIcon className="size-6 mr-2" />
                     Possible duplicate clips
                   </span>
                 )}
               </h1>
-              {props.repoName && props.lessonPath && (
+              {repoName && lessonPath && (
                 <h2 className="text-sm font-medium mb-1">
-                  {props.repoName}
+                  {repoName}
                   {" - "}
-                  {props.lessonPath}
+                  {lessonPath}
                 </h2>
               )}
             </div>
 
-            {props.liveMediaStream && (
+            {liveMediaStream && (
               <div
                 className={cn(
                   "w-full h-full relative aspect-[16/9]",
-                  (props.obsConnectorState.type === "obs-connected" ||
-                    props.obsConnectorState.type === "obs-recording") &&
-                    props.obsConnectorState.profile === "TikTok" &&
+                  (obsConnectorState.type === "obs-connected" ||
+                    obsConnectorState.type === "obs-recording") &&
+                    obsConnectorState.profile === "TikTok" &&
                     "w-92 aspect-[9/16]",
                   "hidden",
-                  (props.viewMode === "live-stream" ||
-                    props.viewMode === "last-frame") &&
+                  (viewMode === "live-stream" || viewMode === "last-frame") &&
                     "block"
                 )}
               >
-                {props.obsConnectorState.type === "obs-recording" && (
+                {obsConnectorState.type === "obs-recording" && (
                   <RecordingSignalIndicator />
                 )}
 
-                {(props.obsConnectorState.type === "obs-recording" ||
-                  props.obsConnectorState.type === "obs-connected") && (
+                {(obsConnectorState.type === "obs-recording" ||
+                  obsConnectorState.type === "obs-connected") && (
                   <LiveMediaStream
-                    mediaStream={props.liveMediaStream}
-                    obsConnectorState={props.obsConnectorState}
-                    speechDetectorState={props.speechDetectorState}
-                    showCenterLine={props.obsConnectorState.scene === "Camera"}
+                    mediaStream={liveMediaStream}
+                    obsConnectorState={obsConnectorState}
+                    speechDetectorState={speechDetectorState}
+                    showCenterLine={obsConnectorState.scene === "Camera"}
                   />
                 )}
-                {props.databaseClipToShowLastFrameOf &&
-                  props.viewMode === "last-frame" &&
+                {databaseClipToShowLastFrameOf &&
+                  viewMode === "last-frame" &&
                   // Only show overlay if scenes match, or if no scene is detected
-                  (props.obsConnectorState.type !== "obs-recording" &&
-                  props.obsConnectorState.type !== "obs-connected"
+                  (obsConnectorState.type !== "obs-recording" &&
+                  obsConnectorState.type !== "obs-connected"
                     ? true // Default to showing if OBS not connected
-                    : props.databaseClipToShowLastFrameOf.scene === null ||
-                      props.databaseClipToShowLastFrameOf.scene ===
-                        props.obsConnectorState.scene) && (
+                    : databaseClipToShowLastFrameOf.scene === null ||
+                      databaseClipToShowLastFrameOf.scene ===
+                        obsConnectorState.scene) && (
                     <div
                       className={cn(
                         "absolute top-0 left-0 rounded-lg",
-                        props.databaseClipToShowLastFrameOf.profile ===
-                          "TikTok" && "w-92 aspect-[9/16]"
+                        databaseClipToShowLastFrameOf.profile === "TikTok" &&
+                          "w-92 aspect-[9/16]"
                       )}
                     >
                       <img
                         className="w-full h-full rounded-lg opacity-50"
-                        src={`/clips/${props.databaseClipToShowLastFrameOf.databaseId}/last-frame`}
+                        src={`/clips/${databaseClipToShowLastFrameOf.databaseId}/last-frame`}
                       />
                     </div>
                   )}
@@ -163,21 +251,21 @@ export const VideoPlayerPanel = (props: {
             <div
               className={cn(
                 "w-full aspect-[16/9]",
-                props.viewMode !== "video-player" && "hidden"
+                viewMode !== "video-player" && "hidden"
               )}
             >
               <PreloadableClipManager
-                clipsToAggressivelyPreload={props.clipsToAggressivelyPreload}
-                clips={props.clips
-                  .filter((clip) => props.clipIdsPreloaded.has(clip.frontendId))
+                clipsToAggressivelyPreload={clipsToAggressivelyPreload}
+                clips={clips
+                  .filter((clip) => clipIdsPreloaded.has(clip.frontendId))
                   .filter((clip) => clip.type === "on-database")}
-                finalClipId={props.clips[props.clips.length - 1]?.frontendId}
-                state={props.runningState}
-                currentClipId={props.currentClipId}
-                currentClipProfile={props.currentClipProfile}
-                onClipFinished={props.onClipFinished}
-                onUpdateCurrentTime={props.onUpdateCurrentTime}
-                playbackRate={props.playbackRate}
+                finalClipId={clips[clips.length - 1]?.frontendId}
+                state={runningState}
+                currentClipId={currentClipId}
+                currentClipProfile={currentClipProfile}
+                onClipFinished={onClipFinished}
+                onUpdateCurrentTime={onUpdateCurrentTime}
+                playbackRate={playbackRate}
               />
             </div>
 
@@ -186,16 +274,16 @@ export const VideoPlayerPanel = (props: {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      asChild={props.allClipsHaveSilenceDetected}
+                      asChild={allClipsHaveSilenceDetected}
                       variant="secondary"
                       aria-label="Go Back"
-                      disabled={!props.allClipsHaveSilenceDetected}
+                      disabled={!allClipsHaveSilenceDetected}
                     >
-                      {props.allClipsHaveSilenceDetected ? (
+                      {allClipsHaveSilenceDetected ? (
                         <Link
                           to={
-                            props.repoId && props.lessonId
-                              ? `/?repoId=${props.repoId}#${props.lessonId}`
+                            repoId && lessonId
+                              ? `/?repoId=${repoId}#${lessonId}`
                               : "/videos"
                           }
                         >
@@ -208,7 +296,7 @@ export const VideoPlayerPanel = (props: {
                       )}
                     </Button>
                   </TooltipTrigger>
-                  {!props.allClipsHaveSilenceDetected && (
+                  {!allClipsHaveSilenceDetected && (
                     <TooltipContent>
                       <p>Waiting for silence detection to complete</p>
                     </TooltipContent>
@@ -216,46 +304,42 @@ export const VideoPlayerPanel = (props: {
                 </Tooltip>
 
                 <ActionsDropdown
-                  allClipsHaveSilenceDetected={
-                    props.allClipsHaveSilenceDetected
-                  }
-                  allClipsHaveText={props.allClipsHaveText}
-                  exportVideoClipsFetcher={props.exportVideoClipsFetcher}
-                  exportToDavinciResolveFetcher={
-                    props.exportToDavinciResolveFetcher
-                  }
-                  videoId={props.videoId}
-                  lessonId={props.lessonId}
-                  isExportModalOpen={props.isExportModalOpen}
-                  setIsExportModalOpen={props.setIsExportModalOpen}
-                  isCopied={props.isCopied}
-                  copyTranscriptToClipboard={props.copyTranscriptToClipboard}
-                  youtubeChapters={props.youtubeChapters}
-                  isChaptersCopied={props.isChaptersCopied}
+                  allClipsHaveSilenceDetected={allClipsHaveSilenceDetected}
+                  allClipsHaveText={allClipsHaveText}
+                  exportVideoClipsFetcher={exportVideoClipsFetcher}
+                  exportToDavinciResolveFetcher={exportToDavinciResolveFetcher}
+                  videoId={videoId}
+                  lessonId={lessonId}
+                  isExportModalOpen={isExportModalOpen}
+                  setIsExportModalOpen={setIsExportModalOpen}
+                  isCopied={isCopied}
+                  copyTranscriptToClipboard={copyTranscriptToClipboard}
+                  youtubeChapters={youtubeChapters}
+                  isChaptersCopied={isChaptersCopied}
                   copyYoutubeChaptersToClipboard={
-                    props.copyYoutubeChaptersToClipboard
+                    copyYoutubeChaptersToClipboard
                   }
-                  onAddVideoClick={() => props.setIsAddVideoModalOpen(true)}
+                  onAddVideoClick={() => setIsAddVideoModalOpen(true)}
                 />
               </TooltipProvider>
             </div>
 
             {/* Table of Contents */}
             <TableOfContents
-              clipSections={props.items.filter(isClipSection)}
-              selectedClipsSet={props.selectedClipsSet}
-              onSectionClick={props.onSectionClick}
+              clipSections={items.filter(isClipSection)}
+              selectedClipsSet={selectedClipsSet}
+              onSectionClick={onSectionClick}
             />
           </div>
         </div>
       </div>
 
       <AddVideoModal
-        lessonId={props.lessonId}
-        videoCount={props.videoCount}
-        hasExplainerFolder={props.hasExplainerFolder}
-        open={props.isAddVideoModalOpen}
-        onOpenChange={props.setIsAddVideoModalOpen}
+        lessonId={lessonId}
+        videoCount={videoCount}
+        hasExplainerFolder={hasExplainerFolder}
+        open={isAddVideoModalOpen}
+        onOpenChange={setIsAddVideoModalOpen}
       />
     </>
   );
