@@ -35,13 +35,13 @@ import type {
   ClipSectionNamingModal,
   ClipComputedProps,
   ClipSectionDividerProps,
-  LiveMediaStreamProps,
 } from "./types";
 import {
   InsertionPointIndicator,
   BeatIndicator,
   RecordingSignalIndicator,
 } from "./components/timeline-indicators";
+import { LiveMediaStream } from "./components/live-media-stream";
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 import { useWebSocket } from "./hooks/use-websocket";
 import {
@@ -58,8 +58,6 @@ import {
   DownloadIcon,
   FilmIcon,
   Loader2,
-  MicIcon,
-  MicOffIcon,
   MonitorIcon,
   PauseIcon,
   PencilIcon,
@@ -69,7 +67,7 @@ import {
   Trash2Icon,
   UserRound,
 } from "lucide-react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { useEffectReducer } from "use-effect-reducer";
 import type {
@@ -1362,80 +1360,6 @@ export const ClipSectionDivider = React.forwardRef<
   );
 });
 ClipSectionDivider.displayName = "ClipSectionDivider";
-
-export const LiveMediaStream = (props: LiveMediaStreamProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.srcObject = props.mediaStream;
-      videoRef.current.play();
-    }
-  }, [props.mediaStream, videoRef.current]);
-
-  const isRecording = props.obsConnectorState.type === "obs-recording";
-
-  return (
-    <div className={cn("relative")}>
-      {isRecording && props.speechDetectorState.type === "silence" && (
-        <div className="absolute top-4 left-4 bg-blue-600 rounded-full size-8 flex items-center justify-center">
-          <CheckIcon className="size-4 text-white" />
-        </div>
-      )}
-      {isRecording &&
-        props.speechDetectorState.type === "speaking-detected" && (
-          <div className="absolute top-4 left-4 bg-yellow-600 rounded-full size-8 flex items-center justify-center">
-            <MicIcon className="size-4 text-white" />
-          </div>
-        )}
-      {isRecording &&
-        props.speechDetectorState.type ===
-          "long-enough-speaking-for-clip-detected" && (
-          <div className="absolute top-4 left-4 bg-green-600 rounded-full size-8 flex items-center justify-center">
-            <MicIcon className="size-4 text-white" />
-          </div>
-        )}
-      {isRecording && props.speechDetectorState.type === "warming-up" && (
-        <div className="absolute top-4 left-4 bg-red-600 rounded-full size-8 flex items-center justify-center">
-          <Loader2 className="size-4 text-white animate-spin" />
-        </div>
-      )}
-      {!isRecording && (
-        <div className="absolute top-4 left-4 bg-gray-300 rounded-full size-8 flex items-center justify-center">
-          <MicOffIcon className="size-4 text-gray-900" />
-        </div>
-      )}
-      {props.showCenterLine && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="border-l-2 border-dashed border-gray-300/50 h-full"></div>
-        </div>
-      )}
-
-      <video
-        ref={videoRef}
-        muted
-        className={cn(
-          "outline-4",
-          "outline-gray-300",
-          "rounded-lg",
-          isRecording &&
-            props.speechDetectorState.type === "speaking-detected" &&
-            "outline-yellow-600",
-          isRecording &&
-            props.speechDetectorState.type ===
-              "long-enough-speaking-for-clip-detected" &&
-            "outline-green-600",
-          isRecording &&
-            props.speechDetectorState.type === "silence" &&
-            "outline-blue-600",
-          isRecording &&
-            props.speechDetectorState.type === "warming-up" &&
-            "outline-red-600"
-        )}
-      />
-    </div>
-  );
-};
 
 const DANGEROUS_TEXT_SIMILARITY_THRESHOLD = 40;
 

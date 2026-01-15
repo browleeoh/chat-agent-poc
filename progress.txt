@@ -459,3 +459,28 @@
   - app/features/video-editor/hooks/use-keyboard-shortcuts.ts (new file, 99 lines)
   - app/features/video-editor/hooks/use-websocket.ts (new file, 51 lines)
   - app/features/video-editor/video-editor.tsx:40-47,72-74,195-205 (added imports, removed inline hooks)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 4: Extract LiveMediaStream component
+- Extracted LiveMediaStream component from video-editor.tsx into separate file
+- Component displays live video feed with status indicators and speech detection visual feedback
+- Implementation details:
+  - Created app/features/video-editor/components/live-media-stream.tsx with LiveMediaStream component
+  - Component shows recording state indicators (recording, speaking, silence, warming up)
+  - Dynamic outline colors based on speech detection state (yellow/green/blue/red)
+  - Optional center line guide for camera framing
+  - Auto-plays video stream when mounted or stream changes
+  - Removed MicIcon and MicOffIcon from video-editor.tsx imports (only used in LiveMediaStream)
+  - Removed useEffect and useRef from React imports in video-editor.tsx (no longer needed)
+  - Updated video-editor.tsx to import LiveMediaStream from components directory
+  - Added JSDoc comments for better documentation
+- Key decisions:
+  - Component is self-contained with no dependencies on parent state
+  - All required data comes through props (mediaStream, obsConnectorState, speechDetectorState, showCenterLine)
+  - Maintains all existing behavior and visual styling
+  - Created components/ subdirectory within video-editor feature following RFC structure
+  - video-editor.tsx reduced from 1,461 to 1,385 lines (76 lines saved)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/components/live-media-stream.tsx (new file, 94 lines)
+  - app/features/video-editor/video-editor.tsx:34-44,47-70,1366-1438 (removed LiveMediaStreamProps import, added component import, removed unused imports, removed component definition)
