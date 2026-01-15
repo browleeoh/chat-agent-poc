@@ -232,3 +232,18 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/_index.tsx:550-573
+
+## Issue #59 - Make archived repo names clickable to navigate to repo view
+- Made repo names on archived repos page clickable to navigate to repo view
+- Implementation details:
+  - Changed repo name from plain h3 text to Button with variant="link"
+  - onClick handler navigates to `/?repoId=${repo.id}` with preventScrollReset
+  - Styled with "h-auto p-0 font-medium text-base" to maintain heading appearance
+  - Uses same navigation pattern as sidebar repo buttons
+- Key decisions:
+  - Used Button component for consistency with rest of app navigation
+  - link variant provides underline-on-hover behavior typical of links
+  - Maintains font-medium styling to preserve visual hierarchy
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- File changed: app/routes/archived-repos.tsx:219-229

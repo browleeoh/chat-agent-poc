@@ -216,7 +216,17 @@ export default function ArchivedRepos(props: Route.ComponentProps) {
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div>
-                    <h3 className="font-medium">{repo.name}</h3>
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 font-medium text-base"
+                      onClick={() => {
+                        navigate(`/?repoId=${repo.id}`, {
+                          preventScrollReset: true,
+                        });
+                      }}
+                    >
+                      {repo.name}
+                    </Button>
                     <p className="text-sm text-muted-foreground">
                       {repo.filePath}
                     </p>
