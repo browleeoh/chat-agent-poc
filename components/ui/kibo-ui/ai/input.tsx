@@ -168,7 +168,7 @@ export const AIInputButton = ({
   ...props
 }: AIInputButtonProps) => {
   const newSize =
-    size ?? Children.count(props.children) > 1 ? "default" : "icon";
+    (size ?? Children.count(props.children) > 1) ? "default" : "icon";
 
   return (
     <Button

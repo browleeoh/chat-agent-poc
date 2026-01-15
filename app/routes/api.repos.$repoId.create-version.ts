@@ -17,18 +17,20 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
   const formDataObject = Object.fromEntries(formData);
 
   return await Effect.gen(function* () {
-    const result = yield* Schema.decodeUnknown(createVersionSchema)(formDataObject);
+    const result =
+      yield* Schema.decodeUnknown(createVersionSchema)(formDataObject);
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
     const FINISHED_VIDEOS_DIRECTORY = yield* Config.string(
       "FINISHED_VIDEOS_DIRECTORY"
     );
 
-    const { version: newVersion, videoIdMappings } = yield* db.copyVersionStructure({
-      sourceVersionId: result.sourceVersionId,
-      repoId: params.repoId,
-      newVersionName: result.name,
-    });
+    const { version: newVersion, videoIdMappings } =
+      yield* db.copyVersionStructure({
+        sourceVersionId: result.sourceVersionId,
+        repoId: params.repoId,
+        newVersionName: result.name,
+      });
 
     // Move video files from old version IDs to new version IDs
     for (const mapping of videoIdMappings) {
@@ -57,10 +59,14 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
     withDatabaseDump,
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
     Effect.catchTag("ParseError", () =>
-      Effect.die(data("Invalid request - version name required", { status: 400 }))
+      Effect.die(
+        data("Invalid request - version name required", { status: 400 })
+      )
     ),
     Effect.catchTag("NotLatestVersionError", () =>
-      Effect.die(data("Can only create new version from latest version", { status: 400 }))
+      Effect.die(
+        data("Can only create new version from latest version", { status: 400 })
+      )
     ),
     Effect.catchAll(() =>
       Effect.die(data("Internal server error", { status: 500 }))

@@ -13,9 +13,8 @@ export const action = async (args: Route.ActionArgs) => {
   const formDataObject = Object.fromEntries(formData);
 
   return Effect.gen(function* () {
-    const { versionId } = yield* Schema.decodeUnknown(deleteVersionSchema)(
-      formDataObject
-    );
+    const { versionId } =
+      yield* Schema.decodeUnknown(deleteVersionSchema)(formDataObject);
 
     const db = yield* DBService;
 

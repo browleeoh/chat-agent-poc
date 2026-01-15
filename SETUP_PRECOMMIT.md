@@ -11,6 +11,7 @@ pnpm install
 ```
 
 This will:
+
 1. Install `prettier`, `husky`, and `lint-staged`
 2. Run the `prepare` script which initializes Husky
 3. Set up the pre-commit hook
@@ -24,6 +25,7 @@ When you commit code, the pre-commit hook will automatically:
 3. **Run tests** on staged TypeScript files
 
 This provides immediate feedback if:
+
 - Code formatting is incorrect
 - TypeScript types don't check
 - Tests fail

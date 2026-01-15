@@ -14,9 +14,8 @@ export const action = async (args: Route.ActionArgs) => {
   const formDataObject = Object.fromEntries(formData);
 
   return Effect.gen(function* () {
-    const { lessonId } = yield* Schema.decodeUnknown(deleteLessonSchema)(
-      formDataObject
-    );
+    const { lessonId } =
+      yield* Schema.decodeUnknown(deleteLessonSchema)(formDataObject);
 
     const db = yield* DBService;
 

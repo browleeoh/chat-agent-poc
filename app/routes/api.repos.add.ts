@@ -58,7 +58,9 @@ export const action = async ({ request }: Route.ActionArgs) => {
       return Effect.die(data("Invalid request", { status: 400 }));
     }),
     Effect.catchTag("RepoDoesNotExistError", () => {
-      return Effect.die(data("Repo path does not exist locally", { status: 404 }));
+      return Effect.die(
+        data("Repo path does not exist locally", { status: 404 })
+      );
     }),
     Effect.catchAll(() => {
       return Effect.die(data("Internal server error", { status: 500 }));

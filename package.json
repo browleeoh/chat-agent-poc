@@ -75,6 +75,9 @@
     "ws": "^8.18.3",
     "zod": "^4.1.1"
   },
+  "lint-staged": {
+    "*": "prettier --write"
+  },
   "devDependencies": {
     "@babel/preset-typescript": "^7.28.5",
     "@react-router/dev": "^7.11.0",

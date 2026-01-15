@@ -15,9 +15,8 @@ export const action = async (args: Route.ActionArgs) => {
 
   return Effect.gen(function* () {
     const db = yield* DBService;
-    const { clipId, beatType } = yield* Schema.decodeUnknown(updateBeatSchema)(
-      json
-    );
+    const { clipId, beatType } =
+      yield* Schema.decodeUnknown(updateBeatSchema)(json);
 
     yield* db.updateClip(clipId, {
       beatType,

@@ -3,9 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { Console, Effect } from "effect";
-import {
-  ArchiveRestore,
-} from "lucide-react";
+import { ArchiveRestore } from "lucide-react";
 import { useState } from "react";
 import { useFetcher, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/archived-repos";

@@ -14,7 +14,14 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
-import { Archive, ArrowLeft, Plus, Trash2, VideoIcon, VideoOffIcon } from "lucide-react";
+import {
+  Archive,
+  ArrowLeft,
+  Plus,
+  Trash2,
+  VideoIcon,
+  VideoOffIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { data, Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos._index";

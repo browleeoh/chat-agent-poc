@@ -43,7 +43,10 @@ export function useFetcherToast(
               toast.error(text || errorMessage);
             });
         });
-    } else if (typeof response === "object" && Object.keys(response).length === 0) {
+    } else if (
+      typeof response === "object" &&
+      Object.keys(response).length === 0
+    ) {
       toast.success(successMessage);
     }
   }, [fetcher.state, fetcher.data, successMessage, errorMessage]);

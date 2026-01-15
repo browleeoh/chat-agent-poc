@@ -6,11 +6,15 @@ export class NotFoundError extends Data.TaggedError("NotFoundError")<{
   message?: string;
 }> {}
 
-export class UnknownDBServiceError extends Data.TaggedError("UnknownDBServiceError")<{
+export class UnknownDBServiceError extends Data.TaggedError(
+  "UnknownDBServiceError"
+)<{
   cause: unknown;
 }> {}
 
-export class NotLatestVersionError extends Data.TaggedError("NotLatestVersionError")<{
+export class NotLatestVersionError extends Data.TaggedError(
+  "NotLatestVersionError"
+)<{
   sourceVersionId: string;
   latestVersionId: string;
 }> {}

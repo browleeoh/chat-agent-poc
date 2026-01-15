@@ -89,7 +89,10 @@ export function ClipSectionNamingModal({
   };
 
   return (
-    <Dialog open={modalState !== null} onOpenChange={(open) => !open && handleDismiss()}>
+    <Dialog
+      open={modalState !== null}
+      onOpenChange={(open) => !open && handleDismiss()}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>

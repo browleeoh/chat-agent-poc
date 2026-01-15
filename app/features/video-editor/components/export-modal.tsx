@@ -6,17 +6,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  CheckIcon,
-  CopyIcon,
-  DownloadIcon,
-  Loader2,
-} from "lucide-react";
+import { CheckIcon, CopyIcon, DownloadIcon, Loader2 } from "lucide-react";
 import type { FetcherWithComponents } from "react-router";
 
 /**
@@ -74,8 +67,8 @@ export const ExportModal = (props: {
               name="shortsDirectoryOutputName"
             />
             <p className="text-xs text-muted-foreground">
-              If provided, the video will be queued for YouTube and TikTok
-              under the given title.
+              If provided, the video will be queued for YouTube and TikTok under
+              the given title.
             </p>
           </div>
           {props.youtubeChapters.length > 0 && (

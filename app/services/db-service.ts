@@ -1,5 +1,13 @@
 import { db } from "@/db/db";
-import { clips, clipSections, lessons, repos, repoVersions, sections, videos } from "@/db/schema";
+import {
+  clips,
+  clipSections,
+  lessons,
+  repos,
+  repoVersions,
+  sections,
+  videos,
+} from "@/db/schema";
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 import {
   AmbiguousRepoUpdateError,
@@ -127,7 +135,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       // We need both because clips and clip sections share the same ordering space
       const allClips = yield* makeDbCall(() =>
         db.query.clips.findMany({
-          where: and(eq(clips.videoId, clip.videoId), eq(clips.archived, false)),
+          where: and(
+            eq(clips.videoId, clip.videoId),
+            eq(clips.archived, false)
+          ),
           orderBy: asc(clips.order),
         })
       );
@@ -145,7 +156,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       // Combine and sort by order - clips and clip sections share the same ordering space
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
-        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+        ...allClipSections.map((cs) => ({
+          type: "clip-section" as const,
+          ...cs,
+        })),
       ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       const itemIndex = allItems.findIndex(
@@ -177,10 +191,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       }
 
       yield* makeDbCall(() =>
-        db
-          .update(clips)
-          .set({ order: newOrder })
-          .where(eq(clips.id, clipId))
+        db.update(clips).set({ order: newOrder }).where(eq(clips.id, clipId))
       );
 
       return { success: true };
@@ -212,10 +223,14 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return clipSection;
     });
 
-    const createClipSectionAtInsertionPoint = Effect.fn("createClipSectionAtInsertionPoint")(function* (
+    const createClipSectionAtInsertionPoint = Effect.fn(
+      "createClipSectionAtInsertionPoint"
+    )(function* (
       videoId: string,
       name: string,
-      insertionPoint: { type: "start" } | { type: "after-clip"; databaseClipId: string }
+      insertionPoint:
+        | { type: "start" }
+        | { type: "after-clip"; databaseClipId: string }
     ) {
       // Get all non-archived clips and clip sections for this video, ordered
       const allClips = yield* makeDbCall(() =>
@@ -238,7 +253,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       // Combine and sort by order
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
-        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+        ...allClipSections.map((cs) => ({
+          type: "clip-section" as const,
+          ...cs,
+        })),
       ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       // Calculate order based on insertion point
@@ -252,7 +270,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       } else if (insertionPoint.type === "after-clip") {
         // Insert after specific clip
         const insertAfterClipIndex = allItems.findIndex(
-          (item) => item.type === "clip" && item.id === insertionPoint.databaseClipId
+          (item) =>
+            item.type === "clip" && item.id === insertionPoint.databaseClipId
         );
 
         if (insertAfterClipIndex === -1) {
@@ -293,7 +312,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return clipSection;
     });
 
-    const createClipSectionAtPosition = Effect.fn("createClipSectionAtPosition")(function* (
+    const createClipSectionAtPosition = Effect.fn(
+      "createClipSectionAtPosition"
+    )(function* (
       videoId: string,
       name: string,
       position: "before" | "after",
@@ -321,7 +342,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       // Combine and sort by order
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
-        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+        ...allClipSections.map((cs) => ({
+          type: "clip-section" as const,
+          ...cs,
+        })),
       ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       // Find the target item
@@ -466,7 +490,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       // Get all non-archived clips and clip sections for this video, ordered
       const allClips = yield* makeDbCall(() =>
         db.query.clips.findMany({
-          where: and(eq(clips.videoId, clipSection.videoId), eq(clips.archived, false)),
+          where: and(
+            eq(clips.videoId, clipSection.videoId),
+            eq(clips.archived, false)
+          ),
           orderBy: asc(clips.order),
         })
       );
@@ -484,7 +511,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       // Combine and sort by order
       const allItems = [
         ...allClips.map((c) => ({ type: "clip" as const, ...c })),
-        ...allClipSections.map((cs) => ({ type: "clip-section" as const, ...cs })),
+        ...allClipSections.map((cs) => ({
+          type: "clip-section" as const,
+          ...cs,
+        })),
       ].sort((a, b) => compareOrderStrings(a.order, b.order));
 
       const itemIndex = allItems.findIndex(
@@ -662,7 +692,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       return standaloneVideos;
     });
 
-    const getArchivedStandaloneVideos = Effect.fn("getArchivedStandaloneVideos")(function* () {
+    const getArchivedStandaloneVideos = Effect.fn(
+      "getArchivedStandaloneVideos"
+    )(function* () {
       const archivedVideos = yield* makeDbCall(() =>
         db.query.videos.findMany({
           where: and(isNull(videos.lessonId), eq(videos.archived, true)),
@@ -885,26 +917,30 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return videoResult;
       }),
-      createStandaloneVideo: Effect.fn("createStandaloneVideo")(function* (video: {
-        path: string;
-      }) {
-        const videoResults = yield* makeDbCall(() =>
-          db
-            .insert(videos)
-            .values({ path: video.path, originalFootagePath: "", lessonId: null })
-            .returning()
-        );
+      createStandaloneVideo: Effect.fn("createStandaloneVideo")(
+        function* (video: { path: string }) {
+          const videoResults = yield* makeDbCall(() =>
+            db
+              .insert(videos)
+              .values({
+                path: video.path,
+                originalFootagePath: "",
+                lessonId: null,
+              })
+              .returning()
+          );
 
-        const videoResult = videoResults[0];
+          const videoResult = videoResults[0];
 
-        if (!videoResult) {
-          return yield* new UnknownDBServiceError({
-            cause: "No video was returned from the database",
-          });
+          if (!videoResult) {
+            return yield* new UnknownDBServiceError({
+              cause: "No video was returned from the database",
+            });
+          }
+
+          return videoResult;
         }
-
-        return videoResult;
-      }),
+      ),
       hasOriginalFootagePathAlreadyBeenUsed: Effect.fn(
         "hasOriginalFootagePathAlreadyBeenUsed"
       )(function* (originalFootagePath: string) {
@@ -1077,8 +1113,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         const repo = currentSection.repoVersion.repo;
 
         // Get all videos in current lesson sorted by path
-        const videosInLesson = currentLesson.videos.sort((a: { path: string }, b: { path: string }) =>
-          a.path.localeCompare(b.path)
+        const videosInLesson = currentLesson.videos.sort(
+          (a: { path: string }, b: { path: string }) =>
+            a.path.localeCompare(b.path)
         );
         const currentVideoIndex = videosInLesson.findIndex(
           (v: { id: string }) => v.id === currentVideoId
@@ -1091,7 +1128,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         // Need to get all sections and lessons to find next
         const repoWithVersions = yield* getRepoWithSectionsById(repo.id);
-        const latestVersionSections = repoWithVersions.versions[0]?.sections ?? [];
+        const latestVersionSections =
+          repoWithVersions.versions[0]?.sections ?? [];
 
         // Find current lesson in the structure
         for (let sIdx = 0; sIdx < latestVersionSections.length; sIdx++) {
@@ -1102,8 +1140,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               // Try next lesson in current section
               if (lIdx < section.lessons.length - 1) {
                 const nextLesson = section.lessons[lIdx + 1]!;
-                const firstVideo = nextLesson.videos.sort((a: { path: string }, b: { path: string }) =>
-                  a.path.localeCompare(b.path)
+                const firstVideo = nextLesson.videos.sort(
+                  (a: { path: string }, b: { path: string }) =>
+                    a.path.localeCompare(b.path)
                 )[0];
                 return firstVideo?.id ?? null;
               }
@@ -1112,8 +1151,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               if (sIdx < latestVersionSections.length - 1) {
                 const nextSection = latestVersionSections[sIdx + 1]!;
                 const firstLesson = nextSection.lessons[0];
-                const firstVideo = firstLesson?.videos.sort((a: { path: string }, b: { path: string }) =>
-                  a.path.localeCompare(b.path)
+                const firstVideo = firstLesson?.videos.sort(
+                  (a: { path: string }, b: { path: string }) =>
+                    a.path.localeCompare(b.path)
                 )[0];
                 return firstVideo?.id ?? null;
               }
@@ -1136,8 +1176,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         const repo = currentSection.repoVersion.repo;
 
         // Get all videos in current lesson sorted by path
-        const videosInLesson = currentLesson.videos.sort((a: { path: string }, b: { path: string }) =>
-          a.path.localeCompare(b.path)
+        const videosInLesson = currentLesson.videos.sort(
+          (a: { path: string }, b: { path: string }) =>
+            a.path.localeCompare(b.path)
         );
         const currentVideoIndex = videosInLesson.findIndex(
           (v: { id: string }) => v.id === currentVideoId
@@ -1150,7 +1191,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         // Need to get all sections and lessons to find previous
         const repoWithVersions = yield* getRepoWithSectionsById(repo.id);
-        const latestVersionSections = repoWithVersions.versions[0]?.sections ?? [];
+        const latestVersionSections =
+          repoWithVersions.versions[0]?.sections ?? [];
 
         // Find current lesson in the structure
         for (let sIdx = 0; sIdx < latestVersionSections.length; sIdx++) {
@@ -1161,8 +1203,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               // Try previous lesson in current section
               if (lIdx > 0) {
                 const prevLesson = section.lessons[lIdx - 1]!;
-                const videos = prevLesson.videos.sort((a: { path: string }, b: { path: string }) =>
-                  a.path.localeCompare(b.path)
+                const videos = prevLesson.videos.sort(
+                  (a: { path: string }, b: { path: string }) =>
+                    a.path.localeCompare(b.path)
                 );
                 const lastVideo = videos[videos.length - 1];
                 return lastVideo?.id ?? null;
@@ -1173,8 +1216,9 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
                 const prevSection = latestVersionSections[sIdx - 1]!;
                 const lastLesson =
                   prevSection.lessons[prevSection.lessons.length - 1];
-                const videos = lastLesson?.videos.sort((a: { path: string }, b: { path: string }) =>
-                  a.path.localeCompare(b.path)
+                const videos = lastLesson?.videos.sort(
+                  (a: { path: string }, b: { path: string }) =>
+                    a.path.localeCompare(b.path)
                 );
                 const lastVideo = videos?.[videos.length - 1];
                 return lastVideo?.id ?? null;
@@ -1328,39 +1372,34 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return version;
       }),
-      updateRepoVersionName: Effect.fn("updateRepoVersionName")(function* (opts: {
-        versionId: string;
-        name: string;
-      }) {
-        const { versionId, name } = opts;
-        const [updated] = yield* makeDbCall(() =>
-          db
-            .update(repoVersions)
-            .set({ name })
-            .where(eq(repoVersions.id, versionId))
-            .returning()
-        );
+      updateRepoVersionName: Effect.fn("updateRepoVersionName")(
+        function* (opts: { versionId: string; name: string }) {
+          const { versionId, name } = opts;
+          const [updated] = yield* makeDbCall(() =>
+            db
+              .update(repoVersions)
+              .set({ name })
+              .where(eq(repoVersions.id, versionId))
+              .returning()
+          );
 
-        if (!updated) {
-          return yield* new NotFoundError({
-            type: "updateRepoVersionName",
-            params: { versionId },
-          });
+          if (!updated) {
+            return yield* new NotFoundError({
+              type: "updateRepoVersionName",
+              params: { versionId },
+            });
+          }
+
+          return updated;
         }
-
-        return updated;
-      }),
+      ),
       updateRepoName: Effect.fn("updateRepoName")(function* (opts: {
         repoId: string;
         name: string;
       }) {
         const { repoId, name } = opts;
         const [updated] = yield* makeDbCall(() =>
-          db
-            .update(repos)
-            .set({ name })
-            .where(eq(repos.id, repoId))
-            .returning()
+          db.update(repos).set({ name }).where(eq(repos.id, repoId)).returning()
         );
 
         if (!updated) {
@@ -1372,72 +1411,70 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return updated;
       }),
-      updateRepoArchiveStatus: Effect.fn("updateRepoArchiveStatus")(function* (opts: {
-        repoId: string;
-        archived: boolean;
-      }) {
-        const { repoId, archived } = opts;
-        const [updated] = yield* makeDbCall(() =>
-          db
-            .update(repos)
-            .set({ archived })
-            .where(eq(repos.id, repoId))
-            .returning()
-        );
+      updateRepoArchiveStatus: Effect.fn("updateRepoArchiveStatus")(
+        function* (opts: { repoId: string; archived: boolean }) {
+          const { repoId, archived } = opts;
+          const [updated] = yield* makeDbCall(() =>
+            db
+              .update(repos)
+              .set({ archived })
+              .where(eq(repos.id, repoId))
+              .returning()
+          );
 
-        if (!updated) {
-          return yield* new NotFoundError({
-            type: "updateRepoArchiveStatus",
-            params: { repoId },
-          });
+          if (!updated) {
+            return yield* new NotFoundError({
+              type: "updateRepoArchiveStatus",
+              params: { repoId },
+            });
+          }
+
+          return updated;
         }
+      ),
+      updateVideoArchiveStatus: Effect.fn("updateVideoArchiveStatus")(
+        function* (opts: { videoId: string; archived: boolean }) {
+          const { videoId, archived } = opts;
 
-        return updated;
-      }),
-      updateVideoArchiveStatus: Effect.fn("updateVideoArchiveStatus")(function* (opts: {
-        videoId: string;
-        archived: boolean;
-      }) {
-        const { videoId, archived } = opts;
+          // First verify the video is a standalone video (lessonId is NULL)
+          const video = yield* makeDbCall(() =>
+            db.query.videos.findFirst({
+              where: eq(videos.id, videoId),
+            })
+          );
 
-        // First verify the video is a standalone video (lessonId is NULL)
-        const video = yield* makeDbCall(() =>
-          db.query.videos.findFirst({
-            where: eq(videos.id, videoId),
-          })
-        );
+          if (!video) {
+            return yield* new NotFoundError({
+              type: "updateVideoArchiveStatus",
+              params: { videoId },
+            });
+          }
 
-        if (!video) {
-          return yield* new NotFoundError({
-            type: "updateVideoArchiveStatus",
-            params: { videoId },
-          });
+          if (video.lessonId !== null) {
+            return yield* new CannotArchiveLessonVideoError({
+              videoId,
+              lessonId: video.lessonId,
+            });
+          }
+
+          const [updated] = yield* makeDbCall(() =>
+            db
+              .update(videos)
+              .set({ archived })
+              .where(eq(videos.id, videoId))
+              .returning()
+          );
+
+          if (!updated) {
+            return yield* new NotFoundError({
+              type: "updateVideoArchiveStatus",
+              params: { videoId },
+            });
+          }
+
+          return updated;
         }
-
-        if (video.lessonId !== null) {
-          return yield* new CannotArchiveLessonVideoError({
-            videoId,
-            lessonId: video.lessonId,
-          });
-        }
-
-        const [updated] = yield* makeDbCall(() =>
-          db
-            .update(videos)
-            .set({ archived })
-            .where(eq(videos.id, videoId))
-            .returning()
-        );
-
-        if (!updated) {
-          return yield* new NotFoundError({
-            type: "updateVideoArchiveStatus",
-            params: { videoId },
-          });
-        }
-
-        return updated;
-      }),
+      ),
       updateRepoFilePath: Effect.fn("updateRepoFilePath")(function* (opts: {
         repoId: string;
         filePath: string;
@@ -1551,137 +1588,158 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
        * Copies all sections, lessons, videos, and non-archived clips.
        * Sets previousVersionSectionId and previousVersionLessonId for change tracking.
        */
-      copyVersionStructure: Effect.fn("copyVersionStructure")(function* (input: {
-        sourceVersionId: string;
-        repoId: string;
-        newVersionName: string;
-      }) {
-        // Verify sourceVersionId is the latest version for this repo
-        const latestVersion = yield* makeDbCall(() =>
-          db.query.repoVersions.findFirst({
-            where: eq(repoVersions.repoId, input.repoId),
-            orderBy: desc(repoVersions.createdAt),
-          })
-        );
+      copyVersionStructure: Effect.fn("copyVersionStructure")(
+        function* (input: {
+          sourceVersionId: string;
+          repoId: string;
+          newVersionName: string;
+        }) {
+          // Verify sourceVersionId is the latest version for this repo
+          const latestVersion = yield* makeDbCall(() =>
+            db.query.repoVersions.findFirst({
+              where: eq(repoVersions.repoId, input.repoId),
+              orderBy: desc(repoVersions.createdAt),
+            })
+          );
 
-        if (!latestVersion || latestVersion.id !== input.sourceVersionId) {
-          return yield* new NotLatestVersionError({
-            sourceVersionId: input.sourceVersionId,
-            latestVersionId: latestVersion?.id ?? "none",
-          });
-        }
-
-        // Create the new version
-        const newVersion = yield* makeDbCall(() =>
-          db.insert(repoVersions).values({
-            repoId: input.repoId,
-            name: input.newVersionName,
-          }).returning()
-        ).pipe(Effect.andThen((arr) => {
-          const v = arr[0];
-          if (!v) {
-            return Effect.fail(new UnknownDBServiceError({ cause: "No version returned" }));
+          if (!latestVersion || latestVersion.id !== input.sourceVersionId) {
+            return yield* new NotLatestVersionError({
+              sourceVersionId: input.sourceVersionId,
+              latestVersionId: latestVersion?.id ?? "none",
+            });
           }
-          return Effect.succeed(v);
-        }));
 
-        // Get all sections for the source version with their lessons, videos, and clips
-        const sourceSections = yield* makeDbCall(() =>
-          db.query.sections.findMany({
-            where: eq(sections.repoVersionId, input.sourceVersionId),
-            orderBy: asc(sections.order),
-            with: {
-              lessons: {
-                orderBy: asc(lessons.order),
-                with: {
-                  videos: {
-                    orderBy: asc(videos.path),
-                    with: {
-                      clips: {
-                        orderBy: asc(clips.order),
-                        where: eq(clips.archived, false), // Only non-archived clips
+          // Create the new version
+          const newVersion = yield* makeDbCall(() =>
+            db
+              .insert(repoVersions)
+              .values({
+                repoId: input.repoId,
+                name: input.newVersionName,
+              })
+              .returning()
+          ).pipe(
+            Effect.andThen((arr) => {
+              const v = arr[0];
+              if (!v) {
+                return Effect.fail(
+                  new UnknownDBServiceError({ cause: "No version returned" })
+                );
+              }
+              return Effect.succeed(v);
+            })
+          );
+
+          // Get all sections for the source version with their lessons, videos, and clips
+          const sourceSections = yield* makeDbCall(() =>
+            db.query.sections.findMany({
+              where: eq(sections.repoVersionId, input.sourceVersionId),
+              orderBy: asc(sections.order),
+              with: {
+                lessons: {
+                  orderBy: asc(lessons.order),
+                  with: {
+                    videos: {
+                      orderBy: asc(videos.path),
+                      with: {
+                        clips: {
+                          orderBy: asc(clips.order),
+                          where: eq(clips.archived, false), // Only non-archived clips
+                        },
                       },
                     },
                   },
                 },
               },
-            },
-          })
-        );
-
-        // Track video ID mappings: sourceVideoId -> newVideoId
-        const videoIdMappings: Array<{ sourceVideoId: string; newVideoId: string }> = [];
-
-        // Copy each section
-        for (const sourceSection of sourceSections) {
-          const [newSection] = yield* makeDbCall(() =>
-            db.insert(sections).values({
-              repoVersionId: newVersion.id,
-              previousVersionSectionId: sourceSection.id,
-              path: sourceSection.path,
-              order: sourceSection.order,
-            }).returning()
+            })
           );
 
-          if (!newSection) continue;
+          // Track video ID mappings: sourceVideoId -> newVideoId
+          const videoIdMappings: Array<{
+            sourceVideoId: string;
+            newVideoId: string;
+          }> = [];
 
-          // Copy each lesson in the section
-          for (const sourceLesson of sourceSection.lessons) {
-            const [newLesson] = yield* makeDbCall(() =>
-              db.insert(lessons).values({
-                sectionId: newSection.id,
-                previousVersionLessonId: sourceLesson.id,
-                path: sourceLesson.path,
-                order: sourceLesson.order,
-              }).returning()
+          // Copy each section
+          for (const sourceSection of sourceSections) {
+            const [newSection] = yield* makeDbCall(() =>
+              db
+                .insert(sections)
+                .values({
+                  repoVersionId: newVersion.id,
+                  previousVersionSectionId: sourceSection.id,
+                  path: sourceSection.path,
+                  order: sourceSection.order,
+                })
+                .returning()
             );
 
-            if (!newLesson) continue;
+            if (!newSection) continue;
 
-            // Copy each video in the lesson
-            for (const sourceVideo of sourceLesson.videos) {
-              const [newVideo] = yield* makeDbCall(() =>
-                db.insert(videos).values({
-                  lessonId: newLesson.id,
-                  path: sourceVideo.path,
-                  originalFootagePath: sourceVideo.originalFootagePath,
-                }).returning()
+            // Copy each lesson in the section
+            for (const sourceLesson of sourceSection.lessons) {
+              const [newLesson] = yield* makeDbCall(() =>
+                db
+                  .insert(lessons)
+                  .values({
+                    sectionId: newSection.id,
+                    previousVersionLessonId: sourceLesson.id,
+                    path: sourceLesson.path,
+                    order: sourceLesson.order,
+                  })
+                  .returning()
               );
 
-              if (!newVideo) continue;
+              if (!newLesson) continue;
 
-              // Track the video ID mapping
-              videoIdMappings.push({
-                sourceVideoId: sourceVideo.id,
-                newVideoId: newVideo.id,
-              });
-
-              // Copy each non-archived clip in the video
-              if (sourceVideo.clips.length > 0) {
-                yield* makeDbCall(() =>
-                  db.insert(clips).values(
-                    sourceVideo.clips.map((clip) => ({
-                      videoId: newVideo.id,
-                      videoFilename: clip.videoFilename,
-                      sourceStartTime: clip.sourceStartTime,
-                      sourceEndTime: clip.sourceEndTime,
-                      order: clip.order,
-                      archived: false,
-                      text: clip.text,
-                      transcribedAt: clip.transcribedAt,
-                      scene: clip.scene,
-                      profile: clip.profile,
-                      beatType: clip.beatType,
-                    }))
-                  )
+              // Copy each video in the lesson
+              for (const sourceVideo of sourceLesson.videos) {
+                const [newVideo] = yield* makeDbCall(() =>
+                  db
+                    .insert(videos)
+                    .values({
+                      lessonId: newLesson.id,
+                      path: sourceVideo.path,
+                      originalFootagePath: sourceVideo.originalFootagePath,
+                    })
+                    .returning()
                 );
+
+                if (!newVideo) continue;
+
+                // Track the video ID mapping
+                videoIdMappings.push({
+                  sourceVideoId: sourceVideo.id,
+                  newVideoId: newVideo.id,
+                });
+
+                // Copy each non-archived clip in the video
+                if (sourceVideo.clips.length > 0) {
+                  yield* makeDbCall(() =>
+                    db.insert(clips).values(
+                      sourceVideo.clips.map((clip) => ({
+                        videoId: newVideo.id,
+                        videoFilename: clip.videoFilename,
+                        sourceStartTime: clip.sourceStartTime,
+                        sourceEndTime: clip.sourceEndTime,
+                        order: clip.order,
+                        archived: false,
+                        text: clip.text,
+                        transcribedAt: clip.transcribedAt,
+                        scene: clip.scene,
+                        profile: clip.profile,
+                        beatType: clip.beatType,
+                      }))
+                    )
+                  );
+                }
               }
             }
           }
-        }
 
-        return { version: newVersion, videoIdMappings };
-      }),
+          return { version: newVersion, videoIdMappings };
+        }
+      ),
       /**
        * Get all video IDs for a specific version.
        */

@@ -13,9 +13,8 @@ export const action = async (args: Route.ActionArgs) => {
   const formData = await args.request.formData();
   const formDataObject = Object.fromEntries(formData);
   return Effect.gen(function* () {
-    const { videoId } = yield* Schema.decodeUnknown(deleteVideoSchema)(
-      formDataObject
-    );
+    const { videoId } =
+      yield* Schema.decodeUnknown(deleteVideoSchema)(formDataObject);
 
     const db = yield* DBService;
 

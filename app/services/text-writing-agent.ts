@@ -164,7 +164,12 @@ export const ALWAYS_EXCLUDED_DIRECTORIES = ["node_modules", ".vite"];
 export const DEFAULT_UNCHECKED_PATHS = ["readme.md", "speaker-notes.md"];
 
 export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
-  function* (props: { videoId: string; enabledFiles: string[] | undefined; includeTranscript?: boolean; enabledSections?: string[] }) {
+  function* (props: {
+    videoId: string;
+    enabledFiles: string[] | undefined;
+    includeTranscript?: boolean;
+    enabledSections?: string[];
+  }) {
     const db = yield* DBService;
     const fs = yield* FileSystem.FileSystem;
 
@@ -174,7 +179,8 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
 
     // For standalone videos (no lesson), return empty files but include transcript
     let textFiles: { path: string; content: string }[] = [];
-    let imageFiles: { path: string; content: Uint8Array<ArrayBufferLike> }[] = [];
+    let imageFiles: { path: string; content: Uint8Array<ArrayBufferLike> }[] =
+      [];
     let sectionPath: string | undefined;
     let lessonPath: string | undefined;
 
@@ -184,14 +190,20 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
       sectionPath = section.path;
       lessonPath = lesson.path;
 
-      const fullLessonPath = path.join(repo.filePath, section.path, lesson.path);
+      const fullLessonPath = path.join(
+        repo.filePath,
+        section.path,
+        lesson.path
+      );
 
       const allFilesInDirectory = yield* fs
         .readDirectory(fullLessonPath, {
           recursive: true,
         })
         .pipe(
-          Effect.map((files) => files.map((file) => path.join(fullLessonPath, file)))
+          Effect.map((files) =>
+            files.map((file) => path.join(fullLessonPath, file))
+          )
         );
 
       const filteredFiles = allFilesInDirectory.filter((filePath) => {
@@ -264,12 +276,23 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
     let transcript = "";
     if (includeTranscript) {
       const enabledSectionIds = new Set(props.enabledSections ?? []);
-      const allSectionsEnabled = enabledSectionIds.size === 0 || (props.enabledSections?.length === 0 && video.clipSections.length === 0);
+      const allSectionsEnabled =
+        enabledSectionIds.size === 0 ||
+        (props.enabledSections?.length === 0 &&
+          video.clipSections.length === 0);
 
       // Combine clips and clip sections, sort by order (ASCII ordering to match PostgreSQL COLLATE "C")
       const allItems = [
-        ...video.clips.map((clip) => ({ type: "clip" as const, order: clip.order, clip })),
-        ...video.clipSections.map((section) => ({ type: "clip-section" as const, order: section.order, section })),
+        ...video.clips.map((clip) => ({
+          type: "clip" as const,
+          order: clip.order,
+          clip,
+        })),
+        ...video.clipSections.map((section) => ({
+          type: "clip-section" as const,
+          order: section.order,
+          section,
+        })),
       ].sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0));
 
       // Build formatted transcript with sections as H2 headers
@@ -288,7 +311,8 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
           }
 
           // Check if this section is enabled
-          currentSectionEnabled = allSectionsEnabled || enabledSectionIds.has(item.section.id);
+          currentSectionEnabled =
+            allSectionsEnabled || enabledSectionIds.has(item.section.id);
         } else if (item.clip.text && currentSectionEnabled) {
           currentParagraph.push(item.clip.text);
         }
@@ -308,8 +332,16 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
 
     // Combine clips and clip sections, sort by order (ASCII ordering to match PostgreSQL COLLATE "C")
     const allItems = [
-      ...video.clips.map((clip) => ({ type: "clip" as const, order: clip.order, clip })),
-      ...video.clipSections.map((section) => ({ type: "clip-section" as const, order: section.order, section })),
+      ...video.clips.map((clip) => ({
+        type: "clip" as const,
+        order: clip.order,
+        clip,
+      })),
+      ...video.clipSections.map((section) => ({
+        type: "clip-section" as const,
+        order: section.order,
+        section,
+      })),
     ].sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0));
 
     for (const item of allItems) {
@@ -321,7 +353,8 @@ export const acquireTextWritingContext = Effect.fn("acquireVideoContext")(
         });
       } else if (item.type === "clip") {
         // Add the clip's duration to cumulative total
-        cumulativeDuration += item.clip.sourceEndTime - item.clip.sourceStartTime;
+        cumulativeDuration +=
+          item.clip.sourceEndTime - item.clip.sourceStartTime;
       }
     }
 

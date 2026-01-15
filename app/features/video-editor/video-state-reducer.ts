@@ -556,7 +556,9 @@ export const makeVideoEditorReducer =
             [nextClip].filter((id) => id !== undefined)
           ),
           runningState:
-            state.currentClipId === action.clipId ? "paused" : state.runningState,
+            state.currentClipId === action.clipId
+              ? "paused"
+              : state.runningState,
         });
       }
       case "retranscribe-clip": {

@@ -20,9 +20,8 @@ export const action = async (args: Route.ActionArgs) => {
   const repoId = args.params.repoId;
 
   return Effect.gen(function* () {
-    const { archived } = yield* Schema.decodeUnknown(archiveRepoSchema)(
-      formDataObject
-    );
+    const { archived } =
+      yield* Schema.decodeUnknown(archiveRepoSchema)(formDataObject);
 
     const db = yield* DBService;
 

@@ -18,7 +18,10 @@ export const loader = async (args: Route.LoaderArgs) => {
 
     const ttCliService = yield* TotalTypeScriptCLIService;
 
-    const firstFramePath = yield* ttCliService.getFirstFrame(inputVideo, seekTo);
+    const firstFramePath = yield* ttCliService.getFirstFrame(
+      inputVideo,
+      seekTo
+    );
 
     const firstFrameReadStream = createReadStream(firstFramePath);
 

@@ -14,7 +14,8 @@ export const action = async (args: Route.ActionArgs) => {
   const formDataObject = Object.fromEntries(formData);
 
   return Effect.gen(function* () {
-    const result = yield* Schema.decodeUnknown(createVideoSchema)(formDataObject);
+    const result =
+      yield* Schema.decodeUnknown(createVideoSchema)(formDataObject);
 
     const db = yield* DBService;
 

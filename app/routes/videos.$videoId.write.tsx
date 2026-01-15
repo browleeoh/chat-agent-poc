@@ -2,7 +2,11 @@
 
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
-import type { SectionWithWordCount, Mode, Model } from "@/features/article-writer/types";
+import type {
+  SectionWithWordCount,
+  Mode,
+  Model,
+} from "@/features/article-writer/types";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import {
@@ -96,7 +100,11 @@ export const loader = async (args: Route.LoaderArgs) => {
     // Build transcript from clips and clip sections
     // Combine and sort clips and clip sections by order (ASCII ordering to match PostgreSQL COLLATE "C")
     type ClipItem = { type: "clip"; order: string; text: string | null };
-    type ClipSectionItem = { type: "clip-section"; order: string; name: string };
+    type ClipSectionItem = {
+      type: "clip-section";
+      order: string;
+      name: string;
+    };
 
     const clipItems: ClipItem[] = video.clips.map((clip) => ({
       type: "clip" as const,
@@ -104,11 +112,13 @@ export const loader = async (args: Route.LoaderArgs) => {
       text: clip.text,
     }));
 
-    const clipSectionItems: ClipSectionItem[] = video.clipSections.map((section) => ({
-      type: "clip-section" as const,
-      order: section.order,
-      name: section.name,
-    }));
+    const clipSectionItems: ClipSectionItem[] = video.clipSections.map(
+      (section) => ({
+        type: "clip-section" as const,
+        order: section.order,
+        name: section.name,
+      })
+    );
 
     const sortedItems = [...clipItems, ...clipSectionItems].sort((a, b) =>
       a.order < b.order ? -1 : a.order > b.order ? 1 : 0
@@ -138,9 +148,7 @@ export const loader = async (args: Route.LoaderArgs) => {
     }
 
     const transcript = transcriptParts.join("\n\n").trim();
-    const transcriptWordCount = transcript
-      ? transcript.split(/\s+/).length
-      : 0;
+    const transcriptWordCount = transcript ? transcript.split(/\s+/).length : 0;
 
     // Calculate word count per section
     const sectionsWithWordCount: SectionWithWordCount[] = [];
@@ -411,13 +419,20 @@ export function InnerComponent(props: Route.ComponentProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // When sections exist, derive includeTranscript from enabledSections
-    const transcriptEnabled = clipSections.length > 0
-      ? enabledSections.size > 0
-      : includeTranscript;
+    const transcriptEnabled =
+      clipSections.length > 0 ? enabledSections.size > 0 : includeTranscript;
 
     sendMessage(
       { text: text.trim() || "Go" },
-      { body: { enabledFiles: Array.from(enabledFiles), mode, model, includeTranscript: transcriptEnabled, enabledSections: Array.from(enabledSections) } }
+      {
+        body: {
+          enabledFiles: Array.from(enabledFiles),
+          mode,
+          model,
+          includeTranscript: transcriptEnabled,
+          enabledSections: Array.from(enabledSections),
+        },
+      }
     );
 
     setText("");
@@ -475,8 +490,8 @@ export function InnerComponent(props: Route.ComponentProps) {
                   ? enabledSections.size === clipSections.length
                     ? true
                     : enabledSections.size > 0
-                    ? "indeterminate"
-                    : false
+                      ? "indeterminate"
+                      : false
                   : includeTranscript
               }
               onCheckedChange={(checked) => {
@@ -509,7 +524,10 @@ export function InnerComponent(props: Route.ComponentProps) {
               <ScrollArea className="h-48">
                 <div className="space-y-1 px-2">
                   {clipSections.map((section) => (
-                    <div key={section.id} className="flex items-center gap-2 py-1 pl-6">
+                    <div
+                      key={section.id}
+                      className="flex items-center gap-2 py-1 pl-6"
+                    >
                       <Checkbox
                         id={`section-${section.id}`}
                         checked={enabledSections.has(section.id)}
@@ -636,7 +654,8 @@ export function InnerComponent(props: Route.ComponentProps) {
                         <div>
                           <div>Style Guide Pass - Skill Building</div>
                           <div className="text-xs text-muted-foreground">
-                            Refine existing skill-building steps with style guide
+                            Refine existing skill-building steps with style
+                            guide
                           </div>
                         </div>
                       </div>
@@ -795,7 +814,9 @@ export function InnerComponent(props: Route.ComponentProps) {
                           </span>
                         </div>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => writeToReadme("append")}>
+                      <DropdownMenuItem
+                        onSelect={() => writeToReadme("append")}
+                      >
                         <PlusIcon className="h-4 w-4 mr-2" />
                         <div className="flex flex-col">
                           <span className="font-medium">Append to README</span>

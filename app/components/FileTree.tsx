@@ -141,8 +141,8 @@ const FileTreeNode = ({
   const checkboxState = allEnabled
     ? true
     : someEnabled
-    ? "indeterminate"
-    : false;
+      ? "indeterminate"
+      : false;
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>

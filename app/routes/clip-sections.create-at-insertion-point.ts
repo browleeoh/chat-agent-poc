@@ -42,7 +42,9 @@ export const action = async (args: Route.ActionArgs) => {
       return Effect.die(data("Invalid request", { status: 400 }));
     }),
     Effect.catchTag("NotFoundError", () => {
-      return Effect.die(data("Clip not found for insertion point", { status: 404 }));
+      return Effect.die(
+        data("Clip not found for insertion point", { status: 404 })
+      );
     }),
     Effect.catchAll(() => {
       return Effect.die(data("Internal server error", { status: 500 }));

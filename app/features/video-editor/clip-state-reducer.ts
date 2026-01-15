@@ -109,7 +109,9 @@ export type ClipSectionOptimisticallyAdded = {
   shouldArchive?: boolean;
 };
 
-export type ClipSection = ClipSectionOnDatabase | ClipSectionOptimisticallyAdded;
+export type ClipSection =
+  | ClipSectionOnDatabase
+  | ClipSectionOptimisticallyAdded;
 
 export type TimelineItem = Clip | ClipSection;
 
@@ -212,7 +214,10 @@ export namespace clipStateReducer {
       }
     | {
         type: "update-clips";
-        clips: [DatabaseId, { scene: string; profile: string; beatType: BeatType }][];
+        clips: [
+          DatabaseId,
+          { scene: string; profile: string; beatType: BeatType },
+        ][];
       }
     | {
         type: "update-beat";
@@ -476,11 +481,8 @@ export const clipStateReducer: EffectReducer<
       };
     }
     case "clips-deleted": {
-      const { items, clipsToArchive, clipSectionsToArchive, insertionPoint } = archiveClips(
-        state.items,
-        action.clipIds,
-        state.insertionPoint
-      );
+      const { items, clipsToArchive, clipSectionsToArchive, insertionPoint } =
+        archiveClips(state.items, action.clipIds, state.insertionPoint);
 
       if (clipsToArchive.size > 0) {
         exec({
@@ -569,7 +571,10 @@ export const clipStateReducer: EffectReducer<
         const previousItem = state.items[itemIndex - 1];
 
         if (previousItem) {
-          if (previousItem.type === "on-database" || previousItem.type === "optimistically-added") {
+          if (
+            previousItem.type === "on-database" ||
+            previousItem.type === "optimistically-added"
+          ) {
             insertionPoint = {
               type: "after-clip",
               frontendClipId: previousItem.frontendId,
@@ -601,11 +606,12 @@ export const clipStateReducer: EffectReducer<
         if (!lastClip) {
           return state;
         }
-        const { items, clipsToArchive, clipSectionsToArchive, insertionPoint } = archiveClips(
-          state.items,
-          [lastClip.frontendId],
-          state.insertionPoint
-        );
+        const { items, clipsToArchive, clipSectionsToArchive, insertionPoint } =
+          archiveClips(
+            state.items,
+            [lastClip.frontendId],
+            state.insertionPoint
+          );
 
         if (clipsToArchive.size > 0) {
           exec({
@@ -668,15 +674,20 @@ export const clipStateReducer: EffectReducer<
 
       if (state.insertionPoint.type === "end") {
         const lastItem = state.items[state.items.length - 1];
-        if (lastItem && (lastItem.type === "on-database" || lastItem.type === "optimistically-added")) {
+        if (
+          lastItem &&
+          (lastItem.type === "on-database" ||
+            lastItem.type === "optimistically-added")
+        ) {
           clipToToggle = lastItem;
         }
       } else if (state.insertionPoint.type === "after-clip") {
         const targetFrontendId = state.insertionPoint.frontendClipId;
-        const item = state.items.find(
-          (c) => c.frontendId === targetFrontendId
-        );
-        if (item && (item.type === "on-database" || item.type === "optimistically-added")) {
+        const item = state.items.find((c) => c.frontendId === targetFrontendId);
+        if (
+          item &&
+          (item.type === "on-database" || item.type === "optimistically-added")
+        ) {
           clipToToggle = item;
         }
       } else if (state.insertionPoint.type === "after-clip-section") {
@@ -703,18 +714,20 @@ export const clipStateReducer: EffectReducer<
       return {
         ...state,
         items: state.items.map((item) =>
-          item.frontendId === clipToToggle!.frontendId && (item.type === "on-database" || item.type === "optimistically-added")
+          item.frontendId === clipToToggle!.frontendId &&
+          (item.type === "on-database" || item.type === "optimistically-added")
             ? { ...item, beatType: newBeatType }
             : item
         ),
       };
     }
     case "toggle-beat-for-clip": {
-      const item = state.items.find(
-        (c) => c.frontendId === action.clipId
-      );
+      const item = state.items.find((c) => c.frontendId === action.clipId);
 
-      if (!item || (item.type !== "on-database" && item.type !== "optimistically-added")) {
+      if (
+        !item ||
+        (item.type !== "on-database" && item.type !== "optimistically-added")
+      ) {
         return state;
       }
 
@@ -734,7 +747,8 @@ export const clipStateReducer: EffectReducer<
       return {
         ...state,
         items: state.items.map((item) =>
-          item.frontendId === action.clipId && (item.type === "on-database" || item.type === "optimistically-added")
+          item.frontendId === action.clipId &&
+          (item.type === "on-database" || item.type === "optimistically-added")
             ? { ...item, beatType: newBeatType }
             : item
         ),
@@ -810,7 +824,9 @@ export const clipStateReducer: EffectReducer<
           (c) => c.frontendId === targetClipId
         );
         if (insertionPointIndex === -1) {
-          throw new Error("Target clip not found when inserting clip section after");
+          throw new Error(
+            "Target clip not found when inserting clip section after"
+          );
         }
         newItems = [
           ...state.items.slice(0, insertionPointIndex + 1),
@@ -824,7 +840,9 @@ export const clipStateReducer: EffectReducer<
           (c) => c.frontendId === targetClipSectionId
         );
         if (insertionPointIndex === -1) {
-          throw new Error("Target clip section not found when inserting clip section after");
+          throw new Error(
+            "Target clip section not found when inserting clip section after"
+          );
         }
         newItems = [
           ...state.items.slice(0, insertionPointIndex + 1),
@@ -855,7 +873,11 @@ export const clipStateReducer: EffectReducer<
       const clipSection = state.items.find(
         (item) => item.frontendId === action.clipSectionId
       );
-      if (!clipSection || (clipSection.type !== "clip-section-on-database" && clipSection.type !== "clip-section-optimistically-added")) {
+      if (
+        !clipSection ||
+        (clipSection.type !== "clip-section-on-database" &&
+          clipSection.type !== "clip-section-optimistically-added")
+      ) {
         return state;
       }
 
@@ -1068,7 +1090,9 @@ const archiveClips = (
     frontendIds.includes(insertionPoint.frontendClipSectionId)
   ) {
     const clipSectionId = insertionPoint.frontendClipSectionId;
-    const prevClipIndex = allItems.findIndex((c) => c.frontendId === clipSectionId);
+    const prevClipIndex = allItems.findIndex(
+      (c) => c.frontendId === clipSectionId
+    );
     if (prevClipIndex === -1) {
       throw new Error("Previous clip section not found when archiving");
     }
@@ -1113,7 +1137,10 @@ const archiveClips = (
     let newInsertionPoint: FrontendInsertionPoint;
 
     if (previousNonUndefinedItem) {
-      if (previousNonUndefinedItem.type === "on-database" || previousNonUndefinedItem.type === "optimistically-added") {
+      if (
+        previousNonUndefinedItem.type === "on-database" ||
+        previousNonUndefinedItem.type === "optimistically-added"
+      ) {
         newInsertionPoint = {
           type: "after-clip",
           frontendClipId: previousNonUndefinedItem.frontendId,

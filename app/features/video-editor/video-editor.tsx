@@ -1,8 +1,5 @@
 import { formatSecondsToTimeCode } from "@/services/utils";
-import type {
-  ClipSectionNamingModal,
-  ClipComputedProps,
-} from "./types";
+import type { ClipSectionNamingModal, ClipComputedProps } from "./types";
 import { ClipSectionNamingModal as ClipSectionNamingModalComponent } from "./components/clip-section-naming-modal";
 import { VideoPlayerPanel } from "./components/video-player-panel";
 import { ClipTimeline } from "./components/clip-timeline";
@@ -20,10 +17,7 @@ import type {
   FrontendId,
   FrontendInsertionPoint,
 } from "./clip-state-reducer";
-import {
-  calculateTextSimilarity,
-  isClip,
-} from "./clip-utils";
+import { calculateTextSimilarity, isClip } from "./clip-utils";
 import {
   makeVideoEditorReducer,
   type videoStateReducer,
@@ -34,28 +28,67 @@ import { VideoStateContext } from "./video-state-context";
 export const VideoEditor = () => {
   // Access ClipStateContext values
   const items = useContextSelector(ClipStateContext, (v) => v!.items);
-  const clipIdsBeingTranscribed = useContextSelector(ClipStateContext, (v) => v!.clipIdsBeingTranscribed);
-  const insertionPoint = useContextSelector(ClipStateContext, (v) => v!.insertionPoint);
+  const clipIdsBeingTranscribed = useContextSelector(
+    ClipStateContext,
+    (v) => v!.clipIdsBeingTranscribed
+  );
+  const insertionPoint = useContextSelector(
+    ClipStateContext,
+    (v) => v!.insertionPoint
+  );
   const error = useContextSelector(ClipStateContext, (v) => v!.error);
-  const obsConnectorState = useContextSelector(ClipStateContext, (v) => v!.obsConnectorState);
-  const liveMediaStream = useContextSelector(ClipStateContext, (v) => v!.liveMediaStream);
-  const speechDetectorState = useContextSelector(ClipStateContext, (v) => v!.speechDetectorState);
+  const obsConnectorState = useContextSelector(
+    ClipStateContext,
+    (v) => v!.obsConnectorState
+  );
+  const liveMediaStream = useContextSelector(
+    ClipStateContext,
+    (v) => v!.liveMediaStream
+  );
+  const speechDetectorState = useContextSelector(
+    ClipStateContext,
+    (v) => v!.speechDetectorState
+  );
   const videoId = useContextSelector(ClipStateContext, (v) => v!.videoId);
   const videoPath = useContextSelector(ClipStateContext, (v) => v!.videoPath);
   const lessonPath = useContextSelector(ClipStateContext, (v) => v!.lessonPath);
   const repoName = useContextSelector(ClipStateContext, (v) => v!.repoName);
   const repoId = useContextSelector(ClipStateContext, (v) => v!.repoId);
   const lessonId = useContextSelector(ClipStateContext, (v) => v!.lessonId);
-  const hasExplainerFolder = useContextSelector(ClipStateContext, (v) => v!.hasExplainerFolder);
+  const hasExplainerFolder = useContextSelector(
+    ClipStateContext,
+    (v) => v!.hasExplainerFolder
+  );
   const videoCount = useContextSelector(ClipStateContext, (v) => v!.videoCount);
-  const onSetInsertionPoint = useContextSelector(ClipStateContext, (v) => v!.onSetInsertionPoint);
-  const onToggleBeatForClip = useContextSelector(ClipStateContext, (v) => v!.onToggleBeatForClip);
+  const onSetInsertionPoint = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onSetInsertionPoint
+  );
+  const onToggleBeatForClip = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onToggleBeatForClip
+  );
   const onMoveClip = useContextSelector(ClipStateContext, (v) => v!.onMoveClip);
-  const onAddClipSection = useContextSelector(ClipStateContext, (v) => v!.onAddClipSection);
-  const onUpdateClipSection = useContextSelector(ClipStateContext, (v) => v!.onUpdateClipSection);
-  const onAddClipSectionAt = useContextSelector(ClipStateContext, (v) => v!.onAddClipSectionAt);
-  const onClipsRemoved = useContextSelector(ClipStateContext, (v) => v!.onClipsRemoved);
-  const onClipsRetranscribe = useContextSelector(ClipStateContext, (v) => v!.onClipsRetranscribe);
+  const onAddClipSection = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onAddClipSection
+  );
+  const onUpdateClipSection = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onUpdateClipSection
+  );
+  const onAddClipSectionAt = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onAddClipSectionAt
+  );
+  const onClipsRemoved = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onClipsRemoved
+  );
+  const onClipsRetranscribe = useContextSelector(
+    ClipStateContext,
+    (v) => v!.onClipsRetranscribe
+  );
 
   // Filter items to get only clips (excluding clip sections)
   const clips = useMemo(() => items.filter(isClip), [items]);
@@ -279,34 +312,34 @@ export const VideoEditor = () => {
           hasExplainerFolder={hasExplainerFolder}
           videoCount={videoCount}
           dispatch={dispatch}
-        onClipFinished={() => {
-          dispatch({ type: "clip-finished" });
-        }}
-        onUpdateCurrentTime={(time) => {
-          dispatch({ type: "update-clip-current-time", time });
-        }}
-        onSectionClick={(sectionId, index) => {
-          // Select the section
-          dispatch({
-            type: "click-clip",
-            clipId: sectionId,
-            ctrlKey: false,
-            shiftKey: false,
-          });
+          onClipFinished={() => {
+            dispatch({ type: "clip-finished" });
+          }}
+          onUpdateCurrentTime={(time) => {
+            dispatch({ type: "update-clip-current-time", time });
+          }}
+          onSectionClick={(sectionId, index) => {
+            // Select the section
+            dispatch({
+              type: "click-clip",
+              clipId: sectionId,
+              ctrlKey: false,
+              shiftKey: false,
+            });
 
-          // Scroll to the section in the timeline after React finishes re-rendering
-          // Use the index to find the section since IDs change on re-render
-          requestAnimationFrame(() => {
-            const allSections = document.querySelectorAll('[id^="section-"]');
-            if (allSections[index]) {
-              allSections[index].scrollIntoView({
-                behavior: "instant",
-                block: "center",
-              });
-            }
-          });
-        }}
-      />
+            // Scroll to the section in the timeline after React finishes re-rendering
+            // Use the index to find the section since IDs change on re-render
+            requestAnimationFrame(() => {
+              const allSections = document.querySelectorAll('[id^="section-"]');
+              if (allSections[index]) {
+                allSections[index].scrollIntoView({
+                  behavior: "instant",
+                  block: "center",
+                });
+              }
+            });
+          }}
+        />
 
         {/* Clip Section Naming Modal */}
         <ClipSectionNamingModalComponent
@@ -332,30 +365,30 @@ export const VideoEditor = () => {
           onSetInsertionPoint={onSetInsertionPoint}
           onMoveClip={onMoveClip}
           onToggleBeatForClip={onToggleBeatForClip}
-        onEditSection={(sectionId, currentName) => {
-          setClipSectionNamingModal({
-            mode: "edit",
-            clipSectionId: sectionId,
-            currentName,
-          });
-        }}
-        onAddSectionBefore={(itemId, defaultName) => {
-          setClipSectionNamingModal({
-            mode: "add-at",
-            position: "before",
-            itemId,
-            defaultName,
-          });
-        }}
-        onAddSectionAfter={(itemId, defaultName) => {
-          setClipSectionNamingModal({
-            mode: "add-at",
-            position: "after",
-            itemId,
-            defaultName,
-          });
-        }}
-        dispatch={dispatch}
+          onEditSection={(sectionId, currentName) => {
+            setClipSectionNamingModal({
+              mode: "edit",
+              clipSectionId: sectionId,
+              currentName,
+            });
+          }}
+          onAddSectionBefore={(itemId, defaultName) => {
+            setClipSectionNamingModal({
+              mode: "add-at",
+              position: "before",
+              itemId,
+              defaultName,
+            });
+          }}
+          onAddSectionAfter={(itemId, defaultName) => {
+            setClipSectionNamingModal({
+              mode: "add-at",
+              position: "after",
+              itemId,
+              defaultName,
+            });
+          }}
+          dispatch={dispatch}
         />
       </div>
     </VideoStateContext.Provider>

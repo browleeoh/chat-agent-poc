@@ -23,9 +23,8 @@ export const action = async (args: Route.ActionArgs) => {
   const repoId = args.params.repoId;
 
   return Effect.gen(function* () {
-    const { filePath } = yield* Schema.decodeUnknown(rewritePathSchema)(
-      formDataObject
-    );
+    const { filePath } =
+      yield* Schema.decodeUnknown(rewritePathSchema)(formDataObject);
 
     const trimmedPath = filePath.trim();
 

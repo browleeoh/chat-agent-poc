@@ -29,7 +29,7 @@ const createInitialState = (
 class ReducerTester<
   TState,
   TAction extends EventObject,
-  TEffect extends EffectObject<TState, TAction>
+  TEffect extends EffectObject<TState, TAction>,
 > {
   private reducer: EffectReducer<TState, TAction, TEffect>;
   private state: TState;
@@ -200,7 +200,9 @@ describe("clipStateReducer", () => {
 
       expect(reportEffect2).toHaveBeenCalledWith({
         type: "update-clips",
-        clips: [["1", { scene: "Camera", profile: "Landscape", beatType: "none" }]],
+        clips: [
+          ["1", { scene: "Camera", profile: "Landscape", beatType: "none" }],
+        ],
       });
 
       expect(stateWithOneDatabaseClip.items.length).toBe(2);
@@ -221,7 +223,9 @@ describe("clipStateReducer", () => {
 
       expect(reportEffect3).toHaveBeenCalledWith({
         type: "update-clips",
-        clips: [["2", { scene: "No Face", profile: "Portrait", beatType: "none" }]],
+        clips: [
+          ["2", { scene: "No Face", profile: "Portrait", beatType: "none" }],
+        ],
       });
 
       expect(stateWithTwoDatabaseClips.items.length).toBe(2);

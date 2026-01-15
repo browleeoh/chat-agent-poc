@@ -499,7 +499,9 @@ export const ComponentInner = (props: Route.ComponentProps) => {
             type: "effect-failed",
             effectType: "transcribe-clips",
             message:
-              error instanceof Error ? error.message : "Failed to transcribe clips",
+              error instanceof Error
+                ? error.message
+                : "Failed to transcribe clips",
           });
         });
     },
@@ -513,7 +515,10 @@ export const ComponentInner = (props: Route.ComponentProps) => {
         if (item.type === "optimistically-added" && item.shouldArchive) {
           return false;
         }
-        if (item.type === "clip-section-optimistically-added" && item.shouldArchive) {
+        if (
+          item.type === "clip-section-optimistically-added" &&
+          item.shouldArchive
+        ) {
           return false;
         }
         return true;

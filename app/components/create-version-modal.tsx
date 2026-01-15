@@ -61,7 +61,9 @@ export function CreateVersionModal({
               Cancel
             </Button>
             <Button type="submit" disabled={fetcher.state === "submitting"}>
-              {fetcher.state === "submitting" ? "Creating..." : "Create Version"}
+              {fetcher.state === "submitting"
+                ? "Creating..."
+                : "Create Version"}
             </Button>
           </div>
         </fetcher.Form>

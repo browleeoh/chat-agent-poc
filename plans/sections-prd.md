@@ -3,6 +3,7 @@
 ## Problem Statement
 
 User creates course videos by recording and editing clips in a flat timeline. When exporting to YouTube, needs to provide chapter timestamps in descriptions (e.g., "0:00 Introduction", "2:34 Setup"). Currently:
+
 - No way to mark where clip sections begin in the timeline
 - Must manually calculate timestamps from clip durations
 - Difficult to navigate long videos during editing
@@ -13,6 +14,7 @@ This makes YouTube chapter creation time-consuming and error-prone.
 ## Solution
 
 Add clip section markers to video timeline as organizational dividers. Clip sections:
+
 - Appear as labeled divider lines between clips
 - Can be added via Stream Deck button at insertion point
 - Move up/down with clips using unified ordering
@@ -60,24 +62,28 @@ Add clip section markers to video timeline as organizational dividers. Clip sect
 ## Implementation Decisions
 
 ### Data Model
+
 - **Separate table**: New `clipSections` table (not type discriminator in clips table) - avoids collision with existing course `sections` table
 - **Schema**: `id` (UUID), `videoId` (FK to videos, cascade delete), `name` (text, required), `order` (varchar COLLATE "C"), `archived` (boolean, default false)
 - **Unified ordering**: Clip sections and clips share same fractional ordering space using varchar order field
 - **Minimal metadata**: Only name field - no description, color, icons, or timestamp overrides
 
 ### Frontend State
+
 - **Unified items array**: Single `(Clip | ClipSection)[]` array in state - order-dependent logic requires single source
 - **Type discriminator**: Add `type: "clip"` to Clip, `type: "clip-section"` to ClipSection
 - **Insertion point extension**: Add `after-clip-section` variant to insertion point type (alongside `start`, `end`, `after-clip`)
 - **Optimistic updates**: Clip sections added optimistically before DB confirmation, like clips
 
 ### Visual Design
+
 - **Divider line**: Horizontal line spanning timeline width (not card-like clips)
 - **Label**: Clip section name displayed on divider
 - **Selectable**: Click to select, participates in multi-select operations
 - **No grouping**: Clips don't show visual indication of clip section membership
 
 ### User Interactions
+
 - **Add via Stream Deck**: HTTP endpoint `/api/add-clip-section` → WebSocket message → create clip section at insertion point
 - **Naming flow**: Dismissible modal appears after creation. Default name "Section 1", "Section 2" (sequential). Dismiss/cancel keeps clip section with default name.
 - **After creation**: Insertion point moves to after new clip section
@@ -87,19 +93,23 @@ Add clip section markers to video timeline as organizational dividers. Clip sect
 - **No constraints**: Clip sections can be placed anywhere (first, last, middle)
 
 ### Playback & Export
+
 - **Playback**: Nothing happens at clip section markers - playback continues normally
 - **YouTube export**: Calculate timestamps by summing clip durations before each clip section. Format: "0:00 Section Name"
 
 ### Database Operations
+
 - **Reordering**: Fetch combined clips+clipSections, sort by order, calculate new fractional position, update single item
 - **Archiving**: Soft delete via `archived: true` (same pattern as clips)
 - **Queries**: Load clipSections with clips, sort by order field
 
 ### API Routes
+
 - Four new routes: `clip-sections.create.ts`, `clip-sections.update.ts`, `clip-sections.archive.ts`, `clip-sections.reorder.ts`
 - Follow same patterns as clip routes
 
 ### Stream Deck Integration
+
 - New HTTP endpoint on port 5174
 - Broadcasts WebSocket message on port 5172
 - React component handles message and shows modal

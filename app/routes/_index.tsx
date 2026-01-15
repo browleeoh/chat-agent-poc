@@ -60,7 +60,13 @@ import {
   VideotapeIcon,
 } from "lucide-react";
 import React, { useState } from "react";
-import { data, Link, useFetcher, useNavigate, useSearchParams } from "react-router";
+import {
+  data,
+  Link,
+  useFetcher,
+  useNavigate,
+  useSearchParams,
+} from "react-router";
 import type { Route } from "./+types/_index";
 import { toast } from "sonner";
 
@@ -414,7 +420,9 @@ export default function Component(props: Route.ComponentProps) {
                         >
                           <FolderPen className="w-4 h-4 mr-2" />
                           <div className="flex flex-col">
-                            <span className="font-medium">Rewrite Repo Path</span>
+                            <span className="font-medium">
+                              Rewrite Repo Path
+                            </span>
                             <span className="text-xs text-muted-foreground">
                               Change repository file path
                             </span>
@@ -423,7 +431,11 @@ export default function Component(props: Route.ComponentProps) {
                         <DropdownMenuItem
                           onSelect={() => {
                             archiveRepoFetcher.submit(
-                              { archived: currentRepo.archived ? "false" : "true" },
+                              {
+                                archived: currentRepo.archived
+                                  ? "false"
+                                  : "true",
+                              },
                               {
                                 method: "post",
                                 action: `/api/repos/${currentRepo.id}/archive`,
@@ -434,7 +446,8 @@ export default function Component(props: Route.ComponentProps) {
                           <Archive className="w-4 h-4 mr-2" />
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {currentRepo.archived ? "Unarchive" : "Archive"} Course
+                              {currentRepo.archived ? "Unarchive" : "Archive"}{" "}
+                              Course
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {currentRepo.archived
@@ -497,9 +510,7 @@ export default function Component(props: Route.ComponentProps) {
                             </DropdownMenuItem>
                             {data.versions.length > 1 && (
                               <DropdownMenuItem asChild>
-                                <Link
-                                  to={`/repos/${currentRepo.id}/changelog`}
-                                >
+                                <Link to={`/repos/${currentRepo.id}/changelog`}>
                                   <FileText className="w-4 h-4 mr-2" />
                                   <div className="flex flex-col">
                                     <span className="font-medium">

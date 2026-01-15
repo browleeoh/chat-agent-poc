@@ -15,9 +15,8 @@ export const action = async (args: Route.ActionArgs) => {
 
   return Effect.gen(function* () {
     const db = yield* DBService;
-    const { clipId, direction } = yield* Schema.decodeUnknown(
-      reorderClipSchema
-    )(json);
+    const { clipId, direction } =
+      yield* Schema.decodeUnknown(reorderClipSchema)(json);
 
     yield* db.reorderClip(clipId, direction);
 

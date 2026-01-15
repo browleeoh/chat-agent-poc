@@ -10,7 +10,10 @@ const createClipSectionAtPositionSchema = Schema.Struct({
   name: Schema.String,
   position: Schema.Union(Schema.Literal("before"), Schema.Literal("after")),
   targetItemId: Schema.String,
-  targetItemType: Schema.Union(Schema.Literal("clip"), Schema.Literal("clip-section")),
+  targetItemType: Schema.Union(
+    Schema.Literal("clip"),
+    Schema.Literal("clip-section")
+  ),
 });
 
 export const action = async (args: Route.ActionArgs) => {
@@ -18,9 +21,8 @@ export const action = async (args: Route.ActionArgs) => {
 
   return Effect.gen(function* () {
     const db = yield* DBService;
-    const { videoId, name, position, targetItemId, targetItemType } = yield* Schema.decodeUnknown(
-      createClipSectionAtPositionSchema
-    )(json);
+    const { videoId, name, position, targetItemId, targetItemType } =
+      yield* Schema.decodeUnknown(createClipSectionAtPositionSchema)(json);
 
     const clipSection = yield* db.createClipSectionAtPosition(
       videoId,

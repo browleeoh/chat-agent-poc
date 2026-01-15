@@ -20,9 +20,8 @@ export const action = async (args: Route.ActionArgs) => {
   const videoId = args.params.videoId;
 
   return Effect.gen(function* () {
-    const { archived } = yield* Schema.decodeUnknown(archiveVideoSchema)(
-      formDataObject
-    );
+    const { archived } =
+      yield* Schema.decodeUnknown(archiveVideoSchema)(formDataObject);
 
     const db = yield* DBService;
 

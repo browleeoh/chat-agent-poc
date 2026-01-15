@@ -136,9 +136,7 @@ export const ClipTimeline = (props: {
               );
             })}
 
-            {props.insertionPoint.type === "end" && (
-              <InsertionPointIndicator />
-            )}
+            {props.insertionPoint.type === "end" && <InsertionPointIndicator />}
           </>
         )}
       </div>

@@ -74,9 +74,8 @@ export const action = async ({ request }: Route.ActionArgs) => {
   const formDataObject = Object.fromEntries(formData);
 
   return Effect.gen(function* () {
-    const result = yield* Schema.decodeUnknown(publishRepoSchema)(
-      formDataObject
-    );
+    const result =
+      yield* Schema.decodeUnknown(publishRepoSchema)(formDataObject);
 
     const copyFileToDropboxSemaphore = yield* makeSemaphore(20);
 

@@ -16,7 +16,7 @@ const varcharCollateC = customType<{
   default: boolean;
 }>({
   dataType() {
-    return "varchar(255) COLLATE \"C\"";
+    return 'varchar(255) COLLATE "C"';
   },
 });
 
@@ -110,10 +110,9 @@ export const videos = createTable("video", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  lessonId: varchar("lesson_id", { length: 255 }).references(
-    () => lessons.id,
-    { onDelete: "cascade" }
-  ),
+  lessonId: varchar("lesson_id", { length: 255 }).references(() => lessons.id, {
+    onDelete: "cascade",
+  }),
   path: text("path").notNull(),
   originalFootagePath: text("original_footage_path").notNull(),
   archived: boolean("archived").notNull().default(false),
@@ -174,7 +173,10 @@ export namespace DB {
     id: DatabaseId;
   }
 
-  export interface ClipSection extends Omit<InferSelectModel<typeof clipSections>, "id"> {
+  export interface ClipSection extends Omit<
+    InferSelectModel<typeof clipSections>,
+    "id"
+  > {
     id: DatabaseId;
   }
 }
@@ -184,7 +186,10 @@ export const clipsRelations = relations(clips, ({ one }) => ({
 }));
 
 export const clipSectionsRelations = relations(clipSections, ({ one }) => ({
-  video: one(videos, { fields: [clipSections.videoId], references: [videos.id] }),
+  video: one(videos, {
+    fields: [clipSections.videoId],
+    references: [videos.id],
+  }),
 }));
 
 export const videosRelations = relations(videos, ({ one, many }) => ({

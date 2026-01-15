@@ -25,8 +25,12 @@ const chatSchema = Schema.Struct({
     Schema.Literal("youtube-description")
   ),
   model: Schema.String,
-  includeTranscript: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-  enabledSections: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
+  includeTranscript: Schema.optionalWith(Schema.Boolean, {
+    default: () => true,
+  }),
+  enabledSections: Schema.optionalWith(Schema.Array(Schema.String), {
+    default: () => [],
+  }),
 });
 
 export const action = async (args: Route.ActionArgs) => {

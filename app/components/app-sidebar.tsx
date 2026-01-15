@@ -79,7 +79,9 @@ export function AppSidebar({
                   <ContextMenu key={repo.id}>
                     <ContextMenuTrigger asChild>
                       <Button
-                        variant={selectedRepoId === repo.id ? "default" : "ghost"}
+                        variant={
+                          selectedRepoId === repo.id ? "default" : "ghost"
+                        }
                         size="sm"
                         className={cn(
                           "w-full justify-start whitespace-normal text-left h-auto py-1.5",
@@ -156,7 +158,9 @@ export function AppSidebar({
                         className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
                         asChild
                       >
-                        <Link to={`/videos/${video.id}/edit`}>{video.path}</Link>
+                        <Link to={`/videos/${video.id}/edit`}>
+                          {video.path}
+                        </Link>
                       </Button>
                     </ContextMenuTrigger>
                     <ContextMenuContent>

@@ -23,9 +23,8 @@ export const action = async (args: Route.ActionArgs) => {
     const db = yield* DBService;
     const ttCliService = yield* TotalTypeScriptCLIService;
 
-    const { shortsDirectoryOutputName } = yield* Schema.decodeUnknown(
-      exportVideoSchema
-    )(formDataObject);
+    const { shortsDirectoryOutputName } =
+      yield* Schema.decodeUnknown(exportVideoSchema)(formDataObject);
 
     const video = yield* db.getVideoWithClipsById(videoId);
 

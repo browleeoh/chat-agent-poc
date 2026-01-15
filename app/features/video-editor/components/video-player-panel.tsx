@@ -217,7 +217,9 @@ export const VideoPlayerPanel = (props: {
                 </Tooltip>
 
                 <ActionsDropdown
-                  allClipsHaveSilenceDetected={props.allClipsHaveSilenceDetected}
+                  allClipsHaveSilenceDetected={
+                    props.allClipsHaveSilenceDetected
+                  }
                   allClipsHaveText={props.allClipsHaveText}
                   exportVideoClipsFetcher={props.exportVideoClipsFetcher}
                   exportToDavinciResolveFetcher={

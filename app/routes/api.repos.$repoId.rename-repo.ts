@@ -17,9 +17,8 @@ export const action = async (args: Route.ActionArgs) => {
   const repoId = args.params.repoId;
 
   return Effect.gen(function* () {
-    const { name } = yield* Schema.decodeUnknown(renameRepoSchema)(
-      formDataObject
-    );
+    const { name } =
+      yield* Schema.decodeUnknown(renameRepoSchema)(formDataObject);
 
     const db = yield* DBService;
 
