@@ -60,3 +60,22 @@
   - Monitor re-render performance with React DevTools Profiler to verify improvements
   - Consider further optimizations if needed
 
+
+## Issue #73 - Error Page Copy to Clipboard
+- Added copy-to-clipboard functionality to error boundary
+- Implementation details:
+  - Added useState hook for isCopied state tracking
+  - Imported CopyIcon and CheckIcon from lucide-react
+  - Created copyErrorToClipboard function using navigator.clipboard.writeText()
+  - Added "Copy error" button with visual feedback (shows "Copied" with check icon for 2 seconds)
+  - Error details include: status code, title, description, and stack trace (if available)
+- Key decisions:
+  - Followed existing clipboard pattern from use-clipboard-operations.ts
+  - Placed copy button first in footer for easy access
+  - Uses 2-second timeout for copy confirmation (consistent with existing patterns)
+  - Only includes stack trace in copied text if it's available (dev mode)
+- Files changed:
+  - app/root.tsx (added copy functionality to ErrorBoundary component)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes

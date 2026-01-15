@@ -6,7 +6,14 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { AlertTriangle, Home, RefreshCw, ServerCrash } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckIcon,
+  CopyIcon,
+  Home,
+  RefreshCw,
+  ServerCrash,
+} from "lucide-react";
 
 import type { Route } from "./+types/root";
 import { Toaster } from "@/components/ui/sonner";
@@ -19,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useState } from "react";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -62,6 +70,7 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const [isCopied, setIsCopied] = useState(false);
   let status = 500;
   let title = "Something went wrong";
   let description = "An unexpected error occurred. Please try again.";
@@ -89,6 +98,26 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 
   const Icon = status === 404 ? AlertTriangle : ServerCrash;
 
+  const copyErrorToClipboard = async () => {
+    try {
+      const errorDetails = [
+        `Error ${status}: ${title}`,
+        "",
+        `Description: ${description}`,
+      ];
+
+      if (stack) {
+        errorDetails.push("", "Stack trace:", stack);
+      }
+
+      await navigator.clipboard.writeText(errorDetails.join("\n"));
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy error to clipboard:", err);
+    }
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-lg">
@@ -109,6 +138,14 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
           </CardContent>
         )}
         <CardFooter className="flex justify-center gap-3">
+          <Button variant="outline" onClick={copyErrorToClipboard}>
+            {isCopied ? (
+              <CheckIcon className="h-4 w-4 mr-2" />
+            ) : (
+              <CopyIcon className="h-4 w-4 mr-2" />
+            )}
+            {isCopied ? "Copied" : "Copy error"}
+          </Button>
           <Button variant="outline" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Try again
