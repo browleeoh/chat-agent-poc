@@ -3,6 +3,7 @@ import { clips, clipSections, lessons, repos, repoVersions, sections, videos } f
 import type { AppendFromOBSSchema } from "@/routes/videos.$videoId.append-from-obs";
 import {
   AmbiguousRepoUpdateError,
+  CannotArchiveLessonVideoError,
   CannotDeleteNonLatestVersionError,
   CannotDeleteOnlyVersionError,
   NotFoundError,
@@ -647,7 +648,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
     const getStandaloneVideos = Effect.fn("getStandaloneVideos")(function* () {
       const standaloneVideos = yield* makeDbCall(() =>
         db.query.videos.findMany({
-          where: isNull(videos.lessonId),
+          where: and(isNull(videos.lessonId), eq(videos.archived, false)),
           orderBy: desc(videos.createdAt),
           with: {
             clips: {
@@ -659,6 +660,23 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       );
 
       return standaloneVideos;
+    });
+
+    const getArchivedStandaloneVideos = Effect.fn("getArchivedStandaloneVideos")(function* () {
+      const archivedVideos = yield* makeDbCall(() =>
+        db.query.videos.findMany({
+          where: and(isNull(videos.lessonId), eq(videos.archived, true)),
+          orderBy: desc(videos.createdAt),
+          with: {
+            clips: {
+              orderBy: asc(clips.order),
+              where: eq(clips.archived, false),
+            },
+          },
+        })
+      );
+
+      return archivedVideos;
     });
 
     const getVideoWithClipsById = Effect.fn("getVideoWithClipsById")(function* (
@@ -947,6 +965,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
       getVideoById: getVideoDeepById,
       getVideoWithClipsById: getVideoWithClipsById,
       getStandaloneVideos,
+      getArchivedStandaloneVideos,
       createRepo: Effect.fn("createRepo")(function* (input: {
         filePath: string;
         name: string;
@@ -1370,6 +1389,50 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           return yield* new NotFoundError({
             type: "updateRepoArchiveStatus",
             params: { repoId },
+          });
+        }
+
+        return updated;
+      }),
+      updateVideoArchiveStatus: Effect.fn("updateVideoArchiveStatus")(function* (opts: {
+        videoId: string;
+        archived: boolean;
+      }) {
+        const { videoId, archived } = opts;
+
+        // First verify the video is a standalone video (lessonId is NULL)
+        const video = yield* makeDbCall(() =>
+          db.query.videos.findFirst({
+            where: eq(videos.id, videoId),
+          })
+        );
+
+        if (!video) {
+          return yield* new NotFoundError({
+            type: "updateVideoArchiveStatus",
+            params: { videoId },
+          });
+        }
+
+        if (video.lessonId !== null) {
+          return yield* new CannotArchiveLessonVideoError({
+            videoId,
+            lessonId: video.lessonId,
+          });
+        }
+
+        const [updated] = yield* makeDbCall(() =>
+          db
+            .update(videos)
+            .set({ archived })
+            .where(eq(videos.id, videoId))
+            .returning()
+        );
+
+        if (!updated) {
+          return yield* new NotFoundError({
+            type: "updateVideoArchiveStatus",
+            params: { videoId },
           });
         }
 

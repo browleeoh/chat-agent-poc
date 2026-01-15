@@ -35,3 +35,10 @@ export class AmbiguousRepoUpdateError extends Data.TaggedError(
   filePath: string;
   repoCount: number;
 }> {}
+
+export class CannotArchiveLessonVideoError extends Data.TaggedError(
+  "CannotArchiveLessonVideoError"
+)<{
+  videoId: string;
+  lessonId: string;
+}> {}

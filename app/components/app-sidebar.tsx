@@ -50,6 +50,7 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const archiveRepoFetcher = useFetcher();
+  const archiveVideoFetcher = useFetcher();
 
   return (
     <div className="w-80 border-r bg-muted/30 hidden lg:flex flex-col">
@@ -148,15 +149,34 @@ export function AppSidebar({
             <CollapsibleContent>
               <div className="ml-6 mt-2 space-y-1">
                 {standaloneVideos.map((video) => (
-                  <Button
-                    key={video.id}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
-                    asChild
-                  >
-                    <Link to={`/videos/${video.id}/edit`}>{video.path}</Link>
-                  </Button>
+                  <ContextMenu key={video.id}>
+                    <ContextMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
+                        asChild
+                      >
+                        <Link to={`/videos/${video.id}/edit`}>{video.path}</Link>
+                      </Button>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          archiveVideoFetcher.submit(
+                            { archived: "true" },
+                            {
+                              method: "post",
+                              action: `/api/videos/${video.id}/archive`,
+                            }
+                          );
+                        }}
+                      >
+                        <Archive className="w-4 h-4" />
+                        Archive
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 ))}
                 <Link to="/videos">
                   <Button

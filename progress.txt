@@ -307,3 +307,36 @@
 - Files changed:
   - app/components/add-repo-modal.tsx:1-36 (removed DialogTrigger import and button)
   - app/components/app-sidebar.tsx:15,183 (removed Separator import and element)
+## Issue #61 - Archive Standalone Videos
+- Added archive functionality for standalone videos mirroring the existing archive repos feature
+- Archived videos are hidden from sidebar but accessible in view-all-videos page in separate section
+- Database and API infrastructure:
+  - Added `archived` boolean field to videos table schema (defaults to false)
+  - Created POST /api/videos/:videoId/archive endpoint with lessonId verification
+  - Endpoint verifies video is standalone (lessonId is NULL) before allowing archive
+  - Updated getStandaloneVideos() to filter out archived videos (only returns non-archived)
+  - Added getArchivedStandaloneVideos() query function for archived videos
+  - Added updateVideoArchiveStatus() method to DBService with lessonId verification
+  - Created CannotArchiveLessonVideoError for attempting to archive lesson-attached videos
+- UI implementation:
+  - Added archive context menu to sidebar standalone videos (right-click to archive)
+  - Updated view-all-videos page to load both non-archived and archived videos
+  - Non-archived videos shown at top, archived videos in separate section below
+  - Archive/Unarchive option in context menu on view-all-videos page
+  - Archived section hidden when there are no archived videos
+  - Archive icon imported from lucide-react
+- Key decisions:
+  - Archive is soft delete - videos remain in database with archived flag
+  - Lesson-attached videos are protected from archiving at API level
+  - Clips and clip sections within archived videos retain their own archive state independently
+  - Used same pattern as repos archiving (string "true"/"false" schema transform to boolean)
+  - No separate "Archived Videos" page needed (unlike repos)
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/db/schema.ts:119 (added archived field to videos table)
+  - app/services/db-service.ts:650,664-679,967,1418-1422 (updated getStandaloneVideos, added getArchivedStandaloneVideos and updateVideoArchiveStatus)
+  - app/services/db-service-errors.ts:39-44 (added CannotArchiveLessonVideoError)
+  - app/routes/api.videos.$videoId.archive.ts (new endpoint)
+  - app/components/app-sidebar.tsx:53,152-179 (added archive context menu to sidebar videos)
+  - app/routes/videos._index.tsx:17,19,32,45,59,65,143-172,174-236 (added archived videos section and context menus)

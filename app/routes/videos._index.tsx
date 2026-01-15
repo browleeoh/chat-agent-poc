@@ -14,9 +14,9 @@ import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
 import { FileSystem } from "@effect/platform";
 import { Console, Effect } from "effect";
-import { ArrowLeft, Plus, Trash2, VideoIcon, VideoOffIcon } from "lucide-react";
+import { Archive, ArrowLeft, Plus, Trash2, VideoIcon, VideoOffIcon } from "lucide-react";
 import { useState } from "react";
-import { data, Link } from "react-router";
+import { data, Link, useFetcher } from "react-router";
 import type { Route } from "./+types/videos._index";
 
 export const meta: Route.MetaFunction = () => {
@@ -29,10 +29,11 @@ export const loader = async () => {
     const fs = yield* FileSystem.FileSystem;
 
     const videos = yield* db.getStandaloneVideos();
+    const archivedVideos = yield* db.getArchivedStandaloneVideos();
 
     // Check export status for each video
     const hasExportedVideoMap: Record<string, boolean> = {};
-    yield* Effect.forEach(videos, (video) => {
+    yield* Effect.forEach([...videos, ...archivedVideos], (video) => {
       return Effect.gen(function* () {
         const hasExportedVideo = yield* fs.exists(getVideoPath(video.id));
         hasExportedVideoMap[video.id] = hasExportedVideo;
@@ -41,6 +42,7 @@ export const loader = async () => {
 
     return {
       videos,
+      archivedVideos,
       hasExportedVideoMap,
     };
   }).pipe(
@@ -54,12 +56,13 @@ export const loader = async () => {
 };
 
 export default function Component(props: Route.ComponentProps) {
-  const { videos, hasExportedVideoMap } = props.loaderData;
+  const { videos, archivedVideos, hasExportedVideoMap } = props.loaderData;
   const [isAddVideoOpen, setIsAddVideoOpen] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState<{
     id: string;
     path: string;
   } | null>(null);
+  const archiveVideoFetcher = useFetcher();
 
   useFocusRevalidate({ enabled: true });
 
@@ -139,6 +142,20 @@ export default function Component(props: Route.ComponentProps) {
                   </ContextMenuTrigger>
                   <ContextMenuContent>
                     <ContextMenuItem
+                      onSelect={() => {
+                        archiveVideoFetcher.submit(
+                          { archived: "true" },
+                          {
+                            method: "post",
+                            action: `/api/videos/${video.id}/archive`,
+                          }
+                        );
+                      }}
+                    >
+                      <Archive className="w-4 h-4" />
+                      Archive
+                    </ContextMenuItem>
+                    <ContextMenuItem
                       variant="destructive"
                       onSelect={() => {
                         setVideoToDelete({ id: video.id, path: video.path });
@@ -151,6 +168,70 @@ export default function Component(props: Route.ComponentProps) {
                 </ContextMenu>
               );
             })}
+          </div>
+        )}
+
+        {archivedVideos.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
+              <Archive className="w-5 h-5" />
+              Archived Videos
+            </h2>
+            <div className="space-y-2">
+              {archivedVideos.map((video) => {
+                const totalDuration = video.clips.reduce((acc, clip) => {
+                  return acc + (clip.sourceEndTime - clip.sourceStartTime);
+                }, 0);
+
+                return (
+                  <ContextMenu key={video.id}>
+                    <ContextMenuTrigger asChild>
+                      <Link
+                        to={`/videos/${video.id}/edit`}
+                        className="flex items-center justify-between border rounded-lg px-4 py-3 hover:bg-muted/50 transition-colors cursor-context-menu"
+                      >
+                        <div className="flex items-center gap-3">
+                          {hasExportedVideoMap[video.id] ? (
+                            <VideoIcon className="w-5 h-5 flex-shrink-0" />
+                          ) : (
+                            <VideoOffIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
+                          )}
+                          <span className="font-medium">{video.path}</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {formatSecondsToTimeCode(totalDuration)}
+                        </span>
+                      </Link>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          archiveVideoFetcher.submit(
+                            { archived: "false" },
+                            {
+                              method: "post",
+                              action: `/api/videos/${video.id}/archive`,
+                            }
+                          );
+                        }}
+                      >
+                        <Archive className="w-4 h-4" />
+                        Unarchive
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        variant="destructive"
+                        onSelect={() => {
+                          setVideoToDelete({ id: video.id, path: video.path });
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
