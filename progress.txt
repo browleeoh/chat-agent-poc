@@ -100,6 +100,29 @@
 - Testing:
   - All tests pass
   - TypeScript type checking passes
+
+### Task 2: Implement API routes for file CRUD operations
+- Created three API route files for standalone video file operations
+- Implementation details:
+  - api.standalone-files.create.ts: creates new files with content validation
+  - api.standalone-files.update.ts: updates existing file content
+  - api.standalone-files.delete.ts: deletes files from filesystem
+  - All routes use Effect FileSystem API and Schema validation
+  - Routes validate video exists and is standalone (lessonId === null)
+  - Directory automatically created when first file is added
+- Key decisions:
+  - Separate route per operation (following codebase patterns)
+  - Validation: 409 Conflict if file already exists on create
+  - Validation: 404 Not Found if file doesn't exist on update/delete
+  - Validation: 400 Bad Request if video is lesson-connected
+  - Uses withDatabaseDump for state persistence
+  - Comprehensive error handling with specific status codes
+- Files changed:
+  - app/routes/api.standalone-files.create.ts (new file)
+  - app/routes/api.standalone-files.update.ts (new file)
+  - app/routes/api.standalone-files.delete.ts (new file)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
 - Next steps:
-  - Task 2: Design API route structure for file CRUD operations
   - Task 3: Create loader to fetch files for standalone video write page
