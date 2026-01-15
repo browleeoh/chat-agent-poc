@@ -13,7 +13,9 @@ This skill will be invoked when the user wants to create a PRD. You should go th
 
 4. Interview the user about the implementation. Be extremely detailed and thorough.
 
-5. Once you have a complete understanding of the problem and solution, use the template below to write the PRD. The PRD should be submitted as a GitHub issue.
+5. Hammer out the exact scope of the implementation. Work out what you plan to build and what you DON'T plan to build as part of this PRD.
+
+6. Once you have a complete understanding of the problem and solution, use the template below to write the PRD. The PRD should be submitted as a GitHub issue.
 
 <prd-template>
 
@@ -48,6 +50,10 @@ A list of implementation decisions that were made. This can include:
 - Specific interactions
 
 Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
+
+## Out of Scope
+
+A description of the things that are out of scope for this PRD.
 
 ## Further Notes
 
