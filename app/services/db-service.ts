@@ -928,8 +928,20 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }
       ),
       getRepos: Effect.fn("getRepos")(function* () {
-        const repos = yield* makeDbCall(() => db.query.repos.findMany());
-        return repos;
+        const reposResult = yield* makeDbCall(() =>
+          db.query.repos.findMany({
+            where: eq(repos.archived, false),
+          })
+        );
+        return reposResult;
+      }),
+      getArchivedRepos: Effect.fn("getArchivedRepos")(function* () {
+        const reposResult = yield* makeDbCall(() =>
+          db.query.repos.findMany({
+            where: eq(repos.archived, true),
+          })
+        );
+        return reposResult;
       }),
       archiveClip,
       getVideoById: getVideoDeepById,
@@ -1335,6 +1347,28 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         if (!updated) {
           return yield* new NotFoundError({
             type: "updateRepoName",
+            params: { repoId },
+          });
+        }
+
+        return updated;
+      }),
+      updateRepoArchiveStatus: Effect.fn("updateRepoArchiveStatus")(function* (opts: {
+        repoId: string;
+        archived: boolean;
+      }) {
+        const { repoId, archived } = opts;
+        const [updated] = yield* makeDbCall(() =>
+          db
+            .update(repos)
+            .set({ archived })
+            .where(eq(repos.id, repoId))
+            .returning()
+        );
+
+        if (!updated) {
+          return yield* new NotFoundError({
+            type: "updateRepoArchiveStatus",
             params: { repoId },
           });
         }

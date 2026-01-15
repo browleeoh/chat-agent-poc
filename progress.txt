@@ -97,3 +97,25 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/features/video-editor/video-editor.tsx:866
+
+## Issue #52 - Repo Archiving (Part 1: Database and API infrastructure)
+- Added `archived` boolean field to repos table schema (defaults to false)
+- Created POST /api/repos/:repoId/archive endpoint to toggle archive status
+- Updated `getRepos()` to filter out archived repos (only returns non-archived)
+- Added `getArchivedRepos()` query function to fetch archived repos
+- Added `updateRepoArchiveStatus()` method to DBService
+- Implementation details:
+  - Used same pattern as existing clip/clipSection archiving
+  - Archive endpoint accepts `{ archived: true|false }` body
+  - Database schema change requires `npm run db:push` in production
+- Key decisions:
+  - Archive field with default false ensures backward compatibility
+  - Separate query functions for active vs archived repos keeps code clear
+  - Archive is soft delete - repos remain in database
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/db/schema.ts:40 (added archived field)
+  - app/services/db-service.ts:930-945 (updated getRepos, added getArchivedRepos)
+  - app/services/db-service.ts:1344-1365 (added updateRepoArchiveStatus)
+  - app/routes/api.repos.$repoId.archive.ts (new endpoint)
