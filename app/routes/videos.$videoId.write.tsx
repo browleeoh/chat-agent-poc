@@ -2,6 +2,7 @@
 
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
+import type { SectionWithWordCount, Mode, Model } from "@/features/article-writer/types";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import {
@@ -142,12 +143,6 @@ export const loader = async (args: Route.LoaderArgs) => {
       : 0;
 
     // Calculate word count per section
-    type SectionWithWordCount = {
-      id: string;
-      name: string;
-      order: string;
-      wordCount: number;
-    };
     const sectionsWithWordCount: SectionWithWordCount[] = [];
     let currentSectionIndex = -1;
 
@@ -281,19 +276,7 @@ const Video = (props: { src: string }) => {
   return <video src={props.src} className="w-full" controls ref={ref} />;
 };
 
-type Mode =
-  | "article"
-  | "project"
-  | "skill-building"
-  | "style-guide-skill-building"
-  | "style-guide-project"
-  | "seo-description"
-  | "youtube-title"
-  | "youtube-thumbnail"
-  | "youtube-description";
-type Model = "claude-sonnet-4-5" | "claude-haiku-4-5";
-
-const modeToLabel = {
+const modeToLabel: Record<Mode, string> = {
   article: "Article",
   project: "Project Steps",
   "skill-building": "Skill Building Steps",

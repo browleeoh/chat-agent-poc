@@ -31,6 +31,12 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatSecondsToTimeCode } from "@/services/utils";
+import type {
+  ClipSectionNamingModal,
+  ClipComputedProps,
+  ClipSectionDividerProps,
+  LiveMediaStreamProps,
+} from "./types";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -269,20 +275,8 @@ export const VideoEditor = (props: {
   const [isAddVideoModalOpen, setIsAddVideoModalOpen] = useState(false);
 
   // State for clip section naming modal
-  // When creating: { mode: "create", defaultName: string }
-  // When editing: { mode: "edit", clipSectionId: FrontendId, currentName: string }
-  // When adding at position: { mode: "add-at", position: "before" | "after", itemId: FrontendId, defaultName: string }
-  const [clipSectionNamingModal, setClipSectionNamingModal] = useState<
-    | { mode: "create"; defaultName: string }
-    | { mode: "edit"; clipSectionId: FrontendId; currentName: string }
-    | {
-        mode: "add-at";
-        position: "before" | "after";
-        itemId: FrontendId;
-        defaultName: string;
-      }
-    | null
-  >(null);
+  const [clipSectionNamingModal, setClipSectionNamingModal] =
+    useState<ClipSectionNamingModal>(null);
 
   const copyTranscriptToClipboard = async () => {
     try {
@@ -393,10 +387,7 @@ export const VideoEditor = (props: {
   // Create a map of clip frontendId -> computed properties (timecode, levenshtein)
   const clipComputedProps = useMemo(() => {
     let timecode = 0;
-    const map = new Map<
-      FrontendId,
-      { timecode: string; nextLevenshtein: number }
-    >();
+    const map: ClipComputedProps = new Map();
 
     clips.forEach((clip, index) => {
       if (clip.type === "optimistically-added") {
@@ -1437,11 +1428,7 @@ export const BeatIndicator = () => {
 
 export const ClipSectionDivider = React.forwardRef<
   HTMLButtonElement,
-  {
-    name: string;
-    isSelected: boolean;
-    onClick: (e: React.MouseEvent) => void;
-  } & React.ButtonHTMLAttributes<HTMLButtonElement>
+  ClipSectionDividerProps
 >(({ name, isSelected, onClick, className, ...rest }, ref) => {
   return (
     <button
@@ -1466,12 +1453,7 @@ export const ClipSectionDivider = React.forwardRef<
 });
 ClipSectionDivider.displayName = "ClipSectionDivider";
 
-export const LiveMediaStream = (props: {
-  mediaStream: MediaStream;
-  obsConnectorState: OBSConnectionState;
-  speechDetectorState: FrontendSpeechDetectorState;
-  showCenterLine: boolean;
-}) => {
+export const LiveMediaStream = (props: LiveMediaStreamProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {

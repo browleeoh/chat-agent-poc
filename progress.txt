@@ -376,3 +376,32 @@
 - Files changed:
   - app/features/video-editor/clip-utils.ts (new file)
   - app/features/video-editor/video-editor.tsx:33-34,63-76 (removed function definitions, added import)
+
+## Issue #64 - Progressive Disclosure Refactor - Phase 1: Create types.ts files
+- Created types.ts files in video-editor and article-writer feature directories
+- Extracted type definitions to reduce inline complexity in large TSX files
+- Implementation details:
+  - Created app/features/video-editor/types.ts with 4 type definitions:
+    - ClipSectionNamingModal: State for clip section naming modal (create/edit/add-at modes)
+    - ClipComputedProps: Map of clip IDs to computed properties (timecode, Levenshtein)
+    - ClipSectionDividerProps: Props for ClipSectionDivider component
+    - LiveMediaStreamProps: Props for LiveMediaStream component
+  - Created app/features/article-writer/types.ts with 3 type definitions:
+    - SectionWithWordCount: Clip sections with word counts for UI display
+    - Mode: Writing mode for article writer (extends TextWritingAgentMode)
+    - Model: AI model selection (Sonnet 4.5 or Haiku 4.5)
+  - Updated video-editor.tsx to import and use types from types.ts
+  - Updated videos.$videoId.write.tsx to import and use types from types.ts
+  - Removed inline type definitions from both files
+- Key decisions:
+  - Prioritized types used by multiple functions or representing core data structures
+  - Added JSDoc comments for better documentation
+  - _index.tsx does not need types.ts (uses inferred types from database queries)
+  - Kept types within feature directories for better organization
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/features/video-editor/types.ts (new file)
+  - app/features/article-writer/types.ts (new file)
+  - app/features/video-editor/video-editor.tsx:34-39,278-279,390,1429-1431,1456 (added import, updated type usage)
+  - app/routes/videos.$videoId.write.tsx:5,146,279 (added import, removed inline types)
