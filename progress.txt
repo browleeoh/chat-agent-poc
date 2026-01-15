@@ -413,3 +413,29 @@
   - Task 4: Implement smart sequential filename generation
   - Task 5: Add image preview functionality
   - Task 6: Update create API to handle base64 image data
+
+### Task 4: Implement smart sequential filename generation
+- Implemented intelligent filename generation for pasted content
+- Implementation details:
+  - Added existingFiles prop to StandaloneFilePasteModal
+  - Created generateFilename() function with type-specific logic
+  - For text files: generates "notes.md" first, then "notes-1.md", "notes-2.md", etc.
+  - For images: generates "diagram-1.png", "diagram-2.png", etc. (always numbered)
+  - Auto-populates filename input when content is pasted
+  - Filename is editable by user before submission
+  - Sequential counter increments to find first available filename
+- Key decisions:
+  - Text files start with unnumbered "notes.md" for simplicity (first file)
+  - Images always start at "diagram-1.png" (never unnumbered)
+  - Follows exact naming pattern specified in issue #80
+  - Auto-population via useEffect when pastedContent changes
+  - User can still override the generated filename
+- Files changed:
+  - app/components/standalone-file-paste-modal.tsx (added generateFilename, auto-population logic)
+  - app/routes/videos.$videoId.write.tsx (passed existingFiles prop to modal)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 5: Add image preview functionality
+  - Task 6: Update create API to handle base64 image data

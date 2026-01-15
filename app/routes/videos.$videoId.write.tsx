@@ -1085,6 +1085,7 @@ export function InnerComponent(props: Route.ComponentProps) {
             videoId={videoId}
             open={isPasteModalOpen}
             onOpenChange={handlePasteModalClose}
+            existingFiles={files}
           />
           <DeleteStandaloneFileModal
             videoId={videoId}

@@ -15,6 +15,7 @@ export function StandaloneFilePasteModal(props: {
   videoId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  existingFiles: Array<{ path: string }>;
 }) {
   const fetcher = useFetcher();
   const [filename, setFilename] = useState("");
@@ -23,6 +24,30 @@ export function StandaloneFilePasteModal(props: {
     data: string;
   } | null>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
+
+  // Generate smart sequential filename based on existing files
+  const generateFilename = (type: "text" | "image"): string => {
+    const existingFilenames = props.existingFiles.map((f) => f.path);
+
+    if (type === "image") {
+      // For images: diagram-1.png, diagram-2.png, etc.
+      let counter = 1;
+      while (existingFilenames.includes(`diagram-${counter}.png`)) {
+        counter++;
+      }
+      return `diagram-${counter}.png`;
+    } else {
+      // For text: notes.md, notes-1.md, notes-2.md, etc.
+      if (!existingFilenames.includes("notes.md")) {
+        return "notes.md";
+      }
+      let counter = 1;
+      while (existingFilenames.includes(`notes-${counter}.md`)) {
+        counter++;
+      }
+      return `notes-${counter}.md`;
+    }
+  };
 
   // Reset form when modal opens
   useEffect(() => {
@@ -35,6 +60,14 @@ export function StandaloneFilePasteModal(props: {
       }, 100);
     }
   }, [props.open]);
+
+  // Auto-generate filename when content is pasted
+  useEffect(() => {
+    if (pastedContent) {
+      const generatedFilename = generateFilename(pastedContent.type);
+      setFilename(generatedFilename);
+    }
+  }, [pastedContent]);
 
   const handlePaste = async (e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -157,11 +190,6 @@ export function StandaloneFilePasteModal(props: {
                 <Input
                   id="filename"
                   name="filename"
-                  placeholder={
-                    pastedContent.type === "image"
-                      ? "diagram-1.png"
-                      : "notes.md"
-                  }
                   value={filename}
                   onChange={(e) => setFilename(e.target.value)}
                   required
