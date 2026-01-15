@@ -79,3 +79,27 @@
 - Testing:
   - All tests pass
   - TypeScript type checking passes
+
+
+## Issue #75 - Standalone Video File Tree
+### Task 1: Add STANDALONE_VIDEO_FILES_DIR environment variable and file system structure
+- Added environment variable for configuring standalone video files storage location
+- Implementation details:
+  - Created app/services/standalone-video-files.ts with utility functions
+  - getStandaloneVideoFilesBaseDir(): gets base directory from env var (defaults to ./standalone-video-files)
+  - getStandaloneVideoFilePath(videoId, filename?): constructs full path to files
+  - File organization structure: {BASE_DIR}/{videoId}/{filename}
+- Key decisions:
+  - Used services directory for utility functions (consistent with existing patterns)
+  - Provided sensible default if environment variable not set
+  - Files organized by video ID to prevent conflicts
+- Files changed:
+  - .env (added STANDALONE_VIDEO_FILES_DIR variable)
+  - .env.example (created with documentation for all env vars)
+  - app/services/standalone-video-files.ts (new utility module)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Task 2: Design API route structure for file CRUD operations
+  - Task 3: Create loader to fetch files for standalone video write page
