@@ -363,6 +363,18 @@ export default function Component(props: Route.ComponentProps) {
                       </ContextMenuContent>
                     </ContextMenu>
                   ))}
+
+                  {/* Archived Repos */}
+                  <Link to="/archived-repos">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-muted-foreground"
+                    >
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archived Repos
+                    </Button>
+                  </Link>
                 </div>
               </CollapsibleContent>
             </Collapsible>
@@ -405,15 +417,6 @@ export default function Component(props: Route.ComponentProps) {
                 </div>
               </CollapsibleContent>
             </Collapsible>
-
-            {/* Archived Repos */}
-            <Link
-              to="/archived-repos"
-              className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors pl-6"
-            >
-              <Archive className="w-5 h-5" />
-              Archived Repos
-            </Link>
 
             {/* Diagram Playground */}
             <Link

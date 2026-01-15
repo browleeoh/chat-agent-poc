@@ -175,3 +175,23 @@
 - All tests pass (21 passed, 1 todo)
 - TypeScript typechecks pass
 - File changed: app/routes/archived-repos.tsx:1-257
+
+## Issue #55 - Move archived repos link under repos section in sidebar
+- Moved "Archived Repos" link from standalone section to inside Repos collapsible section
+- Updated both _index.tsx and archived-repos.tsx for consistency
+- Implementation details:
+  - Changed from standalone Link with custom styling to Button inside CollapsibleContent
+  - Archived Repos now appears after the list of repos within the Repos section
+  - Styled as muted text like "View All Videos" to indicate it's a navigation link
+  - Removed the standalone "Archived Repos" section that was at the same level as "Diagram Playground"
+  - Now follows visual hierarchy: repos listed first, then archived repos link at bottom of section
+- Key decisions:
+  - Used Button component with ghost variant matching "View All Videos" pattern
+  - Maintains ml-6 indentation consistent with other items in CollapsibleContent
+  - Archive icon size changed from w-5 h-5 to w-4 h-4 with mr-2 spacing for consistency
+  - Link now collapses/expands with the Repos section
+- All tests pass (21 passed, 1 todo)
+- TypeScript typechecks pass
+- Files changed:
+  - app/routes/_index.tsx:367-377,421-428
+  - app/routes/archived-repos.tsx:135-145,181-188
