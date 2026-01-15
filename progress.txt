@@ -260,3 +260,24 @@
 - Testing:
   - All tests pass
   - TypeScript type checking passes
+
+
+## Issue #77 - Replace Select All/Deselect All buttons with checkbox
+- Replaced Select All and Deselect All buttons with a single checkbox for both lesson and standalone video files
+- Implementation details:
+  - Replaced button group with checkbox that matches transcript checkbox behavior
+  - Checkbox shows checked when all files are selected
+  - Checkbox shows indeterminate when some (but not all) files are selected
+  - Checkbox shows unchecked when no files are selected
+  - Clicking checkbox when checked/indeterminate deselects all files
+  - Clicking checkbox when unchecked selects all files
+  - For standalone videos, "Add File" button moved to same row as checkbox
+- Key decisions:
+  - Followed exact same pattern as transcript checkbox for consistency
+  - Three-state checkbox (checked/indeterminate/unchecked) provides clear visual feedback
+  - Layout matches transcript section with checkbox and label
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (replaced buttons with checkbox for both lesson and standalone files)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes

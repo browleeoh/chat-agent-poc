@@ -661,33 +661,33 @@ export function InnerComponent(props: Route.ComponentProps) {
           {/* File tree - only show for lesson-connected videos */}
           {!isStandalone && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between px-2">
-                <h3 className="text-sm font-semibold">Files</h3>
-              </div>
-              {files.length > 0 && (
-                <div className="flex gap-2 px-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
+              <div className="flex items-center gap-2 py-1 px-2">
+                <Checkbox
+                  id="include-files"
+                  checked={
+                    files.length === 0
+                      ? false
+                      : enabledFiles.size === files.length
+                        ? true
+                        : enabledFiles.size > 0
+                          ? "indeterminate"
+                          : false
+                  }
+                  onCheckedChange={(checked) => {
+                    if (checked) {
                       setEnabledFiles(new Set(files.map((f) => f.path)));
-                    }}
-                  >
-                    Select All
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
+                    } else {
                       setEnabledFiles(new Set());
-                    }}
-                  >
-                    Deselect All
-                  </Button>
-                </div>
-              )}
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="include-files"
+                  className="text-sm flex-1 cursor-pointer"
+                >
+                  Files
+                </label>
+              </div>
               <FileTree
                 files={files}
                 enabledFiles={enabledFiles}
@@ -698,8 +698,32 @@ export function InnerComponent(props: Route.ComponentProps) {
           {/* Standalone file tree with management UI */}
           {isStandalone && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between px-2">
-                <h3 className="text-sm font-semibold">Files</h3>
+              <div className="flex items-center gap-2 py-1 px-2">
+                <Checkbox
+                  id="include-standalone-files"
+                  checked={
+                    files.length === 0
+                      ? false
+                      : enabledFiles.size === files.length
+                        ? true
+                        : enabledFiles.size > 0
+                          ? "indeterminate"
+                          : false
+                  }
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setEnabledFiles(new Set(files.map((f) => f.path)));
+                    } else {
+                      setEnabledFiles(new Set());
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="include-standalone-files"
+                  className="text-sm flex-1 cursor-pointer"
+                >
+                  Files
+                </label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -710,30 +734,6 @@ export function InnerComponent(props: Route.ComponentProps) {
                   Add File
                 </Button>
               </div>
-              {files.length > 0 && (
-                <div className="flex gap-2 px-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      setEnabledFiles(new Set(files.map((f) => f.path)));
-                    }}
-                  >
-                    Select All
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      setEnabledFiles(new Set());
-                    }}
-                  >
-                    Deselect All
-                  </Button>
-                </div>
-              )}
               <StandaloneFileTree
                 files={files}
                 enabledFiles={enabledFiles}
