@@ -29,3 +29,37 @@
   - User needs to resolve pnpm permission issue and run `pnpm install`
   - User should run `npm run format` to format entire codebase before first commit
 
+## Issue #64 - Progressive Disclosure Refactor (Phase 1-3 Complete)
+- Extracted utility functions and custom hooks from video-editor.tsx (Phase 1-3)
+- Implementation details:
+  - Created app/features/video-editor/video-editor-utils.ts with utility functions:
+    - DANGEROUS_TEXT_SIMILARITY_THRESHOLD constant (duplicate detection threshold)
+    - getDatabaseClipBeforeInsertionPoint() - finds clip before insertion point
+    - calculateViewMode() - determines video player view mode
+    - calculateTotalDuration() - calculates total duration of all clips
+  - Created app/features/video-editor/hooks/use-clip-computed-props.ts:
+    - useClipComputedProps() - computes timecode and levenshtein for each clip
+    - useAreAnyClipsDangerous() - checks if any clips have dangerous similarity
+  - Updated video-editor.tsx to use new utilities and hooks
+  - Updated clip-item.tsx to import DANGEROUS_TEXT_SIMILARITY_THRESHOLD from utils
+- Progress:
+  - video-editor.tsx: 1,592 → 364 lines (1,228 lines saved / 77% reduction)
+  - Target: ~150 lines (need ~214 more lines reduction)
+- Key decisions:
+  - Kept prop drilling pattern (no additional Context added)
+  - Extracted computation logic into hooks for better testability
+  - Consolidated constants and helper functions into shared utilities
+- Results:
+  - ✅ All tests pass (21 passed, 1 todo)
+  - ✅ TypeScript typechecks pass
+  - ✅ No breaking changes - all function signatures preserved
+- Files changed:
+  - app/features/video-editor/video-editor-utils.ts (new file)
+  - app/features/video-editor/hooks/use-clip-computed-props.ts (new file)
+  - app/features/video-editor/video-editor.tsx (updated)
+  - app/features/video-editor/components/clip-item.tsx (updated)
+- Next steps:
+  - Further reduce video-editor.tsx to ~150 lines (may require deeper architectural changes)
+  - Begin Phase 2: Extract components from _index.tsx into repo-dashboard feature
+  - Begin Phase 3: Extract components from videos.$videoId.write.tsx into article-writer feature
+
