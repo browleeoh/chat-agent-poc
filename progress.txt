@@ -611,3 +611,21 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #83 is complete - newsletter mode is now available in the mode selector
+
+
+## Issue #85 - Fix newsletter mode 400 error
+- Fixed "Invalid request" error when using newsletter mode in article writer
+- Implementation details:
+  - Added Schema.Literal("newsletter") to the mode union in chatSchema (videos.$videoId.completions.ts)
+  - Newsletter mode was added in Issue #83 but schema validation was not updated
+  - Schema validation was rejecting requests with mode="newsletter", causing 400 error
+- Key decisions:
+  - Simple one-line fix to add missing mode literal to schema
+  - No other changes needed - newsletter prompt and agent logic already implemented correctly
+- Files changed:
+  - app/routes/videos.$videoId.completions.ts (added newsletter to mode schema)
+- Testing:
+  - All tests pass
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #85 is complete - newsletter mode now works without validation errors

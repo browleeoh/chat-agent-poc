@@ -22,7 +22,8 @@ const chatSchema = Schema.Struct({
     Schema.Literal("seo-description"),
     Schema.Literal("youtube-title"),
     Schema.Literal("youtube-thumbnail"),
-    Schema.Literal("youtube-description")
+    Schema.Literal("youtube-description"),
+    Schema.Literal("newsletter")
   ),
   model: Schema.String,
   includeTranscript: Schema.optionalWith(Schema.Boolean, {
