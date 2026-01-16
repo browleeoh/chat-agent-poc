@@ -16,8 +16,9 @@ export function LessonFilePasteModal(props: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingFiles: Array<{ path: string }>;
+  onFileCreated?: (filename: string) => void;
 }) {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<{ success: boolean; filename: string }>();
   const [filename, setFilename] = useState("");
   const [pastedContent, setPastedContent] = useState<{
     type: "text" | "image";
@@ -75,6 +76,15 @@ export function LessonFilePasteModal(props: {
     }
   }, [pastedContent]);
 
+  // Handle successful file creation
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.success) {
+      const createdFilename = fetcher.data.filename;
+      props.onOpenChange(false);
+      props.onFileCreated?.(createdFilename);
+    }
+  }, [fetcher.state, fetcher.data]);
+
   const handlePaste = async (e: React.ClipboardEvent) => {
     e.preventDefault();
 
@@ -126,13 +136,11 @@ export function LessonFilePasteModal(props: {
     formData.append("filename", filename);
     formData.append("content", pastedContent.data);
 
-    await fetcher.submit(formData, {
+    fetcher.submit(formData, {
       method: "post",
       action: "/api/lesson-files/create",
       encType: "multipart/form-data",
     });
-
-    props.onOpenChange(false);
   };
 
   return (

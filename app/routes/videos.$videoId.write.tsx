@@ -572,6 +572,11 @@ export function InnerComponent(props: Route.ComponentProps) {
     }
   };
 
+  const handleStandaloneFileCreated = (filename: string) => {
+    // Automatically add newly created file to context
+    setEnabledFiles((prev) => new Set([...prev, filename]));
+  };
+
   const handleDeleteModalClose = (open: boolean) => {
     setIsDeleteModalOpen(open);
     if (!open) {
@@ -586,6 +591,11 @@ export function InnerComponent(props: Route.ComponentProps) {
       // Revalidate to refresh the file list
       revalidator.revalidate();
     }
+  };
+
+  const handleLessonFileCreated = (filename: string) => {
+    // Automatically add newly created file to context
+    setEnabledFiles((prev) => new Set([...prev, filename]));
   };
 
   const handleFileClick = (filePath: string) => {
@@ -1150,6 +1160,7 @@ export function InnerComponent(props: Route.ComponentProps) {
             open={isPasteModalOpen}
             onOpenChange={handlePasteModalClose}
             existingFiles={files}
+            onFileCreated={handleStandaloneFileCreated}
           />
           <DeleteStandaloneFileModal
             videoId={videoId}
@@ -1166,6 +1177,7 @@ export function InnerComponent(props: Route.ComponentProps) {
           open={isLessonPasteModalOpen}
           onOpenChange={handleLessonPasteModalClose}
           existingFiles={files}
+          onFileCreated={handleLessonFileCreated}
         />
       )}
       {/* File preview modal */}

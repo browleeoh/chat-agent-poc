@@ -793,3 +793,34 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #93 is complete - filename input now auto-focuses after paste
+
+
+## Issue #94 - Auto-add pasted files to context
+- Added automatic checkbox selection for newly pasted files
+- Implementation details:
+  - Updated StandaloneFilePasteModal to add onFileCreated callback prop
+  - Updated LessonFilePasteModal to add onFileCreated callback prop
+  - Both modals now type useFetcher with response type { success: boolean; filename: string }
+  - Added useEffect to handle successful file creation and call onFileCreated callback
+  - Changed fetcher.submit from async/await to fire-and-forget pattern
+  - Modal closes automatically after successful submission
+  - Added handleStandaloneFileCreated handler in videos.$videoId.write.tsx
+  - Added handleLessonFileCreated handler in videos.$videoId.write.tsx
+  - Both handlers automatically add newly created filename to enabledFiles Set
+  - Passed onFileCreated callbacks to both paste modal components
+- Key decisions:
+  - File is added to context immediately after successful creation
+  - Uses fetcher.data to capture filename from API response
+  - Leverages existing API response format { success: true, filename }
+  - No changes needed to API routes (already return filename)
+  - Modals handle their own closure after successful submission
+  - State update happens before revalidation completes (optimistic UI)
+- Files changed:
+  - app/components/standalone-file-paste-modal.tsx (added onFileCreated prop and logic)
+  - app/components/lesson-file-paste-modal.tsx (added onFileCreated prop and logic)
+  - app/routes/videos.$videoId.write.tsx (added handlers and wired up callbacks)
+- Testing:
+  - All 24 tests pass (24 passed, 1 todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #94 is complete - pasted files are now automatically included in context

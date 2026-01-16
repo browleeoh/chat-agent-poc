@@ -16,8 +16,9 @@ export function StandaloneFilePasteModal(props: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingFiles: Array<{ path: string }>;
+  onFileCreated?: (filename: string) => void;
 }) {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<{ success: boolean; filename: string }>();
   const [filename, setFilename] = useState("");
   const [pastedContent, setPastedContent] = useState<{
     type: "text" | "image";
@@ -74,6 +75,15 @@ export function StandaloneFilePasteModal(props: {
       }, 100);
     }
   }, [pastedContent]);
+
+  // Handle successful file creation
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.success) {
+      const createdFilename = fetcher.data.filename;
+      props.onOpenChange(false);
+      props.onFileCreated?.(createdFilename);
+    }
+  }, [fetcher.state, fetcher.data]);
 
   const handlePaste = async (e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -133,13 +143,11 @@ export function StandaloneFilePasteModal(props: {
       formData.append("content", pastedContent.data);
     }
 
-    await fetcher.submit(formData, {
+    fetcher.submit(formData, {
       method: "post",
       action: "/api/standalone-files/create",
       encType: "multipart/form-data",
     });
-
-    props.onOpenChange(false);
   };
 
   return (
