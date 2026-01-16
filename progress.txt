@@ -748,3 +748,26 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #91 is complete - clip sections can now be added without hook rendering errors
+
+
+## Issue #92 - Verify clip insertion logic before sections
+- Verified and tested edge case for inserting clips just before sections
+- Implementation details:
+  - Added comprehensive test suite for clip/section insertion scenarios
+  - Test 1: Insert clip before a section (via "Insert Before" context menu on section)
+  - Test 2: Insert clip before a section at the start of timeline
+  - Test 3: Insert clips after a section (standard flow)
+  - All tests verify correct insertion point calculation and item ordering
+- Key decisions:
+  - Existing logic in clip-state-reducer.ts is correct and handles all edge cases properly
+  - set-insertion-point-before correctly identifies previous item when setting insertion point before a section
+  - new-optimistic-clip-detected correctly inserts clips at all insertion point types (start, after-clip, after-clip-section)
+  - Insertion point updates correctly after clip insertion (moves to after newly inserted clip)
+- Files changed:
+  - app/features/video-editor/clip-state-reducer.test.ts (added 3 comprehensive tests for clip/section insertion)
+- Testing:
+  - All 17 tests pass (16 passed, 1 skipped/todo)
+  - TypeScript type checking passes
+  - No bugs found in clip insertion logic
+- Next steps:
+  - Issue #92 is complete - clip insertion logic verified and solid
