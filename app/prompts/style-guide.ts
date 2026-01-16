@@ -1,4 +1,8 @@
-export const STYLE_GUIDE = `
+/**
+ * Base style guide without placeholder link instructions.
+ * Use this for modes that shouldn't include placeholder links (article, newsletter, SEO, YouTube).
+ */
+export const STYLE_GUIDE_BASE = `
 <style-guide>
 ### Formatting
 
@@ -14,6 +18,15 @@ Use markdown tables to show data, or comparisons between different concepts and 
 
 Use lists to show steps taken, to show a list of things, or to illustrate how current/desired behavior works.
 
+Replace instances of "gonna" with "going to".
+</style-guide>
+`.trim();
+
+/**
+ * Placeholder link instructions for modes that should include them
+ * (steps project, steps skill building, style guide pass).
+ */
+export const PLACEHOLDER_LINK_INSTRUCTIONS = `
 <links>
 Link to external resources extremely aggressively. We want our users to EASILY be able to find the resources they need to complete the lesson.
 
@@ -37,8 +50,16 @@ Types of things you should add links for:
 - Properties of objects that come from libraries, like \`response.messages\`, \`result.toolCalls\`, etc.
 - Concepts from libraries, like "streaming", "tool calling", "message history", "message parts", "consuming streams".
 - Any direct references in the transcript to external resources, such as "reference material", "documentation", "examples"
+`.trim();
 
-Replace instances of "gonna" with "going to".
+/**
+ * Full style guide including placeholder link instructions.
+ * Use this for modes that should include placeholder links (steps project, steps skill building, style guide pass).
+ */
+export const STYLE_GUIDE = `
+${STYLE_GUIDE_BASE}
+
+${PLACEHOLDER_LINK_INSTRUCTIONS}
 `.trim();
 
 export const CODE_SAMPLES = `

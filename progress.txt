@@ -795,3 +795,25 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #92 is complete - database layer now correctly handles clip insertion near sections
+
+
+## Issue #95 - Remove placeholder link information from some modes
+- Removed placeholder link instructions from article mode prompts
+- Implementation details:
+  - Split STYLE_GUIDE into STYLE_GUIDE_BASE (formatting only) and STYLE_GUIDE (full with placeholder links)
+  - Added PLACEHOLDER_LINK_INSTRUCTIONS as separate export for clarity
+  - Updated generate-article.ts to import STYLE_GUIDE_BASE instead of STYLE_GUIDE
+  - Newsletter, SEO description, and YouTube description already didn't use STYLE_GUIDE - no changes needed
+  - Steps project, Steps skill building, and style guide pass modes continue using full STYLE_GUIDE
+- Key decisions:
+  - Used composition pattern: STYLE_GUIDE = STYLE_GUIDE_BASE + PLACEHOLDER_LINK_INSTRUCTIONS
+  - Maintained backwards compatibility - existing STYLE_GUIDE export unchanged in behavior
+  - Added JSDoc comments to clarify which modes should use which export
+- Files changed:
+  - app/prompts/style-guide.ts (split into base and full versions)
+  - app/prompts/generate-article.ts (now uses STYLE_GUIDE_BASE)
+- Testing:
+  - All 25 tests pass (24 passed, 1 skipped/todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #95 is complete - article mode no longer includes placeholder link instructions

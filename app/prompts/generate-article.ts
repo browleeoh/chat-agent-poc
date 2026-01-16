@@ -1,8 +1,8 @@
 import { getImageInstructions } from "./image-instructions";
-import { CODE_SAMPLES, STYLE_GUIDE } from "./style-guide";
+import { CODE_SAMPLES, STYLE_GUIDE_BASE } from "./style-guide";
 
 const taskInstructions = `
-${STYLE_GUIDE}
+${STYLE_GUIDE_BASE}
 
 ${CODE_SAMPLES}
 
