@@ -65,6 +65,7 @@ import {
   AlignLeftIcon,
   ClipboardIcon,
   MailIcon,
+  AlertTriangleIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -78,6 +79,7 @@ import { StandaloneFilePasteModal } from "@/components/standalone-file-paste-mod
 import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-modal";
 import { LessonFilePasteModal } from "@/components/lesson-file-paste-modal";
 import { FilePreviewModal } from "@/components/file-preview-modal";
+import { useLint } from "@/hooks/use-lint";
 import {
   ALWAYS_EXCLUDED_DIRECTORIES,
   DEFAULT_CHECKED_EXTENSIONS,
@@ -469,6 +471,33 @@ export function InnerComponent(props: Route.ComponentProps) {
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
+    }
+  };
+
+  // Lint hook for checking violations in real-time
+  const { violations, composeFixMessage } = useLint(
+    lastAssistantMessageText,
+    mode
+  );
+
+  const handleFixLintViolations = () => {
+    const fixMessage = composeFixMessage();
+    if (fixMessage) {
+      const transcriptEnabled =
+        clipSections.length > 0 ? enabledSections.size > 0 : includeTranscript;
+
+      sendMessage(
+        { text: fixMessage },
+        {
+          body: {
+            enabledFiles: Array.from(enabledFiles),
+            mode,
+            model,
+            includeTranscript: transcriptEnabled,
+            enabledSections: Array.from(enabledSections),
+          },
+        }
+      );
     }
   };
 
@@ -994,6 +1023,36 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </>
                   )}
                 </Button>
+                {/* Lint Fix button - shows when violations detected */}
+                {violations.length > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleFixLintViolations}
+                          disabled={status === "streaming"}
+                        >
+                          <AlertTriangleIcon className="h-4 w-4 mr-1" />
+                          Fix ({violations.reduce((sum, v) => sum + v.count, 0)}
+                          )
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <p className="font-semibold">Lint Violations:</p>
+                          {violations.map((v) => (
+                            <p key={v.rule.id} className="text-sm">
+                              • {v.rule.name}: {v.count} issue
+                              {v.count > 1 ? "s" : ""}
+                            </p>
+                          ))}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 {/* README dropdown - hidden for standalone videos */}
                 {!isStandalone && (
                   <DropdownMenu>

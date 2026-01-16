@@ -674,3 +674,38 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #87 is complete - users can now right-click videos to open article page in new tab
+
+
+## Issue #88 - Add lint system for article writer
+- Implemented comprehensive lint system for detecting and fixing style violations in AI output
+- Implementation details:
+  - Created app/features/article-writer/lint-rules.ts with LintRule and LintViolation interfaces
+  - Added LINT_RULES array with initial em-dash rule (pattern: /—/g, applies to all modes)
+  - Created app/hooks/use-lint.ts hook for real-time violation checking
+  - Hook uses useMemo to check violations on every text change (real-time during streaming)
+  - Returns violations array and composeFixMessage function
+  - Added lint button to article writer toolbar (between Copy and README buttons)
+  - Button shows total violation count: "Fix (N)"
+  - Button disabled during streaming to prevent interrupting AI mid-response
+  - Tooltip shows breakdown of violations by rule name and count
+  - handleFixLintViolations sends fix request message to LLM with full context
+  - Fix message format: "Please fix the following issues in your response:\n- [instructions]\n\nOutput the corrected version."
+  - System designed for easy addition of new rules (just add to LINT_RULES array with mode restrictions)
+- Key decisions:
+  - Lint checks run in real-time via useMemo for immediate feedback during streaming
+  - Button only appears when violations.length > 0 (conditional rendering)
+  - Disabled during streaming to prevent accidental interruption
+  - Fix request includes all context (files, mode, model, transcript, sections) for consistency
+  - Uses AlertTriangleIcon for visual distinction from other toolbar buttons
+  - Tooltip uses space-y-1 for clean vertical spacing of multiple violations
+  - Em-dash rule applies to all 10 modes (modes: null)
+- Files changed:
+  - app/features/article-writer/lint-rules.ts (new file - rule definitions)
+  - app/hooks/use-lint.ts (new hook - violation checking logic)
+  - app/routes/videos.$videoId.write.tsx (integrated lint button and handler)
+- Testing:
+  - All tests pass (21 passed)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #88 is complete - lint system fully functional with em-dash detection
+  - Future rules can be easily added to LINT_RULES array with appropriate mode restrictions
