@@ -24,6 +24,7 @@ export function LessonFilePasteModal(props: {
     data: string;
   } | null>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
+  const filenameInputRef = useRef<HTMLInputElement>(null);
 
   // Generate smart sequential filename based on existing files
   const generateFilename = (type: "text" | "image"): string => {
@@ -61,11 +62,16 @@ export function LessonFilePasteModal(props: {
     }
   }, [props.open]);
 
-  // Auto-generate filename when content is pasted
+  // Auto-generate filename when content is pasted and focus filename input
   useEffect(() => {
     if (pastedContent) {
       const generatedFilename = generateFilename(pastedContent.type);
       setFilename(generatedFilename);
+      // Focus the filename input after a short delay to ensure it's rendered
+      setTimeout(() => {
+        filenameInputRef.current?.focus();
+        filenameInputRef.current?.select();
+      }, 100);
     }
   }, [pastedContent]);
 
@@ -183,6 +189,7 @@ export function LessonFilePasteModal(props: {
               <div className="space-y-2">
                 <Label htmlFor="filename">Filename</Label>
                 <Input
+                  ref={filenameInputRef}
                   id="filename"
                   name="filename"
                   value={filename}

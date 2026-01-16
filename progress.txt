@@ -771,3 +771,25 @@
   - No bugs found in clip insertion logic
 - Next steps:
   - Issue #92 is complete - clip insertion logic verified and solid
+
+
+## Issue #93 - Auto-focus filename input after paste
+- Added auto-focus functionality to filename input after clipboard paste
+- Implementation details:
+  - Added filenameInputRef to StandaloneFilePasteModal component
+  - Added filenameInputRef to LessonFilePasteModal component
+  - Modified useEffect that watches pastedContent to focus and select filename input
+  - Uses 100ms setTimeout to ensure input is rendered before focusing
+  - Input text is automatically selected for easy replacement if needed
+- Key decisions:
+  - Used .select() in addition to .focus() to select all text for easier editing
+  - 100ms timeout ensures React has finished rendering the input field
+  - Applied to both standalone and lesson file paste modals for consistency
+- Files changed:
+  - app/components/standalone-file-paste-modal.tsx (added ref and focus logic)
+  - app/components/lesson-file-paste-modal.tsx (added ref and focus logic)
+- Testing:
+  - All 24 tests pass (24 passed, 1 todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #93 is complete - filename input now auto-focuses after paste
