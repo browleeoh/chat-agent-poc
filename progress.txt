@@ -771,3 +771,27 @@
   - No bugs found in clip insertion logic
 - Next steps:
   - Issue #92 is complete - clip insertion logic verified and solid
+
+### Task 2: Fix database appendClips to consider clip sections
+- Found and fixed bug in database layer clip insertion logic
+- Problem:
+  - appendClips function only queried clips when determining insertion order
+  - If a clip section existed between two clips, the new clip could be inserted with an order that places it AFTER the section instead of BEFORE
+  - Example: Clip A (order "a0"), Section X (order "a5"), Clip B (order "b0")
+  - Inserting after Clip A would calculate order between "a0" and "b0", ignoring Section X
+  - Could generate order like "a5" or "aM" which would place new clip after Section X
+- Solution:
+  - Modified appendClips to query BOTH clips AND clip sections (like createClipSectionAtInsertionPoint does)
+  - Combined and sorted all items by order using compareOrderStrings
+  - Now calculates insertion order considering the next item (whether clip or section)
+- Key decisions:
+  - Followed same pattern as createClipSectionAtInsertionPoint for consistency
+  - Used existing compareOrderStrings function for proper COLLATE "C" ordering
+  - No changes needed to frontend/reducer logic - bug was purely in database layer
+- Files changed:
+  - app/services/db-service.ts (updated appendClips to query and consider clip sections)
+- Testing:
+  - All 25 tests pass (24 passed, 1 skipped/todo)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #92 is complete - database layer now correctly handles clip insertion near sections

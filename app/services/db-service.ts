@@ -830,9 +830,10 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }[];
       }) {
         const { videoId, insertionPoint, clips: inputClips } = opts;
-        let prevClipOrder: string | null | undefined = null;
-        let nextClipOrder: string | null | undefined = null;
+        let prevOrder: string | null | undefined = null;
+        let nextOrder: string | null | undefined = null;
 
+        // Get all non-archived clips and clip sections for this video
         const allClips = yield* makeDbCall(() =>
           db.query.clips.findMany({
             where: and(eq(clips.videoId, videoId), eq(clips.archived, false)),
@@ -840,15 +841,35 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           })
         );
 
+        const allClipSections = yield* makeDbCall(() =>
+          db.query.clipSections.findMany({
+            where: and(
+              eq(clipSections.videoId, videoId),
+              eq(clipSections.archived, false)
+            ),
+            orderBy: asc(clipSections.order),
+          })
+        );
+
+        // Combine and sort by order to get correct insertion position
+        const allItems = [
+          ...allClips.map((c) => ({ type: "clip" as const, ...c })),
+          ...allClipSections.map((cs) => ({
+            type: "clip-section" as const,
+            ...cs,
+          })),
+        ].sort((a, b) => compareOrderStrings(a.order, b.order));
+
         if (insertionPoint.type === "start") {
-          // Insert before all clips
-          prevClipOrder = null;
-          const firstClip = allClips[0];
-          nextClipOrder = firstClip?.order;
+          // Insert before all items
+          prevOrder = null;
+          const firstItem = allItems[0];
+          nextOrder = firstItem?.order;
         } else if (insertionPoint.type === "after-clip") {
-          // Insert after specific clip
-          const insertAfterClipIndex = allClips.findIndex(
-            (c) => c.id === insertionPoint.databaseClipId
+          // Insert after specific clip, but before any section that follows it
+          const insertAfterClipIndex = allItems.findIndex(
+            (item) =>
+              item.type === "clip" && item.id === insertionPoint.databaseClipId
           );
 
           if (insertAfterClipIndex === -1) {
@@ -859,17 +880,17 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             });
           }
 
-          const insertAfterClip = allClips[insertAfterClipIndex];
-          prevClipOrder = insertAfterClip?.order;
+          const insertAfterItem = allItems[insertAfterClipIndex];
+          prevOrder = insertAfterItem?.order;
 
-          const nextClip = allClips[insertAfterClipIndex + 1];
-
-          nextClipOrder = nextClip?.order;
+          // Get the next item (could be a clip OR a section)
+          const nextItem = allItems[insertAfterClipIndex + 1];
+          nextOrder = nextItem?.order;
         }
 
         const orders = generateNKeysBetween(
-          prevClipOrder ?? null,
-          nextClipOrder ?? null,
+          prevOrder ?? null,
+          nextOrder ?? null,
           inputClips.length
         );
 
