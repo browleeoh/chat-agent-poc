@@ -1034,7 +1034,7 @@ export function InnerComponent(props: Route.ComponentProps) {
                           onClick={handleFixLintViolations}
                           disabled={status === "streaming"}
                         >
-                          <AlertTriangleIcon className="h-4 w-4 mr-1" />
+                          <AlertTriangleIcon className="h-4 w-4 mr-1 text-orange-500" />
                           Fix ({violations.reduce((sum, v) => sum + v.count, 0)}
                           )
                         </Button>

@@ -709,3 +709,21 @@
 - Next steps:
   - Issue #88 is complete - lint system fully functional with em-dash detection
   - Future rules can be easily added to LINT_RULES array with appropriate mode restrictions
+
+
+## Issue #89 - Show lint rule violations in orange
+- Changed lint button icon color to orange for better visibility
+- Implementation details:
+  - Added text-orange-500 class to AlertTriangleIcon in lint Fix button
+  - Icon now displays in orange (#f97316 in Tailwind) when violations are detected
+  - Makes lint violations more visually prominent in the toolbar
+- Key decisions:
+  - Used Tailwind's text-orange-500 for consistent color with design system
+  - Only changed icon color, button and text remain default for clean UI
+- Files changed:
+  - app/routes/videos.$videoId.write.tsx (added text-orange-500 class to icon)
+- Testing:
+  - All tests pass (21 passed)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #89 is complete - lint violations now highlighted in orange
