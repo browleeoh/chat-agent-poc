@@ -727,3 +727,24 @@
   - TypeScript type checking passes
 - Next steps:
   - Issue #89 is complete - lint violations now highlighted in orange
+
+
+## Issue #91 - Fix hook rendering error when adding clip section
+- Fixed "rendered more hooks than during the previous render" error
+- Implementation details:
+  - Removed useCallback hooks from inside .map() loop in ClipTimeline component (lines 74-88)
+  - useCallback was being called conditionally based on array length, violating Rules of Hooks
+  - Changed inline callbacks from useCallback(() => {...}, []) to plain arrow functions () => {...}
+  - Removed unused useCallback import from react
+  - Functions passed as props already have stable references from useContextSelector in parent
+- Key decisions:
+  - useCallback with empty deps inside map loop is both incorrect (breaks Rules of Hooks) and unnecessary
+  - Parent context already provides stable function references via useContextSelector
+  - No performance impact - child components receive same inline functions as before
+- Files changed:
+  - app/features/video-editor/components/clip-timeline.tsx (removed useCallback from map loop)
+- Testing:
+  - All tests pass (21 passed)
+  - TypeScript type checking passes
+- Next steps:
+  - Issue #91 is complete - clip sections can now be added without hook rendering errors

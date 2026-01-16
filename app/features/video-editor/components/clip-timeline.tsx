@@ -3,7 +3,6 @@ import { ClipItem } from "./clip-item";
 import { ClipSectionItem } from "./clip-section-item";
 import { PreRecordingChecklist } from "./pre-recording-checklist";
 import { isClipSection } from "../clip-utils";
-import { useCallback } from "react";
 import { useContextSelector } from "use-context-selector";
 import { VideoEditorContext } from "../video-editor-context";
 
@@ -71,21 +70,21 @@ export const ClipTimeline = () => {
                     section={item}
                     isFirstItem={isFirstItem}
                     isLastItem={isLastItem}
-                    onEditSection={useCallback(() => {
+                    onEditSection={() => {
                       onEditSection(item.frontendId, item.name);
-                    }, [])}
-                    onAddSectionBefore={useCallback(() => {
+                    }}
+                    onAddSectionBefore={() => {
                       onAddSectionBefore(
                         item.frontendId,
                         generateDefaultClipSectionName()
                       );
-                    }, [])}
-                    onAddSectionAfter={useCallback(() => {
+                    }}
+                    onAddSectionAfter={() => {
                       onAddSectionAfter(
                         item.frontendId,
                         generateDefaultClipSectionName()
                       );
-                    }, [])}
+                    }}
                   />
                 );
               }
