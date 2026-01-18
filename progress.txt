@@ -1,0 +1,17 @@
+## Issue #98: Add brainstorming mode to article writer
+
+**Task completed**: Added brainstorming mode to the write article page
+
+**Key decisions**:
+- Brainstorming mode follows the same pattern as interview mode but with different prompting
+- Uses LightbulbIcon for the UI representation
+- Shares the same dropdown copy behavior as interview mode (copy conversation history / copy last message)
+- Prompt focuses on: exploring ideas, extending/deepening thinking, making connections, challenging assumptions, and offering new angles
+
+**Files changed**:
+- app/routes/videos.$videoId.completions.ts - Added "brainstorming" to modeSchema
+- app/prompts/generate-brainstorming.ts - New prompt file for brainstorming facilitator
+- app/services/text-writing-agent.ts - Added brainstorming case to switch statement
+- app/routes/videos.$videoId.write.tsx - Added UI: icon import, modeToLabel entry, SelectItem, and dropdown behavior
+
+**Blockers**: None

@@ -9,6 +9,7 @@ import { generateYoutubeThumbnailPrompt } from "@/prompts/generate-youtube-thumb
 import { generateYoutubeDescriptionPrompt } from "@/prompts/generate-youtube-description";
 import { generateNewsletterPrompt } from "@/prompts/generate-newsletter";
 import { generateInterviewPrompt } from "@/prompts/generate-interview";
+import { generateBrainstormingPrompt } from "@/prompts/generate-brainstorming";
 import {
   Experimental_Agent as Agent,
   convertToModelMessages,
@@ -104,6 +105,12 @@ export const createTextWritingAgent = (props: {
         });
       case "interview":
         return generateInterviewPrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+        });
+      case "brainstorming":
+        return generateBrainstormingPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),

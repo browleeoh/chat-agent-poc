@@ -21,7 +21,8 @@ const modeSchema = Schema.Union(
   Schema.Literal("youtube-thumbnail"),
   Schema.Literal("youtube-description"),
   Schema.Literal("newsletter"),
-  Schema.Literal("interview")
+  Schema.Literal("interview"),
+  Schema.Literal("brainstorming")
 );
 
 export type TextWritingAgentMode = Schema.Schema.Type<typeof modeSchema>;

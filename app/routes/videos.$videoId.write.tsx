@@ -67,6 +67,7 @@ import {
   MailIcon,
   AlertTriangleIcon,
   MicIcon,
+  LightbulbIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -349,6 +350,7 @@ const modeToLabel: Record<Mode, string> = {
   "youtube-description": "YouTube Description",
   newsletter: "Newsletter",
   interview: "Interview Me",
+  brainstorming: "Brainstorming",
 };
 
 const MODE_STORAGE_KEY = "article-writer-mode";
@@ -1029,6 +1031,17 @@ export function InnerComponent(props: Route.ComponentProps) {
                         </div>
                       </div>
                     </SelectItem>
+                    <SelectItem value="brainstorming">
+                      <div className="flex items-start gap-2">
+                        <LightbulbIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Brainstorming</div>
+                          <div className="text-xs text-muted-foreground">
+                            Explore and develop ideas with an AI facilitator
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -1057,7 +1070,7 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                {mode === "interview" ? (
+                {mode === "interview" || mode === "brainstorming" ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
