@@ -68,6 +68,7 @@ import {
   AlertTriangleIcon,
   MicIcon,
   LightbulbIcon,
+  ListTreeIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
@@ -340,6 +341,7 @@ const Video = (props: { src: string }) => {
 
 const modeToLabel: Record<Mode, string> = {
   article: "Article",
+  "article-plan": "Article Plan",
   project: "Project Steps",
   "skill-building": "Skill Building Steps",
   "style-guide-skill-building": "Style Guide Pass - Skill Building",
@@ -915,6 +917,17 @@ export function InnerComponent(props: Route.ComponentProps) {
                           <div>Article</div>
                           <div className="text-xs text-muted-foreground">
                             Educational content and explanations
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="article-plan">
+                      <div className="flex items-start gap-2">
+                        <ListTreeIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div>Article Plan</div>
+                          <div className="text-xs text-muted-foreground">
+                            Plan article structure with concise bullet points
                           </div>
                         </div>
                       </div>

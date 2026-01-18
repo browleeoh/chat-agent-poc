@@ -1,3 +1,22 @@
+## Issue #99: Add article plan mode to article writer
+
+**Task completed**: Added article plan mode to the write article page
+
+**Key decisions**:
+- Article plan mode creates structured outlines with H2 headings and ultra-concise bullet points
+- Uses ListTreeIcon for UI representation (represents hierarchical outline structure)
+- Prompt emphasizes: choosing own flow (not following source order), being ruthlessly selective, prioritizing mercilessly, leaving irrelevant content on cutting room floor
+- Bullet points should sacrifice grammar for concision (skip articles, use shorthand, fragments OK)
+- Output includes main learning goal and what was intentionally left out
+
+**Files changed**:
+- app/routes/videos.$videoId.completions.ts - Added "article-plan" to modeSchema
+- app/prompts/generate-article-plan.ts - New prompt file for article planning
+- app/services/text-writing-agent.ts - Added import and article-plan case to switch statement
+- app/routes/videos.$videoId.write.tsx - Added UI: ListTreeIcon import, modeToLabel entry, SelectItem
+
+**Blockers**: None
+
 ## Issue #98: Add brainstorming mode to article writer
 
 **Task completed**: Added brainstorming mode to the write article page

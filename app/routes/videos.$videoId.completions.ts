@@ -12,6 +12,7 @@ import { data } from "react-router";
 
 const modeSchema = Schema.Union(
   Schema.Literal("article"),
+  Schema.Literal("article-plan"),
   Schema.Literal("project"),
   Schema.Literal("skill-building"),
   Schema.Literal("style-guide-skill-building"),

@@ -1,4 +1,5 @@
 import { generateArticlePrompt } from "@/prompts/generate-article";
+import { generateArticlePlanPrompt } from "@/prompts/generate-article-plan";
 import { generateStepsToCompleteForProjectPrompt } from "@/prompts/generate-steps-to-complete-for-project";
 import { generateStepsToCompleteForSkillBuildingProblemPrompt } from "@/prompts/generate-steps-to-complete-for-skill-building-problem";
 import { refineSkillBuildingWithStyleGuidePrompt } from "@/prompts/refine-skill-building-with-style-guide";
@@ -111,6 +112,12 @@ export const createTextWritingAgent = (props: {
         });
       case "brainstorming":
         return generateBrainstormingPrompt({
+          code: props.code,
+          transcript: props.transcript,
+          images: props.imageFiles.map((file) => file.path),
+        });
+      case "article-plan":
+        return generateArticlePlanPrompt({
           code: props.code,
           transcript: props.transcript,
           images: props.imageFiles.map((file) => file.path),
