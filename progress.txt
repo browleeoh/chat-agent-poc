@@ -1,3 +1,16 @@
+## Issue #108: Ban "The irony?" phrase
+
+**Task completed**: Added lint rule to ban "the irony" when followed by ?
+
+**Key decisions**:
+- Used regex pattern `the irony[?]` to match the phrase followed by question mark
+- Added to existing DISALLOWED_PHRASES array for consistency with other banned phrases
+
+**Files changed**:
+- app/features/article-writer/lint-rules.ts - Added "the irony[?]" to DISALLOWED_PHRASES and readable description
+
+**Blockers**: None
+
 ## Issue #107: Ban "the good news?" phrase
 
 **Task completed**: Added lint rule to ban "the good news" when followed by ? or :
