@@ -1,3 +1,19 @@
+## Issue #105: Add rich text copy option to article page
+
+**Task completed**: Added ability to copy as rich text in addition to markdown
+
+**Key decisions**:
+- Added `marked` library for converting markdown to HTML
+- Changed the simple "Copy" button to a dropdown menu with two options: "Copy as Markdown" and "Copy as Rich Text"
+- Rich text copy uses the Clipboard API's `write` method with both `text/html` and `text/plain` MIME types
+- Kept the existing dropdown behavior for interview/brainstorming modes unchanged
+
+**Files changed**:
+- package.json - Added `marked` dependency
+- app/routes/videos.$videoId.write.tsx - Added `copyAsRichText` function, converted copy button to dropdown menu with both markdown and rich text options
+
+**Blockers**: None
+
 ## Issue #104: Add more banned words to lint rules
 
 **Task completed**: Added additional banned phrases to article writer lint rules

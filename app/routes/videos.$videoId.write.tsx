@@ -70,7 +70,9 @@ import {
   LightbulbIcon,
   ListTreeIcon,
   RadioIcon,
+  FileTypeIcon,
 } from "lucide-react";
+import { marked } from "marked";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { data, Link, useFetcher, useRevalidator } from "react-router";
 import type { Route } from "./+types/videos.$videoId.write";
@@ -479,6 +481,26 @@ export function InnerComponent(props: Route.ComponentProps) {
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
+    }
+  };
+
+  const copyAsRichText = async () => {
+    try {
+      const html = await marked.parse(lastAssistantMessageText);
+      const blob = new Blob([html], { type: "text/html" });
+      const textBlob = new Blob([lastAssistantMessageText], {
+        type: "text/plain",
+      });
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": blob,
+          "text/plain": textBlob,
+        }),
+      ]);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy as rich text:", error);
     }
   };
 
@@ -1124,26 +1146,40 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyToClipboard}
-                    disabled={
-                      status === "streaming" || !lastAssistantMessageText
-                    }
-                  >
-                    {isCopied ? (
-                      <>
-                        <CheckIcon className="h-4 w-4 mr-1" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <CopyIcon className="h-4 w-4 mr-1" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={
+                          status === "streaming" || !lastAssistantMessageText
+                        }
+                      >
+                        {isCopied ? (
+                          <>
+                            <CheckIcon className="h-4 w-4 mr-1" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <CopyIcon className="h-4 w-4 mr-1" />
+                            Copy
+                            <ChevronDown className="h-3 w-3 ml-1" />
+                          </>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={copyToClipboard}>
+                        <FileTextIcon className="h-4 w-4 mr-2" />
+                        Copy as Markdown
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={copyAsRichText}>
+                        <FileTypeIcon className="h-4 w-4 mr-2" />
+                        Copy as Rich Text
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
                 {/* Go Live button - shows when in interview-prep mode */}
                 {mode === "interview-prep" && messages.length > 0 && (
