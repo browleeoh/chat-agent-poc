@@ -91,13 +91,13 @@ export function AppSidebar({
     <div className="w-80 border-r bg-muted/30 hidden lg:flex flex-col">
       <div className="p-4 flex-1 flex flex-col min-h-0">
         <div className="space-y-2 flex-1 overflow-y-auto">
-          {/* Repos */}
+          {/* Courses */}
           <Collapsible defaultOpen>
             <div className="flex items-center justify-between">
               <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
                 <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
                 <FolderGit2 className="w-5 h-5" />
-                Repos
+                Courses
               </CollapsibleTrigger>
               <Button
                 variant="ghost"
@@ -151,14 +151,14 @@ export function AppSidebar({
                   </ContextMenu>
                 ))}
 
-                {/* Archived Repos */}
+                {/* Archived Courses */}
                 <Link to="/archived-repos">
                   <Button
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-muted-foreground"
                   >
-                    Archived Repos
+                    Archived Courses
                   </Button>
                 </Link>
               </div>

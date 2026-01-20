@@ -209,3 +209,18 @@
 
 **Blockers**: None
 
+---
+
+## Issue #120: Rename repos to courses in sidebar
+
+**Task completed**: Changed "Repos" to "Courses" in sidebar display
+
+**Key decisions**:
+- Simple text replacement in sidebar component
+- Does not change any URLs or internal naming (as per requirements)
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Changed "Repos" to "Courses", "Archived Repos" to "Archived Courses"
+
+**Blockers**: None
+
