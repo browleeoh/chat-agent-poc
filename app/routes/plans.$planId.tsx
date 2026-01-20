@@ -143,7 +143,7 @@ function SortableLesson({
         ) : (
           <>
             <button
-              className="cursor-grab active:cursor-grabbing p-1 -ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="cursor-grab active:cursor-grabbing p-1 -ml-1"
               {...attributes}
               {...listeners}
             >
@@ -304,7 +304,11 @@ function SortableSection({
   const sortedLessons = [...section.lessons].sort((a, b) => a.order - b.order);
 
   return (
-    <div ref={setNodeRef} style={style} className="border rounded-lg p-4">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border rounded-lg p-4 group/section"
+    >
       {/* Section Header */}
       <div className="flex items-center justify-between mb-3">
         {isEditing ? (
@@ -338,7 +342,7 @@ function SortableSection({
               </button>
               <h2 className="font-semibold text-lg">{section.title}</h2>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
                 size="icon"
@@ -666,7 +670,7 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
               Back
             </Link>
 
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 group/title">
               {isEditingTitle ? (
                 <div className="flex items-center gap-2">
                   <Input
@@ -696,7 +700,7 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 opacity-0 group-hover/title:opacity-100 transition-opacity"
                     onClick={() => {
                       setEditedTitle(plan.title);
                       setIsEditingTitle(true);

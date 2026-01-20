@@ -192,3 +192,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #119: Hide edit buttons on hover, show grip handles always
+
+**Task completed**: Adjusted visibility of edit/delete buttons and grip handles
+
+**Key decisions**:
+- Section edit/delete buttons: now hidden by default, visible on section hover (using group/section)
+- Plan title edit button: now hidden by default, visible on hover (using group/title)
+- Lesson grip handles: now always visible (removed opacity-0 group-hover:opacity-100)
+- Lesson edit/delete buttons: remain hidden until hover (unchanged)
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Updated CSS classes for hover visibility
+
+**Blockers**: None
+
