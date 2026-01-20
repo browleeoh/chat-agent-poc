@@ -241,3 +241,19 @@
 
 **Blockers**: None
 
+---
+
+## Issue #122: Ctrl+Space saves description
+
+**Task completed**: Added Ctrl+Space keyboard shortcut to save description while editing
+
+**Key decisions**:
+- Added check for `e.key === " " && e.ctrlKey` in description textarea onKeyDown
+- Prevents default behavior to avoid inserting space
+- Consistent with escape-to-cancel pattern already in place
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added Ctrl+Space handling in description Textarea
+
+**Blockers**: None
+

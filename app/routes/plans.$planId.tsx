@@ -182,6 +182,10 @@ function SortableLesson({
             autoFocus
             onKeyDown={(e) => {
               if (e.key === "Escape") onCancelEditDescription();
+              if (e.key === " " && e.ctrlKey) {
+                e.preventDefault();
+                onSaveDescription();
+              }
             }}
           />
           <div className="flex gap-2 mt-2">
