@@ -153,3 +153,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #117: Focus Add Lesson button after creating lesson/section
+
+**Task completed**: Add Lesson button is now focused after creating a lesson or section for quick keyboard-driven workflows
+
+**Key decisions**:
+- Added `focusAddLessonInSection` state to track which section's button should be focused
+- Added `shouldFocusAddLesson` and `onAddLessonFocused` props to SortableSection
+- Used `useRef` and `useEffect` to focus the button when the flag is set
+- Focus is triggered after both lesson creation (same section) and section creation (new section)
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added focus logic with ref, state, and props threading
+
+**Blockers**: None
+

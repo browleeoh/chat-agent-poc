@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router";
 import type { Route } from "./+types/plans.$planId";
 import {
@@ -197,6 +197,8 @@ interface SortableSectionProps {
   onStartAddLesson: () => void;
   onAddLesson: () => void;
   onCancelAddLesson: () => void;
+  shouldFocusAddLesson: boolean;
+  onAddLessonFocused: () => void;
 }
 
 function SortableSection({
@@ -222,6 +224,8 @@ function SortableSection({
   onStartAddLesson,
   onAddLesson,
   onCancelAddLesson,
+  shouldFocusAddLesson,
+  onAddLessonFocused,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -231,6 +235,16 @@ function SortableSection({
     transition,
     isDragging,
   } = useSortable({ id: section.id, data: { type: "section" } });
+
+  const addLessonButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus the Add Lesson button when requested
+  useEffect(() => {
+    if (shouldFocusAddLesson && addLessonButtonRef.current) {
+      addLessonButtonRef.current.focus();
+      onAddLessonFocused();
+    }
+  }, [shouldFocusAddLesson, onAddLessonFocused]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -341,6 +355,7 @@ function SortableSection({
             </div>
           ) : (
             <Button
+              ref={addLessonButtonRef}
               variant="ghost"
               size="sm"
               className="text-muted-foreground"
@@ -385,6 +400,9 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
   const [editedSectionTitle, setEditedSectionTitle] = useState("");
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [editedLessonTitle, setEditedLessonTitle] = useState("");
+  const [focusAddLessonInSection, setFocusAddLessonInSection] = useState<
+    string | null
+  >(null);
 
   // Drag and drop state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -439,9 +457,13 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
 
   const handleAddSection = () => {
     if (newSectionTitle.trim()) {
-      addSection(planId!, newSectionTitle.trim());
+      const newSection = addSection(planId!, newSectionTitle.trim());
       setNewSectionTitle("");
       setIsAddingSectionOpen(false);
+      // Focus the Add Lesson button in the newly created section
+      if (newSection) {
+        setFocusAddLessonInSection(newSection.id);
+      }
     }
   };
 
@@ -457,6 +479,8 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
       addLesson(planId!, sectionId, newLessonTitle.trim());
       setNewLessonTitle("");
       setAddingLessonToSection(null);
+      // Focus the Add Lesson button in this section
+      setFocusAddLessonInSection(sectionId);
     }
   };
 
@@ -678,6 +702,10 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
                       setAddingLessonToSection(null);
                       setNewLessonTitle("");
                     }}
+                    shouldFocusAddLesson={
+                      focusAddLessonInSection === section.id
+                    }
+                    onAddLessonFocused={() => setFocusAddLessonInSection(null)}
                   />
                 ))}
               </div>
