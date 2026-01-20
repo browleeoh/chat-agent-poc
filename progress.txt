@@ -548,3 +548,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #138: Fix lesson icon not changing on first click
+
+**Task completed**: Fixed bug where clicking icon on newly created lesson didn't change the icon
+
+**Key decisions**:
+- Root cause: New lessons are created without an `icon` field (it's optional)
+- When `lesson.icon` is `undefined`, the display correctly shows the Play (watch) icon as default
+- But the click handler's cycle logic `lesson.icon === "watch" ? "code" : ...` didn't match `undefined`
+- So clicking cycled from `undefined` to `"watch"` - visually no change since both render as Play icon
+- Fix: Added `|| lesson.icon === undefined` to treat undefined same as "watch" in the cycle logic
+- Now clicking on a new lesson's icon correctly cycles to "code" (yellow)
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Updated icon click handler to treat undefined as "watch"
+
+**Blockers**: None
+

@@ -194,7 +194,7 @@ function SortableLesson({
           }`}
           onClick={() => {
             const nextIcon =
-              lesson.icon === "watch"
+              lesson.icon === "watch" || lesson.icon === undefined
                 ? "code"
                 : lesson.icon === "code"
                   ? "discussion"
