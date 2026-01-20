@@ -31,28 +31,28 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useFetcher, useNavigate } from "react-router";
 
 export interface AppSidebarProps {
-  repos: Array<{
+  repos?: Array<{
     id: string;
     name: string;
   }>;
-  standaloneVideos: Array<{
+  standaloneVideos?: Array<{
     id: string;
     path: string;
   }>;
-  selectedRepoId: string | null;
-  isAddRepoModalOpen: boolean;
-  setIsAddRepoModalOpen: (open: boolean) => void;
-  isAddStandaloneVideoModalOpen: boolean;
-  setIsAddStandaloneVideoModalOpen: (open: boolean) => void;
+  selectedRepoId?: string | null;
+  isAddRepoModalOpen?: boolean;
+  setIsAddRepoModalOpen?: (open: boolean) => void;
+  isAddStandaloneVideoModalOpen?: boolean;
+  setIsAddStandaloneVideoModalOpen?: (open: boolean) => void;
 }
 
 export function AppSidebar({
-  repos,
-  standaloneVideos,
-  selectedRepoId,
-  isAddRepoModalOpen,
+  repos = [],
+  standaloneVideos = [],
+  selectedRepoId = null,
+  isAddRepoModalOpen = false,
   setIsAddRepoModalOpen,
-  isAddStandaloneVideoModalOpen,
+  isAddStandaloneVideoModalOpen = false,
   setIsAddStandaloneVideoModalOpen,
 }: AppSidebarProps) {
   const navigate = useNavigate();
@@ -103,7 +103,7 @@ export function AppSidebar({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => setIsAddRepoModalOpen(true)}
+                onClick={() => setIsAddRepoModalOpen?.(true)}
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -177,7 +177,7 @@ export function AppSidebar({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => setIsAddStandaloneVideoModalOpen(true)}
+                onClick={() => setIsAddStandaloneVideoModalOpen?.(true)}
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -313,14 +313,18 @@ export function AppSidebar({
             Diagram Playground
           </Link>
         </div>
-        <AddRepoModal
-          isOpen={isAddRepoModalOpen}
-          onOpenChange={setIsAddRepoModalOpen}
-        />
-        <AddStandaloneVideoModal
-          open={isAddStandaloneVideoModalOpen}
-          onOpenChange={setIsAddStandaloneVideoModalOpen}
-        />
+        {setIsAddRepoModalOpen && (
+          <AddRepoModal
+            isOpen={isAddRepoModalOpen}
+            onOpenChange={setIsAddRepoModalOpen}
+          />
+        )}
+        {setIsAddStandaloneVideoModalOpen && (
+          <AddStandaloneVideoModal
+            open={isAddStandaloneVideoModalOpen}
+            onOpenChange={setIsAddStandaloneVideoModalOpen}
+          />
+        )}
         <CreatePlanModal
           isOpen={isCreatePlanModalOpen}
           onOpenChange={setIsCreatePlanModalOpen}

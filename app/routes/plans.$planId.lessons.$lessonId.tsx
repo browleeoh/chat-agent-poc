@@ -1,3 +1,4 @@
+import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlans } from "@/hooks/use-plans";
@@ -54,6 +55,7 @@ export default function LessonDetailPage(_props: Route.ComponentProps) {
   if (!plan || !foundLesson) {
     return (
       <div className="flex h-screen bg-background text-foreground">
+        <AppSidebar />
         <div className="flex-1 p-6">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
@@ -71,6 +73,7 @@ export default function LessonDetailPage(_props: Route.ComponentProps) {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
+      <AppSidebar />
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 max-w-4xl">
           {/* Header */}

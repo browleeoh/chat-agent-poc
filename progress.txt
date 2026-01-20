@@ -98,3 +98,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #114: Show sidebar on plans pages
+
+**Task completed**: Added AppSidebar to plan detail and lesson detail pages
+
+**Key decisions**:
+- Made AppSidebar props optional with default empty arrays/null values
+- Added optional chaining for setIsAddRepoModalOpen and setIsAddStandaloneVideoModalOpen
+- Conditionally render AddRepoModal and AddStandaloneVideoModal only when their setters are provided
+- Plans section of sidebar works standalone via usePlans hook (localStorage)
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Made all props optional with defaults
+- app/routes/plans.$planId.tsx - Added AppSidebar to both normal and "not found" returns
+- app/routes/plans.$planId.lessons.$lessonId.tsx - Added AppSidebar to both normal and "not found" returns
+
+**Blockers**: None
+
