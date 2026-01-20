@@ -103,6 +103,17 @@ export const meta: Route.MetaFunction = () => {
   return [{ title: "Plan - CVM" }];
 };
 
+// Capitalize first letter of each word
+function capitalizeTitle(title: string): string {
+  return title
+    .split(" ")
+    .map((word) => {
+      const firstChar = word[0];
+      return firstChar ? firstChar.toUpperCase() + word.slice(1) : word;
+    })
+    .join(" ");
+}
+
 // Sortable Lesson Component
 interface SortableLessonProps {
   lesson: Lesson;
@@ -633,7 +644,10 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleAddSection = () => {
     if (newSectionTitle.trim()) {
-      const newSection = addSection(planId!, newSectionTitle.trim());
+      const newSection = addSection(
+        planId!,
+        capitalizeTitle(newSectionTitle.trim())
+      );
       setNewSectionTitle("");
       setIsAddingSectionOpen(false);
       // Focus the Add Lesson button in the newly created section
@@ -645,14 +659,16 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveSection = (sectionId: string) => {
     if (editedSectionTitle.trim()) {
-      updateSection(planId!, sectionId, { title: editedSectionTitle.trim() });
+      updateSection(planId!, sectionId, {
+        title: capitalizeTitle(editedSectionTitle.trim()),
+      });
     }
     setEditingSectionId(null);
   };
 
   const handleAddLesson = (sectionId: string) => {
     if (newLessonTitle.trim()) {
-      addLesson(planId!, sectionId, newLessonTitle.trim());
+      addLesson(planId!, sectionId, capitalizeTitle(newLessonTitle.trim()));
       setNewLessonTitle("");
       setAddingLessonToSection(null);
       // Focus the Add Lesson button in this section
@@ -663,7 +679,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   const handleSaveLesson = (sectionId: string, lessonId: string) => {
     if (editedLessonTitle.trim()) {
       updateLesson(planId!, sectionId, lessonId, {
-        title: editedLessonTitle.trim(),
+        title: capitalizeTitle(editedLessonTitle.trim()),
       });
     }
     setEditingLessonId(null);

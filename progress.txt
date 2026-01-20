@@ -532,3 +532,19 @@
 
 **Blockers**: None
 
+---
+
+## Issue #136: Auto-capitalize lesson and section titles
+
+**Task completed**: Titles are now automatically capitalized when saved
+
+**Key decisions**:
+- Created `capitalizeTitle` helper function that capitalizes the first letter of each word
+- Applied to all title save operations: addSection, updateSection, addLesson, updateLesson
+- Users can type in lowercase and titles will be capitalized on save
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added capitalizeTitle function and applied to all title handlers
+
+**Blockers**: None
+
