@@ -1944,8 +1944,8 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               readonly id: string;
               readonly title: string;
               readonly order: number;
-              readonly description: string;
-              readonly icon?: "watch" | "code" | "discussion";
+              readonly description?: string;
+              readonly icon?: "watch" | "code" | "discussion" | null;
               readonly dependencies?: readonly string[];
             }[];
           }[];

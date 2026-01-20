@@ -434,7 +434,10 @@ interface SortableSectionProps {
   editingDescriptionLessonId: string | null;
   editedLessonDescription: string;
   onEditedLessonDescriptionChange: (value: string) => void;
-  onStartEditDescription: (lessonId: string, description: string) => void;
+  onStartEditDescription: (
+    lessonId: string,
+    description: string | undefined
+  ) => void;
   onSaveDescription: (lessonId: string) => void;
   onCancelEditDescription: () => void;
   addingLessonToSection: string | null;
@@ -1083,7 +1086,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     onEditedLessonDescriptionChange={setEditedLessonDescription}
                     onStartEditDescription={(lessonId, description) => {
                       setEditingDescriptionLessonId(lessonId);
-                      setEditedLessonDescription(description);
+                      setEditedLessonDescription(description ?? "");
                     }}
                     onSaveDescription={(lessonId) =>
                       handleSaveDescription(section.id, lessonId)

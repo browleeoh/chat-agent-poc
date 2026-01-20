@@ -8,8 +8,10 @@ const PlanLessonSchema = Schema.Struct({
   id: Schema.String,
   title: Schema.String,
   order: Schema.Number,
-  description: Schema.String,
-  icon: Schema.optional(Schema.Literal("watch", "code", "discussion")),
+  description: Schema.optional(Schema.String),
+  icon: Schema.optional(
+    Schema.NullOr(Schema.Literal("watch", "code", "discussion"))
+  ),
   dependencies: Schema.optional(Schema.Array(Schema.String)),
 });
 
@@ -65,8 +67,10 @@ export const action = async (args: Route.ActionArgs) => {
     return { migrated: true };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
-    Effect.catchTag("ParseError", () => {
-      return Effect.die(data("Invalid request body", { status: 400 }));
+    Effect.catchTag("ParseError", (e) => {
+      return Effect.die(
+        data("Invalid request body: " + e.message, { status: 400 })
+      );
     }),
     Effect.catchAll(() => {
       return Effect.die(data("Internal server error", { status: 500 }));

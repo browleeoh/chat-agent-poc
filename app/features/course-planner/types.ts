@@ -4,7 +4,7 @@ export interface Lesson {
   id: string;
   title: string;
   order: number;
-  description: string;
+  description?: string;
   icon?: LessonIcon;
   dependencies?: string[]; // Array of lesson IDs this lesson depends on
 }
