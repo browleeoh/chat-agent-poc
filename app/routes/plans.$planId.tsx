@@ -32,22 +32,6 @@ import type { Route } from "./+types/plans.$planId";
 import { Console, Effect } from "effect";
 import { DBService } from "@/services/db-service";
 import { layerLive } from "@/services/layer";
-
-export const loader = async ({ params }: Route.LoaderArgs) => {
-  return Effect.gen(function* () {
-    const db = yield* DBService;
-    const plans = yield* db.getPlans();
-    const plan = plans.find((p) => p.id === params.planId);
-    return { plan, plans };
-  }).pipe(
-    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
-    Effect.catchAll(() => {
-      return Effect.die(data("Internal server error", { status: 500 }));
-    }),
-    Effect.provide(layerLive),
-    Effect.runPromise
-  );
-};
 import {
   DndContext,
   closestCenter,
@@ -73,6 +57,34 @@ import type {
   Lesson,
   LessonIcon,
 } from "@/features/course-planner/types";
+import { NotFoundError } from "@/services/db-service-errors";
+
+export const loader = async ({ params }: Route.LoaderArgs) => {
+  return Effect.gen(function* () {
+    const db = yield* DBService;
+    const plans = yield* db.getPlans();
+    const plan = plans.find((p) => p.id === params.planId);
+
+    if (!plan) {
+      return yield* new NotFoundError({
+        params,
+        type: "plan",
+        message: `Plan with id ${params.planId} not found`,
+      });
+    }
+    return { plan, plans };
+  }).pipe(
+    Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
+    Effect.catchTag("NotFoundError", (e) => {
+      return Effect.die(data(e.message, { status: 404 }));
+    }),
+    Effect.catchAll(() => {
+      return Effect.die(data("Internal server error", { status: 500 }));
+    }),
+    Effect.provide(layerLive),
+    Effect.runPromise
+  );
+};
 
 // Custom collision detection that prioritizes lessons over sections
 // This allows dropping on a specific lesson position even when crossing sections
@@ -656,7 +668,6 @@ function SortableSection({
 export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const {
-    getPlan,
     updatePlan,
     duplicatePlan,
     addSection,
@@ -671,12 +682,12 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     retrySync,
   } = usePlans({
     initialPlans: loaderData.plans,
-    activePlanId: loaderData.plan?.id,
+    activePlanId: loaderData.plan.id,
   });
 
   // Use loader data as initial value, but getPlan for updates (it reads from the hook's state)
-  const planId = loaderData.plan?.id;
-  const plan = planId ? (getPlan(planId) ?? loaderData.plan) : loaderData.plan;
+  const planId = loaderData.plan.id;
+  const plan = ;
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
@@ -769,7 +780,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveTitle = () => {
     if (editedTitle.trim()) {
-      updatePlan(planId!, { title: editedTitle.trim() });
+      updatePlan(planId, { title: editedTitle.trim() });
     }
     setIsEditingTitle(false);
   };
@@ -777,7 +788,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   const handleAddSection = () => {
     if (newSectionTitle.trim()) {
       const newSection = addSection(
-        planId!,
+        planId,
         capitalizeTitle(newSectionTitle.trim())
       );
       setNewSectionTitle("");
@@ -791,7 +802,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveSection = (sectionId: string) => {
     if (editedSectionTitle.trim()) {
-      updateSection(planId!, sectionId, {
+      updateSection(planId, sectionId, {
         title: capitalizeTitle(editedSectionTitle.trim()),
       });
     }
@@ -800,7 +811,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleAddLesson = (sectionId: string) => {
     if (newLessonTitle.trim()) {
-      addLesson(planId!, sectionId, capitalizeTitle(newLessonTitle.trim()));
+      addLesson(planId, sectionId, capitalizeTitle(newLessonTitle.trim()));
       setNewLessonTitle("");
       setAddingLessonToSection(null);
       // Focus the Add Lesson button in this section
@@ -810,7 +821,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   const handleSaveLesson = (sectionId: string, lessonId: string) => {
     if (editedLessonTitle.trim()) {
-      updateLesson(planId!, sectionId, lessonId, {
+      updateLesson(planId, sectionId, lessonId, {
         title: capitalizeTitle(editedLessonTitle.trim()),
       });
     }
@@ -818,7 +829,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   };
 
   const handleSaveDescription = (sectionId: string, lessonId: string) => {
-    updateLesson(planId!, sectionId, lessonId, {
+    updateLesson(planId, sectionId, lessonId, {
       description: editedLessonDescription,
     });
     setEditingDescriptionLessonId(null);
@@ -829,7 +840,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     lessonId: string,
     icon: LessonIcon
   ) => {
-    updateLesson(planId!, sectionId, lessonId, { icon });
+    updateLesson(planId, sectionId, lessonId, { icon });
   };
 
   const handleLessonDependenciesChange = (
@@ -837,7 +848,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     lessonId: string,
     dependencies: string[]
   ) => {
-    updateLesson(planId!, sectionId, lessonId, { dependencies });
+    updateLesson(planId, sectionId, lessonId, { dependencies });
   };
 
   // Find which section a lesson belongs to
@@ -874,7 +885,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
       const oldIndex = sortedSections.findIndex((s) => s.id === activeIdStr);
       const newIndex = sortedSections.findIndex((s) => s.id === overIdStr);
       if (oldIndex !== -1 && newIndex !== -1) {
-        reorderSection(planId!, activeIdStr, newIndex);
+        reorderSection(planId, activeIdStr, newIndex);
       }
       return;
     }
@@ -892,7 +903,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
           (a, b) => a.order - b.order
         );
         reorderLesson(
-          planId!,
+          planId,
           fromSection.id,
           toSection.id,
           activeIdStr,
@@ -909,7 +920,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
         );
         const overIndex = sortedLessons.findIndex((l) => l.id === overIdStr);
         reorderLesson(
-          planId!,
+          planId,
           fromSection.id,
           overSection.id,
           activeIdStr,
@@ -1014,7 +1025,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     <DropdownMenuContent align="start">
                       <DropdownMenuItem
                         onSelect={() => {
-                          const newPlan = duplicatePlan(planId!);
+                          const newPlan = duplicatePlan(planId);
                           if (newPlan) {
                             navigate(`/plans/${newPlan.id}`);
                           }
@@ -1069,7 +1080,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     }}
                     onSave={() => handleSaveSection(section.id)}
                     onCancel={() => setEditingSectionId(null)}
-                    onDelete={() => deleteSection(planId!, section.id)}
+                    onDelete={() => deleteSection(planId, section.id)}
                     editingLessonId={editingLessonId}
                     editedLessonTitle={editedLessonTitle}
                     onEditedLessonTitleChange={setEditedLessonTitle}
@@ -1082,7 +1093,7 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
                     }
                     onCancelEditLesson={() => setEditingLessonId(null)}
                     onDeleteLesson={(lessonId) =>
-                      deleteLesson(planId!, section.id, lessonId)
+                      deleteLesson(planId, section.id, lessonId)
                     }
                     editingDescriptionLessonId={editingDescriptionLessonId}
                     editedLessonDescription={editedLessonDescription}

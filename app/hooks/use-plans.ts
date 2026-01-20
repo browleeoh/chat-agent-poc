@@ -13,20 +13,20 @@ export interface UsePlansOptions {
   /**
    * Initial plans loaded from the server (Postgres).
    */
-  initialPlans?: Plan[];
+  initialPlans: Plan[];
   /**
    * The ID of the currently active plan (from URL params).
    * When provided, only this plan will be synced to the server.
    * This avoids syncing all plans on every change.
    */
-  activePlanId?: string;
+  activePlanId: string;
 }
 
 /**
  * Hook to manage course plans.
  * Plans are loaded from Postgres via server loaders and passed as initialPlans.
  */
-export function usePlans(options: UsePlansOptions = {}) {
+export function usePlans(options: UsePlansOptions) {
   const { initialPlans, activePlanId } = options;
 
   const [plans, setPlans] = useState<Plan[]>(initialPlans ?? []);
@@ -165,13 +165,6 @@ export function usePlans(options: UsePlansOptions = {}) {
       };
       setPlans((prev) => [...prev, newPlan]);
       return newPlan;
-    },
-    [plans]
-  );
-
-  const getPlan = useCallback(
-    (planId: string): Plan | undefined => {
-      return plans.find((plan) => plan.id === planId);
     },
     [plans]
   );
@@ -491,7 +484,6 @@ export function usePlans(options: UsePlansOptions = {}) {
     updatePlan,
     deletePlan,
     duplicatePlan,
-    getPlan,
     addSection,
     updateSection,
     deleteSection,
