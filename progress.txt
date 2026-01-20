@@ -818,3 +818,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #147: Redirect home after deleting a plan
+
+**Task completed**: User is now redirected home when deleting a plan they're currently viewing
+
+**Key decisions**:
+- Track the plan being deleted with `deletingPlanId` state
+- After fetcher returns to idle state, check if current URL matches the deleted plan
+- If on the deleted plan's page, navigate to "/"
+- Clear `deletingPlanId` after handling to prevent stale redirects
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Added useLocation, deletingPlanId state, redirect effect
+
+**Blockers**: None
+
