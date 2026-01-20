@@ -1,5 +1,6 @@
 import { AddRepoModal } from "@/components/add-repo-modal";
 import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
+import { CreatePlanModal } from "@/components/create-plan-modal";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -12,15 +13,19 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { usePlans } from "@/hooks/use-plans";
 import { cn } from "@/lib/utils";
 import {
   Archive,
   ChevronRight,
+  ClipboardList,
   FolderGit2,
   LayoutTemplate,
   Plus,
+  Trash2,
   VideoIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { Link, useFetcher, useNavigate } from "react-router";
 
 export interface AppSidebarProps {
@@ -51,6 +56,10 @@ export function AppSidebar({
   const navigate = useNavigate();
   const archiveRepoFetcher = useFetcher();
   const archiveVideoFetcher = useFetcher();
+
+  // Plans state
+  const { plans, createPlan, deletePlan } = usePlans();
+  const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
 
   return (
     <div className="w-80 border-r bg-muted/30 hidden lg:flex flex-col">
@@ -194,6 +203,57 @@ export function AppSidebar({
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Plans */}
+          <Collapsible defaultOpen>
+            <div className="flex items-center justify-between">
+              <CollapsibleTrigger className="flex items-center gap-2 text-lg font-semibold hover:text-foreground/80 transition-colors group">
+                <ChevronRight className="w-4 h-4 transition-transform group-data-[state=open]:rotate-90" />
+                <ClipboardList className="w-5 h-5" />
+                Plans
+              </CollapsibleTrigger>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setIsCreatePlanModalOpen(true)}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <CollapsibleContent>
+              <div className="ml-6 mt-2 space-y-1">
+                {plans.map((plan) => (
+                  <ContextMenu key={plan.id}>
+                    <ContextMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start whitespace-normal text-left h-auto py-1.5"
+                        asChild
+                      >
+                        <Link to={`/plans/${plan.id}`}>{plan.title}</Link>
+                      </Button>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        variant="destructive"
+                        onSelect={() => deletePlan(plan.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                ))}
+                {plans.length === 0 && (
+                  <p className="text-sm text-muted-foreground px-2">
+                    No plans yet
+                  </p>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Diagram Playground */}
           <Link
             to="/diagram-playground"
@@ -210,6 +270,14 @@ export function AppSidebar({
         <AddStandaloneVideoModal
           open={isAddStandaloneVideoModalOpen}
           onOpenChange={setIsAddStandaloneVideoModalOpen}
+        />
+        <CreatePlanModal
+          isOpen={isCreatePlanModalOpen}
+          onOpenChange={setIsCreatePlanModalOpen}
+          onCreatePlan={(title) => {
+            const plan = createPlan(title);
+            navigate(`/plans/${plan.id}`);
+          }}
         />
       </div>
     </div>

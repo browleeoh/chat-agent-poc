@@ -1,3 +1,30 @@
+## Issue #111: Course Planner prototype (tracer bullet)
+
+**Task completed**: Implemented core localStorage-based course planner with sections and lessons
+
+**Key decisions**:
+- Used `fractional-indexing` library for ordering (already installed)
+- Created `Plan`, `Section`, `Lesson` types with id, title, order fields
+- Lessons have a `notes` field for storing lesson notes
+- Plans stored in localStorage under "course-plans" key
+- SSR-safe localStorage access with `typeof localStorage !== "undefined"` checks
+- Plan detail page allows inline editing of plan title, sections, and lessons
+- Lesson detail page has auto-saving notes textarea (500ms debounce)
+
+**Files changed**:
+- app/features/course-planner/types.ts - New types for Plan, Section, Lesson
+- app/hooks/use-plans.ts - New hook for localStorage CRUD operations
+- app/components/create-plan-modal.tsx - Modal for creating new plans
+- app/components/app-sidebar.tsx - Added Plans collapsible group with context menu delete
+- app/routes/plans.$planId.tsx - Plan detail page with section/lesson management
+- app/routes/plans.$planId.lessons.$lessonId.tsx - Lesson detail page with notes textarea
+
+**Blockers**: None
+
+**Remaining work for Issue #111**:
+- Drag-and-drop reordering for sections and lessons (requires @dnd-kit integration)
+- Plan rename via context menu in sidebar
+
 ## Issue #110: Allow user to submit their own banned phrases
 
 **Task completed**: Added customizable banned phrases with local storage persistence

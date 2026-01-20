@@ -10,14 +10,15 @@ Make each task the smallest possible unit of work. We don't want to outrun our h
 
 # TASK SELECTION
 
-Pick the next task. Prioritize from this list (where 1 is highest priority):
+Pick the next task.
 
-1. Architectural decisions and core abstractions
-2. Integration points between modules
-3. Unknown unknowns and spike work
-4. Standard features
-5. Polish and quick wins
-6. Refactors
+1. Critical bugfixes
+2. Tracer bullets for new features
+
+Tracer bullets comes from the Pragmatic Programmer. When building systems, you want to write code that gets you feedback as quickly as possible. Tracer bullets are thin slices of functionality that go through all layers of the system, allowing you to test and validate your approach early. This helps in identifying potential issues and ensures that the overall architecture is sound before investing significant time in development.
+
+3. Polish and quick wins
+4. Refactors
 
 If all tasks are complete, output <promise>COMPLETE</promise>.
 
