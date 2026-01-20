@@ -18,6 +18,12 @@ export interface UsePlansOptions {
    * When provided, these are used instead of localStorage.
    */
   initialPlans?: Plan[];
+  /**
+   * The ID of the currently active plan (from URL params).
+   * When provided, only this plan will be synced to the server.
+   * This avoids syncing all plans on every change.
+   */
+  activePlanId?: string;
 }
 
 /**
@@ -26,7 +32,7 @@ export interface UsePlansOptions {
  * Otherwise falls back to localStorage for backwards compatibility.
  */
 export function usePlans(options: UsePlansOptions = {}) {
-  const { initialPlans } = options;
+  const { initialPlans, activePlanId } = options;
 
   const [plans, setPlans] = useState<Plan[]>(() => {
     // If initialPlans provided from server, use those
@@ -57,13 +63,13 @@ export function usePlans(options: UsePlansOptions = {}) {
     undefined
   );
 
-  // Function to sync plans to Postgres
-  const syncPlans = useCallback(async (plansToSync: Plan[]) => {
+  // Function to sync a single plan to Postgres
+  const syncPlan = useCallback(async (plan: Plan) => {
     try {
       const response = await fetch("/api/plans/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plans: plansToSync }),
+        body: JSON.stringify({ plan }),
       });
 
       if (!response.ok) {
@@ -78,22 +84,37 @@ export function usePlans(options: UsePlansOptions = {}) {
       setSyncError(null);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to sync plans";
+        error instanceof Error ? error.message : "Failed to sync plan";
       setSyncError(message);
     }
   }, []);
 
   // Retry sync manually (for use with error banner)
   const retrySync = useCallback(() => {
-    syncPlans(plans);
-  }, [syncPlans, plans]);
+    if (activePlanId) {
+      const plan = plans.find((p) => p.id === activePlanId);
+      if (plan) {
+        syncPlan(plan);
+      }
+    }
+  }, [syncPlan, plans, activePlanId]);
 
-  // Debounced sync to Postgres (750ms) whenever plans change
+  // Debounced sync to Postgres (750ms) whenever the active plan changes
   useEffect(() => {
     // Skip the initial sync when loading from initialPlans (server data)
     // to avoid immediately syncing server data back to the server
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      return;
+    }
+
+    // Only sync if we have an active plan ID (avoids syncing all plans)
+    if (!activePlanId) {
+      return;
+    }
+
+    const plan = plans.find((p) => p.id === activePlanId);
+    if (!plan) {
       return;
     }
 
@@ -104,7 +125,7 @@ export function usePlans(options: UsePlansOptions = {}) {
 
     // Debounce sync to Postgres by 750ms
     syncTimeoutRef.current = setTimeout(() => {
-      syncPlans(plans);
+      syncPlan(plan);
     }, 750);
 
     return () => {
@@ -112,7 +133,7 @@ export function usePlans(options: UsePlansOptions = {}) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [plans, syncPlans]);
+  }, [plans, syncPlan, activePlanId]);
 
   // One-time migration from localStorage to Postgres
   useEffect(() => {

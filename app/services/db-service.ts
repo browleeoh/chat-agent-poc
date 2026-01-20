@@ -1927,6 +1927,75 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
         }));
       }),
       /**
+       * Sync a single plan - deletes the existing plan with given ID and inserts the new one.
+       * This is a simple "last write wins" approach for single-user app.
+       */
+      syncPlan: Effect.fn("syncPlan")(function* (plan: {
+        readonly id: string;
+        readonly title: string;
+        readonly createdAt: string;
+        readonly updatedAt: string;
+        readonly sections: readonly {
+          readonly id: string;
+          readonly title: string;
+          readonly order: number;
+          readonly lessons: readonly {
+            readonly id: string;
+            readonly title: string;
+            readonly order: number;
+            readonly description?: string;
+            readonly icon?: "watch" | "code" | "discussion" | null;
+            readonly dependencies?: readonly string[];
+          }[];
+        }[];
+      }) {
+        // Delete the existing plan with this ID (cascades to sections and lessons)
+        yield* makeDbCall(() => db.delete(plans).where(eq(plans.id, plan.id)));
+
+        // Insert the plan
+        yield* makeDbCall(() =>
+          db.insert(plans).values({
+            id: plan.id,
+            title: plan.title,
+            createdAt: new Date(plan.createdAt),
+            updatedAt: new Date(plan.updatedAt),
+          })
+        );
+
+        // Insert sections for this plan
+        for (const section of plan.sections) {
+          yield* makeDbCall(() =>
+            db.insert(planSections).values({
+              id: section.id,
+              planId: plan.id,
+              title: section.title,
+              order: section.order,
+            })
+          );
+
+          // Insert lessons for this section
+          if (section.lessons.length > 0) {
+            yield* makeDbCall(() =>
+              db.insert(planLessons).values(
+                section.lessons.map((lesson) => ({
+                  id: lesson.id,
+                  sectionId: section.id,
+                  title: lesson.title,
+                  order: lesson.order,
+                  description: lesson.description,
+                  icon: lesson.icon ?? null,
+                  dependencies: lesson.dependencies
+                    ? [...lesson.dependencies]
+                    : null,
+                }))
+              )
+            );
+          }
+        }
+
+        return { success: true };
+      }),
+      /**
        * Bulk sync plans - deletes all existing plans and inserts the new ones.
        * This is a simple "last write wins" approach for single-user app.
        */

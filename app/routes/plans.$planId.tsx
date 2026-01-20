@@ -669,7 +669,10 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     reorderLesson,
     syncError,
     retrySync,
-  } = usePlans({ initialPlans: loaderData.plans });
+  } = usePlans({
+    initialPlans: loaderData.plans,
+    activePlanId: loaderData.plan?.id,
+  });
 
   // Use loader data as initial value, but getPlan for updates (it reads from the hook's state)
   const planId = loaderData.plan?.id;

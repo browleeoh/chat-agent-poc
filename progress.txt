@@ -745,3 +745,25 @@
 **Remaining work for Issue #141**:
 - Run db:push when database is available
 
+---
+
+## Issue #142: Sync only the active plan instead of all plans
+
+**Task completed**: Changed sync endpoint to only synchronize a single plan at a time
+
+**Key decisions**:
+- Added `syncPlan` method to DBService that deletes and re-inserts a single plan by ID
+- Changed `/api/plans/sync` endpoint from accepting `{ plans: Plan[] }` to `{ plan: Plan }`
+- Added `activePlanId` option to `usePlans` hook to specify which plan to sync
+- Updated debounced sync effect to only sync when `activePlanId` is provided and only sync that plan
+- Plan detail page now passes `activePlanId: loaderData.plan?.id` to the hook
+- Sidebar usage (no activePlanId) no longer triggers syncs on plan list changes
+
+**Files changed**:
+- app/services/db-service.ts - Added syncPlan method for single plan sync
+- app/routes/api.plans.sync.ts - Changed schema from plans array to single plan
+- app/hooks/use-plans.ts - Added activePlanId option, updated sync logic
+- app/routes/plans.$planId.tsx - Pass activePlanId to usePlans hook
+
+**Blockers**: None
+

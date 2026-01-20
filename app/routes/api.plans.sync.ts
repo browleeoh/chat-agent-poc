@@ -31,7 +31,7 @@ const PlanSchema = Schema.Struct({
 });
 
 const SyncRequestSchema = Schema.Struct({
-  plans: Schema.Array(PlanSchema),
+  plan: PlanSchema,
 });
 
 export const action = async (args: Route.ActionArgs) => {
@@ -41,7 +41,7 @@ export const action = async (args: Route.ActionArgs) => {
     const parsed = yield* Schema.decodeUnknown(SyncRequestSchema)(body);
     const db = yield* DBService;
 
-    yield* db.syncPlans(parsed.plans);
+    yield* db.syncPlan(parsed.plan);
 
     return { success: true };
   }).pipe(
