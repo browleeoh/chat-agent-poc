@@ -835,3 +835,40 @@
 
 **Blockers**: None
 
+---
+
+## Issue #149: Plan Page State Refactor - Tracer Bullet (RFC)
+
+**Task completed**: Created plan-state-reducer with all 33 behaviors and comprehensive tests
+
+**Key decisions**:
+- Used `useEffectReducer` pattern matching clip-state-reducer (namespace for types + separate const for reducer)
+- State shape includes: plan, syncError, editingTitle, editingSection, addingSection, editingLesson, addingLesson, editingDescription, focusRequest
+- Two effect types: `plan-changed` (triggers sync) and `focus-element` (triggers UI focus)
+- Renamed `createInitialState` to `createInitialPlanState` to avoid esbuild namespace conflict
+- All 33 behaviors from RFC implemented with tests:
+  - Plan title (1-4): click to edit, change, save, cancel
+  - Add section (5-8): click, change, save with focus effect, cancel
+  - Edit section (9-11): click, save, cancel
+  - Delete section (12): remove and emit plan-changed
+  - Add lesson (13-16): click, change, save with focus effect, cancel
+  - Edit lesson (17-20): click, change, save, cancel
+  - Delete lesson (21): remove lesson and clean up dependencies
+  - Lesson description (22-25): click, change, save, cancel
+  - Lesson icon (26): update and emit
+  - Lesson dependencies (27): update and emit
+  - Reordering (28-30): section reorder, same-section lesson reorder, cross-section lesson reorder
+  - Sync (31-32): store error, retry
+  - Focus (33): clear focus request
+
+**Files created**:
+- app/features/course-planner/plan-state-reducer.ts - Reducer with State, Action, Effect types
+- app/features/course-planner/plan-state-reducer.test.ts - 37 tests covering all behaviors
+
+**Blockers**: None
+
+**Remaining work for Issue #149**:
+- Wire reducer to component (replace usePlan hook calls with reducer dispatch)
+- Add effect handler for debounced sync
+- Manual testing
+
