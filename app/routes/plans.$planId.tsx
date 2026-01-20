@@ -1,20 +1,28 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlans } from "@/hooks/use-plans";
 import {
   ChevronLeft,
   Code,
+  Copy,
   GripVertical,
   MessageCircle,
+  MoreVertical,
   PencilIcon,
   Play,
   Plus,
   Trash2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import type { Route } from "./+types/plans.$planId";
 import {
   DndContext,
@@ -511,9 +519,11 @@ function SortableSection({
 
 export default function PlanDetailPage(_props: Route.ComponentProps) {
   const { planId } = useParams();
+  const navigate = useNavigate();
   const {
     getPlan,
     updatePlan,
+    duplicatePlan,
     addSection,
     updateSection,
     deleteSection,
@@ -781,17 +791,39 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
               ) : (
                 <>
                   <h1 className="text-2xl font-bold">{plan.title}</h1>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 opacity-0 group-hover/title:opacity-100 transition-opacity"
-                    onClick={() => {
-                      setEditedTitle(plan.title);
-                      setIsEditingTitle(true);
-                    }}
-                  >
-                    <PencilIcon className="w-4 h-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover/title:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setEditedTitle(plan.title);
+                          setIsEditingTitle(true);
+                        }}
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                        Edit Title
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          const newPlan = duplicatePlan(planId!);
+                          if (newPlan) {
+                            navigate(`/plans/${newPlan.id}`);
+                          }
+                        }}
+                      >
+                        <Copy className="w-4 h-4" />
+                        Duplicate Plan
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               )}
             </div>

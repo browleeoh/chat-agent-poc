@@ -68,6 +68,32 @@ export function usePlans() {
     setPlans((prev) => prev.filter((plan) => plan.id !== planId));
   }, []);
 
+  const duplicatePlan = useCallback(
+    (planId: string): Plan | undefined => {
+      const sourcePlan = plans.find((p) => p.id === planId);
+      if (!sourcePlan) return undefined;
+
+      const now = getTimestamp();
+      const newPlan: Plan = {
+        id: generateId(),
+        title: `${sourcePlan.title} (Copy)`,
+        createdAt: now,
+        updatedAt: now,
+        sections: sourcePlan.sections.map((section) => ({
+          ...section,
+          id: generateId(),
+          lessons: section.lessons.map((lesson) => ({
+            ...lesson,
+            id: generateId(),
+          })),
+        })),
+      };
+      setPlans((prev) => [...prev, newPlan]);
+      return newPlan;
+    },
+    [plans]
+  );
+
   const getPlan = useCallback(
     (planId: string): Plan | undefined => {
       return plans.find((plan) => plan.id === planId);
@@ -366,6 +392,7 @@ export function usePlans() {
     createPlan,
     updatePlan,
     deletePlan,
+    duplicatePlan,
     getPlan,
     addSection,
     updateSection,

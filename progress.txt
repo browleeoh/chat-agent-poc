@@ -403,3 +403,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #129: Add ability to duplicate a plan with context menu
+
+**Task completed**: Added actions dropdown menu to plan title with Edit Title and Duplicate Plan options
+
+**Key decisions**:
+- Replaced pencil icon next to plan title with a MoreVertical icon triggering a dropdown menu
+- Dropdown menu contains "Edit Title" (existing functionality, now in menu) and "Duplicate Plan" (new)
+- Added `duplicatePlan` function to `usePlans` hook that deep copies plan with all sections and lessons
+- Duplicated plan gets title suffixed with "(Copy)" and new IDs for all sections/lessons
+- After duplication, user is navigated to the new plan
+
+**Files changed**:
+- app/hooks/use-plans.ts - Added duplicatePlan function
+- app/routes/plans.$planId.tsx - Replaced pencil Button with DropdownMenu, added duplicate functionality
+
+**Blockers**: None
+
