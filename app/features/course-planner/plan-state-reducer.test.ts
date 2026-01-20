@@ -128,7 +128,6 @@ describe("planStateReducer", () => {
       expect(tester.getExec()).toHaveBeenCalledWith(
         expect.objectContaining({
           type: "plan-changed",
-          plan: expect.objectContaining({ title: "New Title" }),
         })
       );
     });
@@ -892,7 +891,6 @@ describe("planStateReducer", () => {
 
       expect(tester.getExec()).toHaveBeenCalledWith({
         type: "plan-changed",
-        plan: expect.objectContaining({ title: "Test Plan" }),
       });
       // Note: syncError remains until sync succeeds
       expect(state.syncError).toBe("Network error");

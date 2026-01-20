@@ -101,7 +101,7 @@ export namespace planStateReducer {
     | { type: "focus-handled" };
 
   export type Effect =
-    | { type: "plan-changed"; plan: Plan }
+    | { type: "plan-changed" }
     | {
         type: "focus-element";
         target: { type: "add-lesson-button"; sectionId: string };
@@ -155,7 +155,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -203,7 +203,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
       exec({
         type: "focus-element",
         target: { type: "add-lesson-button", sectionId: newSection.id },
@@ -256,7 +256,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -281,7 +281,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -328,7 +328,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
       exec({
         type: "focus-element",
         target: { type: "add-lesson-button", sectionId },
@@ -385,7 +385,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -433,7 +433,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -485,7 +485,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -519,7 +519,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -546,7 +546,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -580,7 +580,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -661,7 +661,7 @@ export const planStateReducer: EffectReducer<
         updatedAt: getTimestamp(),
       };
 
-      exec({ type: "plan-changed", plan: updatedPlan });
+      exec({ type: "plan-changed" });
 
       return {
         ...state,
@@ -677,7 +677,7 @@ export const planStateReducer: EffectReducer<
       };
     }
     case "sync-retry-requested": {
-      exec({ type: "plan-changed", plan: state.plan });
+      exec({ type: "plan-changed" });
       return state;
     }
 

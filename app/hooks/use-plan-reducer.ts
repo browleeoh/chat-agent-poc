@@ -51,7 +51,7 @@ export function usePlanReducer(options: UsePlanReducerOptions) {
     planStateReducer.Action,
     planStateReducer.Effect
   >(planStateReducer, createInitialPlanState(initialPlan), {
-    "plan-changed": (_state, effect, dispatch) => {
+    "plan-changed": (state, _effect, dispatch) => {
       // Skip sync on initial mount
       if (isInitialMount.current) {
         isInitialMount.current = false;
@@ -64,7 +64,7 @@ export function usePlanReducer(options: UsePlanReducerOptions) {
       }
 
       syncTimeoutRef.current = setTimeout(() => {
-        syncPlan(effect.plan, dispatch);
+        syncPlan(state.plan, dispatch);
       }, 750);
     },
     "focus-element": (_state, effect, dispatch) => {
