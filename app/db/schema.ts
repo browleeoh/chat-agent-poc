@@ -229,6 +229,88 @@ export const reposRelations = relations(repos, ({ many }) => ({
   versions: many(repoVersions),
 }));
 
+// Plan tables (standalone, not tied to repos)
+export const plans = createTable("plan", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const planSections = createTable("plan_section", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  planId: varchar("plan_id", { length: 255 })
+    .references(() => plans.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title").notNull(),
+  order: doublePrecision("order").notNull(),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const planLessons = createTable("plan_lesson", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sectionId: varchar("section_id", { length: 255 })
+    .references(() => planSections.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  icon: varchar("icon", { length: 255 }),
+  dependencies: text("dependencies").array(),
+  order: doublePrecision("order").notNull(),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const plansRelations = relations(plans, ({ many }) => ({
+  sections: many(planSections),
+}));
+
+export const planSectionsRelations = relations(
+  planSections,
+  ({ one, many }) => ({
+    plan: one(plans, {
+      fields: [planSections.planId],
+      references: [plans.id],
+    }),
+    lessons: many(planLessons),
+  })
+);
+
+export const planLessonsRelations = relations(planLessons, ({ one }) => ({
+  section: one(planSections, {
+    fields: [planLessons.sectionId],
+    references: [planSections.id],
+  }),
+}));
+
 // export const chats = createTable("chat", {
 //   id: varchar("id", { length: 255 })
 //     .notNull()

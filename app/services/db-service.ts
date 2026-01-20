@@ -3,6 +3,9 @@ import {
   clips,
   clipSections,
   lessons,
+  planLessons,
+  plans,
+  planSections,
   repos,
   repoVersions,
   sections,
@@ -1884,6 +1887,118 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
           return versionsWithStructure;
         }
       ),
+      // Plan-related methods
+      getPlans: Effect.fn("getPlans")(function* () {
+        const allPlans = yield* makeDbCall(() =>
+          db.query.plans.findMany({
+            orderBy: desc(plans.createdAt),
+            with: {
+              sections: {
+                orderBy: asc(planSections.order),
+                with: {
+                  lessons: {
+                    orderBy: asc(planLessons.order),
+                  },
+                },
+              },
+            },
+          })
+        );
+
+        // Transform to match the Plan type expected by the frontend
+        return allPlans.map((plan) => ({
+          id: plan.id,
+          title: plan.title,
+          createdAt: plan.createdAt.toISOString(),
+          updatedAt: plan.updatedAt.toISOString(),
+          sections: plan.sections.map((section) => ({
+            id: section.id,
+            title: section.title,
+            order: section.order,
+            lessons: section.lessons.map((lesson) => ({
+              id: lesson.id,
+              title: lesson.title,
+              order: lesson.order,
+              description: lesson.description,
+              icon: lesson.icon as "watch" | "code" | "discussion" | undefined,
+              dependencies: lesson.dependencies ?? undefined,
+            })),
+          })),
+        }));
+      }),
+      /**
+       * Bulk sync plans - deletes all existing plans and inserts the new ones.
+       * This is a simple "last write wins" approach for single-user app.
+       */
+      syncPlans: Effect.fn("syncPlans")(function* (
+        inputPlans: readonly {
+          readonly id: string;
+          readonly title: string;
+          readonly createdAt: string;
+          readonly updatedAt: string;
+          readonly sections: readonly {
+            readonly id: string;
+            readonly title: string;
+            readonly order: number;
+            readonly lessons: readonly {
+              readonly id: string;
+              readonly title: string;
+              readonly order: number;
+              readonly description: string;
+              readonly icon?: "watch" | "code" | "discussion";
+              readonly dependencies?: readonly string[];
+            }[];
+          }[];
+        }[]
+      ) {
+        // Delete all existing plans (cascades to sections and lessons)
+        yield* makeDbCall(() => db.delete(plans));
+
+        // Insert new plans
+        for (const plan of inputPlans) {
+          yield* makeDbCall(() =>
+            db.insert(plans).values({
+              id: plan.id,
+              title: plan.title,
+              createdAt: new Date(plan.createdAt),
+              updatedAt: new Date(plan.updatedAt),
+            })
+          );
+
+          // Insert sections for this plan
+          for (const section of plan.sections) {
+            yield* makeDbCall(() =>
+              db.insert(planSections).values({
+                id: section.id,
+                planId: plan.id,
+                title: section.title,
+                order: section.order,
+              })
+            );
+
+            // Insert lessons for this section
+            if (section.lessons.length > 0) {
+              yield* makeDbCall(() =>
+                db.insert(planLessons).values(
+                  section.lessons.map((lesson) => ({
+                    id: lesson.id,
+                    sectionId: section.id,
+                    title: lesson.title,
+                    order: lesson.order,
+                    description: lesson.description,
+                    icon: lesson.icon ?? null,
+                    dependencies: lesson.dependencies
+                      ? [...lesson.dependencies]
+                      : null,
+                  }))
+                )
+              );
+            }
+          }
+        }
+
+        return { success: true };
+      }),
     };
   }),
 }) {}

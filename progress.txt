@@ -629,3 +629,32 @@
 
 **Blockers**: None
 
+---
+
+## Issue #141: Migrate Plans from localStorage to Postgres (tracer bullet)
+
+**Task completed**: Added Drizzle schema tables and sync endpoint for plans
+
+**Key decisions**:
+- Created `plan`, `plan_section`, `plan_lesson` tables with cascade deletes
+- Used doublePrecision for order field (matching PRD spec for integer ordering)
+- Created `getPlans` method in DBService that returns plans in frontend format
+- Created `syncPlans` method using delete-all + insert-all pattern (last write wins)
+- Created POST `/api/plans/sync` endpoint with Effect Schema validation
+- This is the tracer bullet - schema and sync endpoint are ready, hook integration pending
+
+**Files changed**:
+- app/db/schema.ts - Added plans, planSections, planLessons tables with relations
+- app/services/db-service.ts - Added getPlans and syncPlans methods
+- app/routes/api.plans.sync.ts - New sync endpoint
+
+**Blockers**: None
+
+**Remaining work for Issue #141**:
+- Update usePlans hook to sync to Postgres instead of localStorage backup
+- Add debounced sync (750ms) to usePlans hook
+- Load plans via root layout loader (for sidebar availability)
+- Create migration endpoint to move localStorage → Postgres
+- Add error banner for sync failures
+- Run db:push when database is available
+
