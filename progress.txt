@@ -767,3 +767,25 @@
 
 **Blockers**: None
 
+---
+
+## Issue #143: Remove localStorage migration code
+
+**Task completed**: Removed the localStorage to Postgres migration endpoint and related code
+
+**Key decisions**:
+- Migration is no longer needed since plans are now stored in Postgres
+- Removed STORAGE_KEY and MIGRATION_ATTEMPTED_KEY constants from usePlans hook
+- Removed localStorage fallback in usePlans useState initializer
+- Removed the one-time migration useEffect from usePlans hook
+- Removed syncPlans (bulk sync) method from DBService since it was only used by migrate endpoint
+
+**Files deleted**:
+- app/routes/api.plans.migrate.ts - The migration endpoint
+
+**Files changed**:
+- app/hooks/use-plans.ts - Removed localStorage fallback, migration code, and related constants
+- app/services/db-service.ts - Removed syncPlans method
+
+**Blockers**: None
+

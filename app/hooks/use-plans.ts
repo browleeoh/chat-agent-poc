@@ -1,9 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Plan, Section, Lesson } from "@/features/course-planner/types";
 
-const STORAGE_KEY = "course-plans";
-const MIGRATION_ATTEMPTED_KEY = "course-plans-migration-attempted";
-
 function generateId(): string {
   return crypto.randomUUID();
 }
@@ -15,7 +12,6 @@ function getTimestamp(): string {
 export interface UsePlansOptions {
   /**
    * Initial plans loaded from the server (Postgres).
-   * When provided, these are used instead of localStorage.
    */
   initialPlans?: Plan[];
   /**
@@ -28,31 +24,12 @@ export interface UsePlansOptions {
 
 /**
  * Hook to manage course plans.
- * When initialPlans is provided (from server loader), uses those.
- * Otherwise falls back to localStorage for backwards compatibility.
+ * Plans are loaded from Postgres via server loaders and passed as initialPlans.
  */
 export function usePlans(options: UsePlansOptions = {}) {
   const { initialPlans, activePlanId } = options;
 
-  const [plans, setPlans] = useState<Plan[]>(() => {
-    // If initialPlans provided from server, use those
-    if (initialPlans !== undefined) {
-      return initialPlans;
-    }
-    // Otherwise fall back to localStorage (backwards compat)
-    if (typeof localStorage === "undefined") {
-      return [];
-    }
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored) as Plan[];
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
+  const [plans, setPlans] = useState<Plan[]>(initialPlans ?? []);
 
   // Sync error state - when set, indicates sync to Postgres failed
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -134,64 +111,6 @@ export function usePlans(options: UsePlansOptions = {}) {
       }
     };
   }, [plans, syncPlan, activePlanId]);
-
-  // One-time migration from localStorage to Postgres
-  useEffect(() => {
-    // Only run on client
-    if (typeof localStorage === "undefined") return;
-
-    // Skip if we've already attempted migration
-    if (localStorage.getItem(MIGRATION_ATTEMPTED_KEY)) return;
-
-    // Check if there's localStorage data to migrate
-    const storedPlans = localStorage.getItem(STORAGE_KEY);
-    if (!storedPlans) {
-      // No localStorage data, mark migration as done
-      localStorage.setItem(MIGRATION_ATTEMPTED_KEY, "true");
-      return;
-    }
-
-    // Parse and migrate
-    let plansToMigrate: Plan[];
-    try {
-      plansToMigrate = JSON.parse(storedPlans) as Plan[];
-    } catch {
-      // Invalid JSON, mark as done
-      localStorage.setItem(MIGRATION_ATTEMPTED_KEY, "true");
-      return;
-    }
-
-    if (plansToMigrate.length === 0) {
-      localStorage.setItem(MIGRATION_ATTEMPTED_KEY, "true");
-      return;
-    }
-
-    // Attempt migration
-    fetch("/api/plans/migrate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plans: plansToMigrate }),
-    })
-      .then((res) => res.json())
-      .then((result: { migrated: boolean; reason?: string }) => {
-        // Mark migration as attempted regardless of result
-        localStorage.setItem(MIGRATION_ATTEMPTED_KEY, "true");
-
-        if (result.migrated) {
-          // Successfully migrated, remove localStorage data
-          localStorage.removeItem(STORAGE_KEY);
-          console.log("[usePlans] Successfully migrated plans to Postgres");
-        } else {
-          console.log(
-            `[usePlans] Migration skipped: ${result.reason ?? "unknown"}`
-          );
-        }
-      })
-      .catch((err) => {
-        // Don't mark as attempted on network error so it can retry
-        console.error("[usePlans] Migration failed:", err);
-      });
-  }, []); // Run once on mount
 
   // Plan operations
   const createPlan = useCallback((title: string): Plan => {
