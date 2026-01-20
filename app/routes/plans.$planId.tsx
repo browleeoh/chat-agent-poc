@@ -5,7 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePlans } from "@/hooks/use-plans";
 import {
   ChevronLeft,
+  Code,
   GripVertical,
+  Monitor,
   PencilIcon,
   Plus,
   Trash2,
@@ -33,7 +35,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Section, Lesson } from "@/features/course-planner/types";
+import type {
+  Section,
+  Lesson,
+  LessonIcon,
+} from "@/features/course-planner/types";
 
 // Custom collision detection that prioritizes lessons over sections
 // This allows dropping on a specific lesson position even when crossing sections
@@ -82,6 +88,7 @@ interface SortableLessonProps {
   onStartEditDescription: () => void;
   onSaveDescription: () => void;
   onCancelEditDescription: () => void;
+  onIconChange: (icon: LessonIcon) => void;
 }
 
 function SortableLesson({
@@ -100,6 +107,7 @@ function SortableLesson({
   onStartEditDescription,
   onSaveDescription,
   onCancelEditDescription,
+  onIconChange,
 }: SortableLessonProps) {
   const {
     attributes,
@@ -150,6 +158,23 @@ function SortableLesson({
               {...listeners}
             >
               <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <button
+              className="p-1 hover:bg-muted rounded"
+              onClick={() =>
+                onIconChange(lesson.icon === "code" ? "watch" : "code")
+              }
+              title={
+                lesson.icon === "code"
+                  ? "Interactive (click to change)"
+                  : "Watch (click to change)"
+              }
+            >
+              {lesson.icon === "code" ? (
+                <Code className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <Monitor className="w-4 h-4 text-muted-foreground" />
+              )}
             </button>
             <span className="text-sm flex-1 ml-1">
               <span className="text-muted-foreground mr-2">{lessonNumber}</span>
@@ -253,6 +278,7 @@ interface SortableSectionProps {
   onCancelAddLesson: () => void;
   shouldFocusAddLesson: boolean;
   onAddLessonFocused: () => void;
+  onLessonIconChange: (lessonId: string, icon: LessonIcon) => void;
 }
 
 function SortableSection({
@@ -286,6 +312,7 @@ function SortableSection({
   onCancelAddLesson,
   shouldFocusAddLesson,
   onAddLessonFocused,
+  onLessonIconChange,
 }: SortableSectionProps) {
   const {
     attributes,
@@ -408,6 +435,7 @@ function SortableSection({
               }
               onSaveDescription={() => onSaveDescription(lesson.id)}
               onCancelEditDescription={onCancelEditDescription}
+              onIconChange={(icon) => onLessonIconChange(lesson.id, icon)}
             />
           ))}
 
@@ -581,6 +609,14 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
       description: editedLessonDescription,
     });
     setEditingDescriptionLessonId(null);
+  };
+
+  const handleLessonIconChange = (
+    sectionId: string,
+    lessonId: string,
+    icon: LessonIcon
+  ) => {
+    updateLesson(planId!, sectionId, lessonId, { icon });
   };
 
   // Find which section a lesson belongs to
@@ -809,6 +845,9 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
                       focusAddLessonInSection === section.id
                     }
                     onAddLessonFocused={() => setFocusAddLessonInSection(null)}
+                    onLessonIconChange={(lessonId, icon) =>
+                      handleLessonIconChange(section.id, lessonId, icon)
+                    }
                   />
                 ))}
               </div>

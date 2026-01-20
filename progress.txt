@@ -274,3 +274,24 @@
 
 **Blockers**: None
 
+---
+
+## Issue #124: Add lesson icon selector
+
+**Task completed**: Added clickable icon to lessons for choosing between watch (passive) and code (interactive) lesson types
+
+**Key decisions**:
+- Added `LessonIcon` type ("watch" | "code") and optional `icon` field to Lesson type
+- Monitor icon = passive exercise (sit back and watch), Code icon = interactive (hands-on coding)
+- Default is "watch" (Monitor icon) when no icon is set
+- Click icon to toggle between the two options
+- Icon appears between grip handle and lesson number
+- Hover shows tooltip explaining the current state and that it's clickable
+
+**Files changed**:
+- app/features/course-planner/types.ts - Added LessonIcon type and icon field to Lesson
+- app/hooks/use-plans.ts - Updated updateLesson to allow icon updates
+- app/routes/plans.$planId.tsx - Added icon selector UI with Monitor and Code icons from lucide-react
+
+**Blockers**: None
+

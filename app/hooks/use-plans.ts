@@ -219,7 +219,7 @@ export function usePlans() {
       planId: string,
       sectionId: string,
       lessonId: string,
-      updates: Partial<Pick<Lesson, "title" | "description">>
+      updates: Partial<Pick<Lesson, "title" | "description" | "icon">>
     ) => {
       setPlans((prev) =>
         prev.map((plan) => {

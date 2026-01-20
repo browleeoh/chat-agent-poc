@@ -1,8 +1,11 @@
+export type LessonIcon = "watch" | "code";
+
 export interface Lesson {
   id: string;
   title: string;
   order: number;
   description: string;
+  icon?: LessonIcon;
 }
 
 export interface Section {
