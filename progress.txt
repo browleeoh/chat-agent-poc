@@ -136,3 +136,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #116: Fix cross-section lesson drag to specific position
+
+**Task completed**: Improved collision detection to allow dropping lessons at specific positions in other sections
+
+**Key decisions**:
+- Created custom collision detection that combines `pointerWithin` and `closestCenter`
+- Prioritizes lessons over sections when pointer is inside a lesson element
+- Added `data: { type: "section" }` to section sortables to distinguish them from lessons
+- When dragging over a lesson in another section, that lesson is detected as the drop target
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added customCollisionDetection function, marked sections with type data
+
+**Blockers**: None
+

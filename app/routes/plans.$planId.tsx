@@ -15,12 +15,14 @@ import type { Route } from "./+types/plans.$planId";
 import {
   DndContext,
   closestCenter,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type CollisionDetection,
   DragOverlay,
 } from "@dnd-kit/core";
 import {
@@ -31,6 +33,32 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Section, Lesson } from "@/features/course-planner/types";
+
+// Custom collision detection that prioritizes lessons over sections
+// This allows dropping on a specific lesson position even when crossing sections
+const customCollisionDetection: CollisionDetection = (args) => {
+  // First check for pointer within collisions (items the pointer is inside)
+  const pointerCollisions = pointerWithin(args);
+
+  // If we have pointer collisions, prioritize lessons over sections
+  if (pointerCollisions.length > 0) {
+    // Check if any collision is with a lesson (not a section)
+    // Sections have data.type === 'section', lessons don't
+    const lessonCollision = pointerCollisions.find((collision) => {
+      const container = args.droppableContainers.find(
+        (c) => c.id === collision.id
+      );
+      return container?.data.current?.type !== "section";
+    });
+    if (lessonCollision) {
+      return [lessonCollision];
+    }
+    return pointerCollisions;
+  }
+
+  // Fall back to closest center if no pointer collisions
+  return closestCenter(args);
+};
 
 export const meta: Route.MetaFunction = () => {
   return [{ title: "Plan - CVM" }];
@@ -202,7 +230,7 @@ function SortableSection({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: section.id });
+  } = useSortable({ id: section.id, data: { type: "section" } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -601,7 +629,7 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
           {/* Sections */}
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={customCollisionDetection}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
