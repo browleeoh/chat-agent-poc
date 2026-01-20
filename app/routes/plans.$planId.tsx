@@ -215,6 +215,7 @@ function SortableLesson({
 // Sortable Section Component
 interface SortableSectionProps {
   section: Section;
+  sectionNumber: number;
   isEditing: boolean;
   editedTitle: string;
   onEditedTitleChange: (value: string) => void;
@@ -247,6 +248,7 @@ interface SortableSectionProps {
 
 function SortableSection({
   section,
+  sectionNumber,
   isEditing,
   editedTitle,
   onEditedTitleChange,
@@ -340,7 +342,12 @@ function SortableSection({
               >
                 <GripVertical className="w-5 h-5 text-muted-foreground" />
               </button>
-              <h2 className="font-semibold text-lg">{section.title}</h2>
+              <h2 className="font-semibold text-lg">
+                <span className="text-muted-foreground mr-2">
+                  {sectionNumber}.
+                </span>
+                {section.title}
+              </h2>
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
               <Button
@@ -735,10 +742,11 @@ export default function PlanDetailPage(_props: Route.ComponentProps) {
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-6">
-                {sortedSections.map((section) => (
+                {sortedSections.map((section, index) => (
                   <SortableSection
                     key={section.id}
                     section={section}
+                    sectionNumber={index + 1}
                     isEditing={editingSectionId === section.id}
                     editedTitle={editedSectionTitle}
                     onEditedTitleChange={setEditedSectionTitle}

@@ -224,3 +224,20 @@
 
 **Blockers**: None
 
+---
+
+## Issue #121: Add section numbers
+
+**Task completed**: Added section numbers (1., 2., 3., etc.) next to section titles
+
+**Key decisions**:
+- Added `sectionNumber` prop to SortableSectionProps interface
+- Pass `index + 1` when mapping over sortedSections
+- Display number before title as muted-foreground text with "." suffix
+- Numbers automatically update when sections are reordered
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added sectionNumber prop and display
+
+**Blockers**: None
+
