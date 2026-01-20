@@ -59,7 +59,11 @@ import { NotFoundError } from "@/services/db-service-errors";
 export const loader = async ({ params }: Route.LoaderArgs) => {
   return Effect.gen(function* () {
     const db = yield* DBService;
-    const plans = yield* db.getPlans();
+    const [repos, standaloneVideos, plans] = yield* Effect.all([
+      db.getRepos(),
+      db.getStandaloneVideos(),
+      db.getPlans(),
+    ]);
     const plan = plans.find((p) => p.id === params.planId);
 
     if (!plan) {
@@ -69,7 +73,7 @@ export const loader = async ({ params }: Route.LoaderArgs) => {
         message: `Plan with id ${params.planId} not found`,
       });
     }
-    return { plan, plans };
+    return { plan, plans, repos, standaloneVideos };
   }).pipe(
     Effect.tapErrorCause((e) => Console.dir(e, { depth: null })),
     Effect.catchTag("NotFoundError", (e) => {
@@ -675,7 +679,11 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
   if (!plan) {
     return (
       <div className="flex h-screen bg-background text-foreground">
-        <AppSidebar plans={loaderData.plans} />
+        <AppSidebar
+          repos={loaderData.repos}
+          standaloneVideos={loaderData.standaloneVideos}
+          plans={loaderData.plans}
+        />
         <div className="flex-1 p-6">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4">Plan not found</h1>
@@ -818,7 +826,11 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <AppSidebar plans={loaderData.plans} />
+      <AppSidebar
+        repos={loaderData.repos}
+        standaloneVideos={loaderData.standaloneVideos}
+        plans={loaderData.plans}
+      />
       <div className="flex-1 overflow-y-auto">
         {/* Sync Error Banner */}
         {syncError && (

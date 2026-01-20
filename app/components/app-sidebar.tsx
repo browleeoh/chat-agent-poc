@@ -31,34 +31,31 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useFetcher, useNavigate, useLocation } from "react-router";
 
 export interface AppSidebarProps {
-  repos?: Array<{
+  repos: Array<{
     id: string;
     name: string;
   }>;
-  standaloneVideos?: Array<{
+  standaloneVideos: Array<{
     id: string;
     path: string;
   }>;
+  plans: Plan[];
   selectedRepoId?: string | null;
   isAddRepoModalOpen?: boolean;
   setIsAddRepoModalOpen?: (open: boolean) => void;
   isAddStandaloneVideoModalOpen?: boolean;
   setIsAddStandaloneVideoModalOpen?: (open: boolean) => void;
-  /**
-   * Plans loaded from the server (Postgres).
-   */
-  plans?: Plan[];
 }
 
 export function AppSidebar({
-  repos = [],
-  standaloneVideos = [],
+  repos,
+  standaloneVideos,
+  plans,
   selectedRepoId = null,
   isAddRepoModalOpen = false,
   setIsAddRepoModalOpen,
   isAddStandaloneVideoModalOpen = false,
   setIsAddStandaloneVideoModalOpen,
-  plans = [],
 }: AppSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();

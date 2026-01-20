@@ -896,3 +896,22 @@
 
 **Blockers**: None
 
+---
+
+## Issue #145: Make AppSidebar data props required
+
+**Task completed**: Changed repos, standaloneVideos, and plans props from optional to required
+
+**Key decisions**:
+- Made `repos`, `standaloneVideos`, and `plans` required props in AppSidebarProps interface
+- Removed default values for these props in function signature
+- Updated `plans.$planId.tsx` loader to fetch repos and standaloneVideos (was only fetching plans)
+- Updated both AppSidebar usages in `plans.$planId.tsx` to pass all required props
+- Modal state props remain optional since not all pages need the add repo/video modals
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Made data props required, reordered props in interface
+- app/routes/plans.$planId.tsx - Loader now fetches repos and standaloneVideos, passes to AppSidebar
+
+**Blockers**: None
+
