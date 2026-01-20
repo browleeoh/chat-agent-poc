@@ -493,3 +493,19 @@
 
 **Blockers**: None
 
+---
+
+## Issue #135: Estimated video count at top of plan
+
+**Task completed**: Added estimated video count to plan header stats
+
+**Key decisions**:
+- Video count calculated based on lesson icons: play/watch=1, code=2, discussion=1
+- Displayed with ~ prefix to indicate estimate (e.g., "~12 videos")
+- Added alongside existing "X sections" and "Y lessons" stats
+
+**Files changed**:
+- app/routes/plans.$planId.tsx - Added estimatedVideos calculation and display
+
+**Blockers**: None
+

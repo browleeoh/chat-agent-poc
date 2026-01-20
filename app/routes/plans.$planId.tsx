@@ -613,6 +613,16 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
     (acc, section) => acc + section.lessons.length,
     0
   );
+  // Estimated videos: play/watch = 1, code = 2, discussion = 1
+  const estimatedVideos = plan.sections.reduce(
+    (acc, section) =>
+      acc +
+      section.lessons.reduce((lessonAcc, lesson) => {
+        if (lesson.icon === "code") return lessonAcc + 2;
+        return lessonAcc + 1; // watch and discussion = 1
+      }, 0),
+    0
+  );
 
   const handleSaveTitle = () => {
     if (editedTitle.trim()) {
@@ -848,6 +858,9 @@ export default function PlanDetailPage({ loaderData }: Route.ComponentProps) {
               </span>
               <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
                 {totalLessons} lessons
+              </span>
+              <span className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
+                ~{estimatedVideos} videos
               </span>
             </div>
           </div>
