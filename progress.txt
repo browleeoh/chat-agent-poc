@@ -567,3 +567,25 @@
 
 **Blockers**: None
 
+---
+
+## Issue #137: Rewrite dependency prototype with full lesson UI
+
+**Task completed**: Rewrote dependency prototype to include all UI elements from the actual plan page
+
+**Key decisions**:
+- Created `LessonRow` base component matching actual plan page UI (grip handle, circle badge icon, title, description, delete button)
+- Created `LessonRowWithTitleSlot` variant for placing elements inline with title
+- All 5 variants now use the base components for consistent UI
+- Variant 2 (Inline Dropdown) updated to show dependency badge inline with title (not below)
+- Badge shows just link icon when no deps, link icon + lesson numbers when has deps
+- Mock data updated to include descriptions on some lessons
+- Replaced Variant 4 "Expandable Row" with "Subtle Text" variant
+
+**Files changed**:
+- app/routes/dependency-prototype.tsx - Complete rewrite with full lesson UI
+
+**Blockers**: None
+
+**Next step**: Issue #139 created to implement Variant 2 and delete prototype
+
