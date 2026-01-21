@@ -31,6 +31,7 @@ export namespace planStateReducer {
     editingDescription: { lessonId: string; value: string } | null;
     focusRequest: { type: "add-lesson-button"; sectionId: string } | null;
     deletingSection: { sectionId: string; lessonCount: number } | null;
+    deletingLesson: { sectionId: string; lessonId: string } | null;
   };
 
   export type Action =
@@ -64,7 +65,9 @@ export namespace planStateReducer {
     | { type: "lesson-save-requested" }
     | { type: "lesson-cancel-requested" }
     // Delete Lesson (21)
-    | { type: "lesson-delete-requested"; sectionId: string; lessonId: string }
+    | { type: "lesson-delete-clicked"; sectionId: string; lessonId: string }
+    | { type: "lesson-delete-confirmed" }
+    | { type: "lesson-delete-cancelled" }
     // Lesson Description (22-25)
     | {
         type: "lesson-description-clicked";
@@ -128,6 +131,7 @@ export const createInitialPlanState = (plan: Plan): planStateReducer.State => ({
   editingDescription: null,
   focusRequest: null,
   deletingSection: null,
+  deletingLesson: null,
 });
 
 export const planStateReducer: EffectReducer<
@@ -450,14 +454,25 @@ export const planStateReducer: EffectReducer<
     }
 
     // Delete Lesson (21)
-    case "lesson-delete-requested": {
-      const lessonId = action.lessonId;
+    case "lesson-delete-clicked": {
+      return {
+        ...state,
+        deletingLesson: {
+          sectionId: action.sectionId,
+          lessonId: action.lessonId,
+        },
+      };
+    }
+    case "lesson-delete-confirmed": {
+      if (!state.deletingLesson) return state;
+
+      const { sectionId, lessonId } = state.deletingLesson;
 
       const updatedPlan: Plan = {
         ...state.plan,
         sections: state.plan.sections.map((section) => {
           const filteredLessons =
-            section.id === action.sectionId
+            section.id === sectionId
               ? section.lessons.filter((lesson) => lesson.id !== lessonId)
               : section.lessons;
 
@@ -487,6 +502,13 @@ export const planStateReducer: EffectReducer<
       return {
         ...state,
         plan: updatedPlan,
+        deletingLesson: null,
+      };
+    }
+    case "lesson-delete-cancelled": {
+      return {
+        ...state,
+        deletingLesson: null,
       };
     }
 

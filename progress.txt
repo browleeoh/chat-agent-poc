@@ -1000,3 +1000,26 @@
 - app/routes/plans.$planId.tsx - Changed action type, added Dialog imports and confirmation modal UI
 
 **Blockers**: None
+
+---
+
+## Issue #154: Add confirmation modal before deleting lessons
+
+**Task completed**: Added confirmation dialog when deleting any lesson
+
+**Key decisions**:
+- Added `deletingLesson` state to reducer: `{ sectionId: string; lessonId: string } | null`
+- Replaced `lesson-delete-requested` action with three new actions:
+  - `lesson-delete-clicked`: Shows confirmation modal
+  - `lesson-delete-confirmed`: Deletes the lesson and closes modal
+  - `lesson-delete-cancelled`: Closes modal without deleting
+- All lessons show confirmation (unlike sections which only confirm when not empty)
+- Modal shows simple "This action cannot be undone" message
+- Used existing Dialog component from shadcn/ui
+
+**Files changed**:
+- app/features/course-planner/plan-state-reducer.ts - Added deletingLesson state, replaced delete action with three-step flow
+- app/features/course-planner/plan-state-reducer.test.ts - Updated and added tests for new behavior (4 test cases)
+- app/routes/plans.$planId.tsx - Changed action type, added confirmation modal UI
+
+**Blockers**: None

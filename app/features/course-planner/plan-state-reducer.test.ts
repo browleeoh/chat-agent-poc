@@ -638,7 +638,41 @@ describe("planStateReducer", () => {
   });
 
   describe("Delete Lesson (21)", () => {
-    it("21. lesson-delete-requested: remove lesson + remove from dependencies + emit plan-changed", () => {
+    it("21a. lesson-delete-clicked: shows confirmation modal", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-delete-clicked",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .getState();
+
+      expect(state.deletingLesson).toEqual({
+        sectionId: "s1",
+        lessonId: "l1",
+      });
+      // Lesson not deleted yet
+      expect(state.plan.sections[0]?.lessons).toHaveLength(1);
+      // No plan-changed yet
+      expect(tester.getExec()).not.toHaveBeenCalled();
+    });
+
+    it("21b. lesson-delete-confirmed: remove lesson + remove from dependencies + emit plan-changed", () => {
       const plan = createTestPlan({
         sections: [
           {
@@ -665,10 +699,12 @@ describe("planStateReducer", () => {
 
       const state = tester
         .send({
-          type: "lesson-delete-requested",
+          type: "lesson-delete-clicked",
           sectionId: "s1",
           lessonId: "l1",
         })
+        .resetExec()
+        .send({ type: "lesson-delete-confirmed" })
         .getState();
 
       expect(state.plan.sections[0]?.lessons).toHaveLength(2);
@@ -676,9 +712,62 @@ describe("planStateReducer", () => {
       expect(state.plan.sections[0]?.lessons[0]?.dependencies).toEqual([]);
       expect(state.plan.sections[0]?.lessons[1]?.id).toBe("l3");
       expect(state.plan.sections[0]?.lessons[1]?.dependencies).toEqual(["l2"]);
+      expect(state.deletingLesson).toBeNull();
       expect(tester.getExec()).toHaveBeenCalledWith(
         expect.objectContaining({ type: "plan-changed" })
       );
+    });
+
+    it("21c. lesson-delete-cancelled: closes modal without deleting", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({
+          type: "lesson-delete-clicked",
+          sectionId: "s1",
+          lessonId: "l1",
+        })
+        .send({ type: "lesson-delete-cancelled" })
+        .getState();
+
+      expect(state.plan.sections[0]?.lessons).toHaveLength(1);
+      expect(state.deletingLesson).toBeNull();
+      expect(tester.getExec()).not.toHaveBeenCalled();
+    });
+
+    it("21d. lesson-delete-confirmed: does nothing if no pending deletion", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester.send({ type: "lesson-delete-confirmed" }).getState();
+
+      expect(state.plan.sections[0]?.lessons).toHaveLength(1);
+      expect(tester.getExec()).not.toHaveBeenCalled();
     });
   });
 

@@ -398,7 +398,7 @@ function SortableLesson({
                     className="h-6 w-6 text-destructive hover:text-destructive"
                     onClick={() =>
                       dispatch({
-                        type: "lesson-delete-requested",
+                        type: "lesson-delete-clicked",
                         sectionId,
                         lessonId: lesson.id,
                       })
@@ -1114,6 +1114,35 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
               onClick={() => dispatch({ type: "section-delete-confirmed" })}
             >
               Delete Section
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Lesson Confirmation Dialog */}
+      <Dialog
+        open={state.deletingLesson !== null}
+        onOpenChange={(open) => {
+          if (!open) dispatch({ type: "lesson-delete-cancelled" });
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Lesson?</DialogTitle>
+            <DialogDescription>This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => dispatch({ type: "lesson-delete-cancelled" })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => dispatch({ type: "lesson-delete-confirmed" })}
+            >
+              Delete Lesson
             </Button>
           </DialogFooter>
         </DialogContent>
