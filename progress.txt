@@ -977,3 +977,26 @@
 - app/components/app-sidebar.tsx - Removed client-side redirect logic
 
 **Blockers**: None
+
+---
+
+## Issue #153: Show confirmation modal before deleting sections with lessons
+
+**Task completed**: Added confirmation dialog when deleting sections that contain lessons
+
+**Key decisions**:
+- Added `deletingSection` state to reducer: `{ sectionId: string; lessonCount: number } | null`
+- Replaced `section-delete-requested` action with three new actions:
+  - `section-delete-clicked`: If section is empty, deletes immediately; if has lessons, shows modal
+  - `section-delete-confirmed`: Deletes the section and closes modal
+  - `section-delete-cancelled`: Closes modal without deleting
+- Empty sections still delete immediately without confirmation (better UX)
+- Modal shows lesson count and warning about permanent deletion
+- Used existing Dialog component from shadcn/ui
+
+**Files changed**:
+- app/features/course-planner/plan-state-reducer.ts - Added deletingSection state, replaced delete action with three-step flow
+- app/features/course-planner/plan-state-reducer.test.ts - Updated and added tests for new behavior (5 test cases)
+- app/routes/plans.$planId.tsx - Changed action type, added Dialog imports and confirmation modal UI
+
+**Blockers**: None

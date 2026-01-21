@@ -1,6 +1,14 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -590,7 +598,7 @@ function SortableSection({
                 className="h-8 w-8 text-destructive hover:text-destructive"
                 onClick={() =>
                   dispatch({
-                    type: "section-delete-requested",
+                    type: "section-delete-clicked",
                     sectionId: section.id,
                   })
                 }
@@ -1074,6 +1082,42 @@ function PlanDetailPageContent({ loaderData }: Route.ComponentProps) {
           )}
         </div>
       </div>
+
+      {/* Delete Section Confirmation Dialog */}
+      <Dialog
+        open={state.deletingSection !== null}
+        onOpenChange={(open) => {
+          if (!open) dispatch({ type: "section-delete-cancelled" });
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Section?</DialogTitle>
+            <DialogDescription>
+              This section contains{" "}
+              {state.deletingSection?.lessonCount === 1
+                ? "1 lesson"
+                : `${state.deletingSection?.lessonCount} lessons`}
+              . Deleting this section will also delete all its lessons. This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => dispatch({ type: "section-delete-cancelled" })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => dispatch({ type: "section-delete-confirmed" })}
+            >
+              Delete Section
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

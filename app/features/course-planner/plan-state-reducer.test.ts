@@ -336,7 +336,7 @@ describe("planStateReducer", () => {
   });
 
   describe("Delete Section (12)", () => {
-    it("12. section-delete-requested: remove section + emit plan-changed", () => {
+    it("12a. section-delete-clicked: empty section deletes immediately + emit plan-changed", () => {
       const plan = createTestPlan({
         sections: [
           { id: "s1", title: "Section 1", order: 0, lessons: [] },
@@ -349,14 +349,124 @@ describe("planStateReducer", () => {
       );
 
       const state = tester
-        .send({ type: "section-delete-requested", sectionId: "s1" })
+        .send({ type: "section-delete-clicked", sectionId: "s1" })
         .getState();
 
       expect(state.plan.sections).toHaveLength(1);
       expect(state.plan.sections[0]?.id).toBe("s2");
+      expect(state.deletingSection).toBeNull();
       expect(tester.getExec()).toHaveBeenCalledWith(
         expect.objectContaining({ type: "plan-changed" })
       );
+    });
+
+    it("12b. section-delete-clicked: section with lessons shows confirmation modal", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [
+              { id: "l1", title: "Lesson 1", order: 0 },
+              { id: "l2", title: "Lesson 2", order: 1 },
+            ],
+          },
+          { id: "s2", title: "Section 2", order: 1, lessons: [] },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({ type: "section-delete-clicked", sectionId: "s1" })
+        .getState();
+
+      // Section not deleted yet
+      expect(state.plan.sections).toHaveLength(2);
+      // Modal is shown with section info
+      expect(state.deletingSection).toEqual({
+        sectionId: "s1",
+        lessonCount: 2,
+      });
+      // No plan-changed yet
+      expect(tester.getExec()).not.toHaveBeenCalled();
+    });
+
+    it("12c. section-delete-confirmed: deletes section + emits plan-changed + closes modal", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0 }],
+          },
+          { id: "s2", title: "Section 2", order: 1, lessons: [] },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({ type: "section-delete-clicked", sectionId: "s1" })
+        .resetExec()
+        .send({ type: "section-delete-confirmed" })
+        .getState();
+
+      expect(state.plan.sections).toHaveLength(1);
+      expect(state.plan.sections[0]?.id).toBe("s2");
+      expect(state.deletingSection).toBeNull();
+      expect(tester.getExec()).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "plan-changed" })
+      );
+    });
+
+    it("12d. section-delete-cancelled: closes modal without deleting", () => {
+      const plan = createTestPlan({
+        sections: [
+          {
+            id: "s1",
+            title: "Section 1",
+            order: 0,
+            lessons: [{ id: "l1", title: "Lesson 1", order: 0 }],
+          },
+        ],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({ type: "section-delete-clicked", sectionId: "s1" })
+        .send({ type: "section-delete-cancelled" })
+        .getState();
+
+      expect(state.plan.sections).toHaveLength(1);
+      expect(state.deletingSection).toBeNull();
+      expect(tester.getExec()).not.toHaveBeenCalled();
+    });
+
+    it("12e. section-delete-confirmed: does nothing if no pending deletion", () => {
+      const plan = createTestPlan({
+        sections: [{ id: "s1", title: "Section 1", order: 0, lessons: [] }],
+      });
+      const tester = new ReducerTester(
+        planStateReducer,
+        createInitialState(plan)
+      );
+
+      const state = tester
+        .send({ type: "section-delete-confirmed" })
+        .getState();
+
+      expect(state.plan.sections).toHaveLength(1);
+      expect(tester.getExec()).not.toHaveBeenCalled();
     });
   });
 

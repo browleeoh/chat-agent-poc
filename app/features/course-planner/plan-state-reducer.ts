@@ -30,6 +30,7 @@ export namespace planStateReducer {
     addingLesson: { sectionId: string; value: string } | null;
     editingDescription: { lessonId: string; value: string } | null;
     focusRequest: { type: "add-lesson-button"; sectionId: string } | null;
+    deletingSection: { sectionId: string; lessonCount: number } | null;
   };
 
   export type Action =
@@ -49,7 +50,9 @@ export namespace planStateReducer {
     | { type: "section-save-requested" }
     | { type: "section-cancel-requested" }
     // Delete Section (12)
-    | { type: "section-delete-requested"; sectionId: string }
+    | { type: "section-delete-clicked"; sectionId: string }
+    | { type: "section-delete-confirmed" }
+    | { type: "section-delete-cancelled" }
     // Add Lesson (13-16)
     | { type: "add-lesson-clicked"; sectionId: string }
     | { type: "new-lesson-title-changed"; value: string }
@@ -124,6 +127,7 @@ export const createInitialPlanState = (plan: Plan): planStateReducer.State => ({
   addingLesson: null,
   editingDescription: null,
   focusRequest: null,
+  deletingSection: null,
 });
 
 export const planStateReducer: EffectReducer<
@@ -278,11 +282,43 @@ export const planStateReducer: EffectReducer<
     }
 
     // Delete Section (12)
-    case "section-delete-requested": {
+    case "section-delete-clicked": {
+      const section = state.plan.sections.find(
+        (s) => s.id === action.sectionId
+      );
+      if (!section) return state;
+
+      const lessonCount = section.lessons.length;
+
+      // If section has lessons, show confirmation modal
+      if (lessonCount > 0) {
+        return {
+          ...state,
+          deletingSection: { sectionId: action.sectionId, lessonCount },
+        };
+      }
+
+      // If section is empty, delete immediately
+      const updatedPlan: Plan = {
+        ...state.plan,
+        sections: state.plan.sections.filter((s) => s.id !== action.sectionId),
+        updatedAt: getTimestamp(),
+      };
+
+      exec({ type: "plan-changed" });
+
+      return {
+        ...state,
+        plan: updatedPlan,
+      };
+    }
+    case "section-delete-confirmed": {
+      if (!state.deletingSection) return state;
+
       const updatedPlan: Plan = {
         ...state.plan,
         sections: state.plan.sections.filter(
-          (section) => section.id !== action.sectionId
+          (section) => section.id !== state.deletingSection!.sectionId
         ),
         updatedAt: getTimestamp(),
       };
@@ -292,6 +328,13 @@ export const planStateReducer: EffectReducer<
       return {
         ...state,
         plan: updatedPlan,
+        deletingSection: null,
+      };
+    }
+    case "section-delete-cancelled": {
+      return {
+        ...state,
+        deletingSection: null,
       };
     }
 
