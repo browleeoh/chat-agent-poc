@@ -936,6 +936,31 @@
 
 ---
 
+## Issue #152: Add status marker to plan lessons
+
+**Task completed**: Added TODO/DONE status pill to lessons with toggle functionality
+
+**Key decisions**:
+- Added `status` text field to `planLessons` table with default "todo"
+- Added `LessonStatus` type ("todo" | "done") and optional `status` field to Lesson interface
+- Added `lesson-status-toggled` action to reducer that toggles between todo and done
+- Status pill shows gray "TODO" or white "DONE" with check icon
+- Pill is clickable to toggle status
+- Positioned between the circle badge icon and lesson title
+- Status syncs via existing `/api/plans/sync` endpoint
+
+**Files changed**:
+- app/db/schema.ts - Added status text field to planLessons table
+- app/features/course-planner/types.ts - Added LessonStatus type and status field
+- app/features/course-planner/plan-state-reducer.ts - Added lesson-status-toggled action
+- app/features/course-planner/plan-state-reducer.test.ts - Added 3 tests for status toggle
+- app/routes/plans.$planId.tsx - Added status pill UI to SortableLesson
+- app/services/db-service.ts - Updated getPlans and syncPlan to handle status
+
+**Blockers**: None
+
+---
+
 ## Issue #151: Redirect home after deleting a plan
 
 **Task completed**: Fixed redirect after deleting a plan by moving logic to server-side action

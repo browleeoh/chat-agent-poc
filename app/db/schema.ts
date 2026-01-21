@@ -279,6 +279,7 @@ export const planLessons = createTable("plan_lesson", {
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
   icon: varchar("icon", { length: 255 }),
+  status: text("status").notNull().default("todo"),
   dependencies: text("dependencies").array(),
   order: doublePrecision("order").notNull(),
   createdAt: timestamp("created_at", {

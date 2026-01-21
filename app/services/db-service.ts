@@ -1921,6 +1921,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
               order: lesson.order,
               description: lesson.description,
               icon: lesson.icon as "watch" | "code" | "discussion" | undefined,
+              status: lesson.status as "todo" | "done" | undefined,
               dependencies: lesson.dependencies ?? undefined,
             })),
           })),
@@ -1945,6 +1946,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
             readonly order: number;
             readonly description?: string;
             readonly icon?: "watch" | "code" | "discussion" | null;
+            readonly status?: "todo" | "done" | null;
             readonly dependencies?: readonly string[];
           }[];
         }[];
@@ -1984,6 +1986,7 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
                   order: lesson.order,
                   description: lesson.description,
                   icon: lesson.icon ?? null,
+                  status: lesson.status ?? "todo",
                   dependencies: lesson.dependencies
                     ? [...lesson.dependencies]
                     : null,

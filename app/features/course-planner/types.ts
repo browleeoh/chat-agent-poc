@@ -1,4 +1,5 @@
 export type LessonIcon = "watch" | "code" | "discussion";
+export type LessonStatus = "todo" | "done";
 
 export interface Lesson {
   id: string;
@@ -6,6 +7,7 @@ export interface Lesson {
   order: number;
   description?: string;
   icon?: LessonIcon;
+  status?: LessonStatus;
   dependencies?: string[]; // Array of lesson IDs this lesson depends on
 }
 

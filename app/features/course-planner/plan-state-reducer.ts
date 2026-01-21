@@ -78,6 +78,12 @@ export namespace planStateReducer {
         lessonId: string;
         icon: Lesson["icon"];
       }
+    // Lesson Status
+    | {
+        type: "lesson-status-toggled";
+        sectionId: string;
+        lessonId: string;
+      }
     // Lesson Dependencies (27)
     | {
         type: "lesson-dependencies-changed";
@@ -511,6 +517,36 @@ export const planStateReducer: EffectReducer<
                 lessons: section.lessons.map((lesson) =>
                   lesson.id === action.lessonId
                     ? { ...lesson, icon: action.icon }
+                    : lesson
+                ),
+              }
+            : section
+        ),
+        updatedAt: getTimestamp(),
+      };
+
+      exec({ type: "plan-changed" });
+
+      return {
+        ...state,
+        plan: updatedPlan,
+      };
+    }
+
+    // Lesson Status
+    case "lesson-status-toggled": {
+      const updatedPlan: Plan = {
+        ...state.plan,
+        sections: state.plan.sections.map((section) =>
+          section.id === action.sectionId
+            ? {
+                ...section,
+                lessons: section.lessons.map((lesson) =>
+                  lesson.id === action.lessonId
+                    ? {
+                        ...lesson,
+                        status: lesson.status === "done" ? "todo" : "done",
+                      }
                     : lesson
                 ),
               }

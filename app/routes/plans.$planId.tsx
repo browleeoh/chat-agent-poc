@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePlanReducer } from "@/hooks/use-plan-reducer";
 import {
   AlertTriangle,
+  Check,
   ChevronLeft,
   Code,
   Copy,
@@ -242,6 +243,32 @@ function SortableLesson({
             <MessageCircle className="w-3.5 h-3.5" />
           ) : (
             <Play className="w-3.5 h-3.5" />
+          )}
+        </button>
+
+        {/* Status pill */}
+        <button
+          className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-sm font-medium flex items-center gap-1 ${
+            lesson.status === "done"
+              ? "bg-foreground text-background"
+              : "bg-muted text-muted-foreground"
+          }`}
+          onClick={() =>
+            dispatch({
+              type: "lesson-status-toggled",
+              sectionId,
+              lessonId: lesson.id,
+            })
+          }
+          title="Click to toggle status"
+        >
+          {lesson.status === "done" ? (
+            <>
+              <Check className="w-3 h-3" />
+              DONE
+            </>
+          ) : (
+            "TODO"
           )}
         </button>
 
