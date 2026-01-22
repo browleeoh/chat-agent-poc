@@ -22,6 +22,7 @@ import {
   ChevronRight,
   ClipboardList,
   FolderGit2,
+  FolderOpen,
   LayoutTemplate,
   PencilIcon,
   Plus,
@@ -61,6 +62,7 @@ export function AppSidebar({
   const navigate = useNavigate();
   const archiveRepoFetcher = useFetcher();
   const archiveVideoFetcher = useFetcher();
+  const revealVideoFetcher = useFetcher();
   const deletePlanFetcher = useFetcher();
   const renamePlanFetcher = useFetcher();
 
@@ -224,6 +226,20 @@ export function AppSidebar({
                       >
                         <PencilIcon className="w-4 h-4" />
                         Rename
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          revealVideoFetcher.submit(
+                            {},
+                            {
+                              method: "post",
+                              action: `/api/videos/${video.id}/reveal`,
+                            }
+                          );
+                        }}
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                        Reveal in File System
                       </ContextMenuItem>
                       <ContextMenuItem
                         onSelect={() => {

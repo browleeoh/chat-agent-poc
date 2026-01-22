@@ -1187,8 +1187,24 @@
 **Blockers**: None
 
 **Remaining work for Issue #161**:
-- Add to sidebar video context menu
 - Add to lesson videos in course editor (if applicable)
+
+---
+
+## Issue #161: Reveal in File System - sidebar video context menu
+
+**Task completed**: Added "Reveal in File System" option to sidebar video context menu
+
+**Key decisions**:
+- Added `FolderOpen` icon import from lucide-react
+- Added `revealVideoFetcher` alongside existing fetchers
+- Menu item placed after "Rename" and before "Archive"
+- Uses same API endpoint pattern (`/api/videos/${video.id}/reveal`)
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Added FolderOpen icon, revealVideoFetcher, and context menu item
+
+**Blockers**: None
 
 ---
 
