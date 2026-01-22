@@ -995,6 +995,17 @@ export class DBService extends Effect.Service<DBService>()("DBService", {
 
         return videoResult;
       }),
+      updateVideoPath: Effect.fn("updateVideoPath")(function* (opts: {
+        videoId: string;
+        path: string;
+      }) {
+        yield* makeDbCall(() =>
+          db
+            .update(videos)
+            .set({ path: opts.path })
+            .where(eq(videos.id, opts.videoId))
+        );
+      }),
       getRepoById,
       getRepoByFilePath,
       getRepoWithSectionsById,

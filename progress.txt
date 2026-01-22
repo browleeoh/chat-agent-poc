@@ -1116,3 +1116,30 @@
 - app/routes/videos._index.tsx - Added FileTextIcon import and "Write Article" context menu items
 
 **Blockers**: None
+
+---
+
+## Issue #158: Add ability to rename standalone videos (tracer bullet)
+
+**Task completed**: Added rename functionality to standalone videos page via right-click context menu
+
+**Key decisions**:
+- Added `updateVideoPath` method to DBService that updates the `path` field in videos table
+- Created `/api/videos/$videoId/rename` endpoint following existing rename-repo pattern
+- Created `RenameVideoModal` component following existing RenameRepoModal pattern
+- Added "Rename" option to context menus for both active and archived videos
+- Uses `PencilIcon` for consistency with other rename actions in the app
+
+**Files created**:
+- app/routes/api.videos.$videoId.rename.ts - API endpoint for renaming videos
+- app/components/rename-video-modal.tsx - Modal dialog for rename input
+
+**Files changed**:
+- app/services/db-service.ts - Added updateVideoPath method
+- app/routes/videos._index.tsx - Added rename modal state, imports, and context menu items
+
+**Blockers**: None
+
+**Remaining work for Issue #158**:
+- Add rename to video editor page context menu
+- Add rename to sidebar video list

@@ -1,5 +1,6 @@
 import { AddStandaloneVideoModal } from "@/components/add-standalone-video-modal";
 import { DeleteVideoModal } from "@/components/delete-video-modal";
+import { RenameVideoModal } from "@/components/rename-video-modal";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -18,6 +19,7 @@ import {
   Archive,
   ArrowLeft,
   FileTextIcon,
+  PencilIcon,
   Plus,
   Trash2,
   VideoIcon,
@@ -70,6 +72,10 @@ export default function Component(props: Route.ComponentProps) {
     id: string;
     path: string;
   } | null>(null);
+  const [videoToRename, setVideoToRename] = useState<{
+    id: string;
+    path: string;
+  } | null>(null);
   const archiveVideoFetcher = useFetcher();
 
   useFocusRevalidate({ enabled: true });
@@ -109,6 +115,17 @@ export default function Component(props: Route.ComponentProps) {
             open={true}
             onOpenChange={(open) => {
               if (!open) setVideoToDelete(null);
+            }}
+          />
+        )}
+
+        {videoToRename && (
+          <RenameVideoModal
+            videoId={videoToRename.id}
+            currentName={videoToRename.path}
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) setVideoToRename(null);
             }}
           />
         )}
@@ -154,6 +171,14 @@ export default function Component(props: Route.ComponentProps) {
                         <FileTextIcon className="w-4 h-4" />
                         Write Article
                       </Link>
+                    </ContextMenuItem>
+                    <ContextMenuItem
+                      onSelect={() => {
+                        setVideoToRename({ id: video.id, path: video.path });
+                      }}
+                    >
+                      <PencilIcon className="w-4 h-4" />
+                      Rename
                     </ContextMenuItem>
                     <ContextMenuItem
                       onSelect={() => {
@@ -223,6 +248,14 @@ export default function Component(props: Route.ComponentProps) {
                           <FileTextIcon className="w-4 h-4" />
                           Write Article
                         </Link>
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          setVideoToRename({ id: video.id, path: video.path });
+                        }}
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                        Rename
                       </ContextMenuItem>
                       <ContextMenuItem
                         onSelect={() => {
