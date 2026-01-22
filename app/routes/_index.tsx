@@ -48,6 +48,7 @@ import {
   Film,
   FileText,
   FileX,
+  FolderOpen,
   FolderPen,
   Loader2,
   PencilIcon,
@@ -262,6 +263,7 @@ export default function Component(props: Route.ComponentProps) {
   const deleteVideoFileFetcher = useFetcher();
   const deleteLessonFetcher = useFetcher();
   const exportVideoFetcher = useFetcher();
+  const revealVideoFetcher = useFetcher();
   const archiveRepoFetcher = useFetcher();
 
   const data = props.loaderData;
@@ -775,6 +777,20 @@ export default function Component(props: Route.ComponentProps) {
                                       >
                                         <Download className="w-4 h-4" />
                                         Export
+                                      </ContextMenuItem>
+                                      <ContextMenuItem
+                                        onSelect={() => {
+                                          revealVideoFetcher.submit(
+                                            {},
+                                            {
+                                              method: "post",
+                                              action: `/api/videos/${video.id}/reveal`,
+                                            }
+                                          );
+                                        }}
+                                      >
+                                        <FolderOpen className="w-4 h-4" />
+                                        Reveal in File System
                                       </ContextMenuItem>
                                       <ContextMenuItem
                                         variant="destructive"

@@ -1186,8 +1186,28 @@
 
 **Blockers**: None
 
-**Remaining work for Issue #161**:
-- Add to lesson videos in course editor (if applicable)
+---
+
+## Issue #161: Reveal in File System - lesson videos in course editor
+
+**Task completed**: Added "Reveal in File System" option to lesson videos context menu in course editor
+
+**Key decisions**:
+- Added `FolderOpen` icon import from lucide-react
+- Added `revealVideoFetcher` alongside existing fetchers
+- Menu item placed after "Export" and before "Delete from File System"
+- Uses same API endpoint pattern (`/api/videos/${video.id}/reveal`)
+
+**Files changed**:
+- app/routes/_index.tsx - Added FolderOpen icon, revealVideoFetcher, and context menu item
+
+**Blockers**: None
+
+**Issue #161 complete**: Reveal in File System is now available on:
+- Standalone videos page (tracer bullet)
+- Video editor ActionsDropdown
+- Sidebar video context menu
+- Lesson videos in course editor
 
 ---
 
