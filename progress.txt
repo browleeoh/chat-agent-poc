@@ -1042,3 +1042,21 @@
 - app/routes/plans.$planId.tsx - Added planToMarkdown function, ClipboardCopy icon, and new dropdown menu item
 
 **Blockers**: None
+
+---
+
+## Issue #156: Fix add video button in sidebar
+
+**Task completed**: Fixed the add video button not working on pages that don't pass modal state props
+
+**Key decisions**:
+- Added internal state `isInternalAddVideoModalOpen` within AppSidebar as fallback
+- When `setIsAddStandaloneVideoModalOpen` prop is provided (e.g., on _index.tsx), uses the external state
+- When not provided (e.g., on plans.$planId.tsx), uses the internal state
+- This matches the pattern already used for the Plans section (`isCreatePlanModalOpen`)
+- No changes needed to any route files - the sidebar now works independently
+
+**Files changed**:
+- app/components/app-sidebar.tsx - Added internal state and conditional logic for video modal
+
+**Blockers**: None

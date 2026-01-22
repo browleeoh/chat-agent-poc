@@ -64,6 +64,8 @@ export function AppSidebar({
   const renamePlanFetcher = useFetcher();
 
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
+  const [isInternalAddVideoModalOpen, setIsInternalAddVideoModalOpen] =
+    useState(false);
   const [renamingPlanId, setRenamingPlanId] = useState<string | null>(null);
   const [renamingPlanTitle, setRenamingPlanTitle] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -182,7 +184,13 @@ export function AppSidebar({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => setIsAddStandaloneVideoModalOpen?.(true)}
+                onClick={() => {
+                  if (setIsAddStandaloneVideoModalOpen) {
+                    setIsAddStandaloneVideoModalOpen(true);
+                  } else {
+                    setIsInternalAddVideoModalOpen(true);
+                  }
+                }}
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -332,10 +340,15 @@ export function AppSidebar({
             onOpenChange={setIsAddRepoModalOpen}
           />
         )}
-        {setIsAddStandaloneVideoModalOpen && (
+        {setIsAddStandaloneVideoModalOpen ? (
           <AddStandaloneVideoModal
             open={isAddStandaloneVideoModalOpen}
             onOpenChange={setIsAddStandaloneVideoModalOpen}
+          />
+        ) : (
+          <AddStandaloneVideoModal
+            open={isInternalAddVideoModalOpen}
+            onOpenChange={setIsInternalAddVideoModalOpen}
           />
         )}
         <CreatePlanModal
