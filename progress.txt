@@ -1060,3 +1060,23 @@
 - app/components/app-sidebar.tsx - Added internal state and conditional logic for video modal
 
 **Blockers**: None
+
+---
+
+## Issue #160: Add clear chat button to article write page
+
+**Task completed**: Added a clear chat button to the toolbar on the right article page
+
+**Key decisions**:
+- Added `Trash2Icon` from lucide-react for the clear button
+- Destructured `setMessages` from `useChat` hook to enable clearing messages
+- Button appears only when there are messages in the chat (conditional render)
+- Button is disabled while streaming to prevent clearing during active generation
+- Positioned after the settings button in the toolbar area
+- Uses ghost variant with icon-only style, matching the settings button pattern
+- Tooltip shows "Clear chat" on hover
+
+**Files changed**:
+- app/routes/videos.$videoId.write.tsx - Added Trash2Icon import, setMessages from useChat, and clear button UI
+
+**Blockers**: None

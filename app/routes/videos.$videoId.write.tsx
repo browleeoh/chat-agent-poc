@@ -72,6 +72,7 @@ import {
   RadioIcon,
   FileTypeIcon,
   SettingsIcon,
+  Trash2Icon,
 } from "lucide-react";
 import { marked } from "marked";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -443,7 +444,7 @@ export function InnerComponent(props: Route.ComponentProps) {
     }
   };
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, setMessages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: `/videos/${videoId}/completions`,
     }),
@@ -1281,6 +1282,27 @@ export function InnerComponent(props: Route.ComponentProps) {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                {/* Clear chat button - shows when there are messages */}
+                {messages.length > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setMessages([])}
+                          disabled={status === "streaming"}
+                        >
+                          <Trash2Icon className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Clear chat</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 {/* README dropdown - hidden for standalone videos */}
                 {!isStandalone && (
                   <DropdownMenu>
