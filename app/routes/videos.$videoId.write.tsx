@@ -89,6 +89,7 @@ import { StandaloneFilePasteModal } from "@/components/standalone-file-paste-mod
 import { DeleteStandaloneFileModal } from "@/components/delete-standalone-file-modal";
 import { LessonFilePasteModal } from "@/components/lesson-file-paste-modal";
 import { FilePreviewModal } from "@/components/file-preview-modal";
+import { AddLinkModal } from "@/components/add-link-modal";
 import { useLint } from "@/hooks/use-lint";
 import { useBannedPhrases } from "@/hooks/use-banned-phrases";
 import { BannedPhrasesModal } from "@/components/banned-phrases-modal";
@@ -457,6 +458,7 @@ export function InnerComponent(props: Route.ComponentProps) {
   });
 
   const writeToReadmeFetcher = useFetcher();
+  const deleteLinkFetcher = useFetcher();
   const [isCopied, setIsCopied] = useState(false);
   const revalidator = useRevalidator();
 
@@ -485,6 +487,9 @@ export function InnerComponent(props: Route.ComponentProps) {
     updatePhrase: updateBannedPhrase,
     resetToDefaults: resetBannedPhrases,
   } = useBannedPhrases();
+
+  // Add link modal state
+  const [isAddLinkModalOpen, setIsAddLinkModalOpen] = useState(false);
 
   // Get last assistant message
   const lastAssistantMessage = messages
@@ -913,27 +918,52 @@ export function InnerComponent(props: Route.ComponentProps) {
               <span className="text-xs text-muted-foreground">
                 ({links.length})
               </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setIsAddLinkModalOpen(true)}
+              >
+                <PlusIcon className="h-4 w-4" />
+              </Button>
             </div>
             {links.length > 0 ? (
               <div className="space-y-1 px-2">
                 {links.map((link) => (
-                  <a
+                  <div
                     key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="flex items-start gap-2 py-1 px-2 rounded hover:bg-muted/50 group text-sm"
                   >
-                    <ExternalLinkIcon className="h-3 w-3 mt-1 flex-shrink-0 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{link.title}</div>
-                      {link.description && (
-                        <div className="text-xs text-muted-foreground truncate">
-                          {link.description}
-                        </div>
-                      )}
-                    </div>
-                  </a>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-2 flex-1 min-w-0"
+                    >
+                      <ExternalLinkIcon className="h-3 w-3 mt-1 flex-shrink-0 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{link.title}</div>
+                        {link.description && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            {link.description}
+                          </div>
+                        )}
+                      </div>
+                    </a>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 opacity-0 group-hover:opacity-100 flex-shrink-0"
+                      onClick={() => {
+                        deleteLinkFetcher.submit(null, {
+                          method: "post",
+                          action: `/api/links/${link.id}/delete`,
+                        });
+                      }}
+                    >
+                      <Trash2Icon className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    </Button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -1480,6 +1510,11 @@ export function InnerComponent(props: Route.ComponentProps) {
         onRemovePhrase={removeBannedPhrase}
         onUpdatePhrase={updateBannedPhrase}
         onResetToDefaults={resetBannedPhrases}
+      />
+      {/* Add link modal */}
+      <AddLinkModal
+        open={isAddLinkModalOpen}
+        onOpenChange={setIsAddLinkModalOpen}
       />
     </div>
   );

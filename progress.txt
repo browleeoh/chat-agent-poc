@@ -1273,8 +1273,33 @@
 **Blockers**: None
 
 **Remaining work for Issue #162**:
-- Add Link modal UI (form with title, URL, description fields)
-- Delete link functionality in UI (currently API only)
+- Inject links into all 14 prompts
+- Remove PLACEHOLDER_LINK_INSTRUCTIONS from style-guide.ts
+- Tab UI for organizing transcript/files/links (optional)
+
+---
+
+## Issue #162: Add Link modal UI and delete functionality
+
+**Task completed**: Added UI for adding and deleting global links on write page
+
+**Key decisions**:
+- Created `AddLinkModal` component following existing modal patterns (RenameVideoModal)
+- Modal has three fields: title (required), URL (required, validated), description (optional)
+- Client-side URL validation before form submission
+- Added plus button to links section header to open modal
+- Added delete button (trash icon) to each link row, visible on hover
+- Uses existing `/api/links` and `/api/links/:id/delete` endpoints
+
+**Files created**:
+- app/components/add-link-modal.tsx - Modal dialog for adding new links
+
+**Files changed**:
+- app/routes/videos.$videoId.write.tsx - Added modal state, import, plus button, delete button with fetcher
+
+**Blockers**: None
+
+**Remaining work for Issue #162**:
 - Inject links into all 14 prompts
 - Remove PLACEHOLDER_LINK_INSTRUCTIONS from style-guide.ts
 - Tab UI for organizing transcript/files/links (optional)
