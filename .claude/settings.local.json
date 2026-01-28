@@ -1,8 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pnpm tsc:*)",
-      "Bash(pnpm typecheck:*)",
+      "Bash(bun run tsc:*)",
+      "Bash(bun run typecheck:*)",
       "Read(//tmp/ccstatusline/src/widgets/**)",
       "Read(//tmp/ccstatusline/src/types/**)",
       "Read(//tmp/ccstatusline/**)",
@@ -18,7 +18,7 @@
       "Bash(git commit:*)",
       "Bash(grep:*)",
       "Bash(find:*)",
-      "Bash(pnpm test:*)",
+      "Bash(bun run test:*)",
       "Bash(ls:*)",
       "Bash(gh issue list:*)",
       "Bash(gh issue close:*)",
@@ -29,11 +29,16 @@
       "Bash(git revert:*)",
       "Bash(git checkout:*)",
       "Bash(git rm:*)",
-      "Bash(npm run typecheck:*)",
+      "Bash(bun run typecheck:*)",
       "Skill(write-a-prd)",
-      "Bash(npx tsc:*)",
-      "Bash(npm view:*)",
-      "Bash(wslpath:*)"
+      "Bash(bunx tsc:*)",
+      "Bash(bun info:*)",
+      "Bash(wslpath:*)",
+      "WebFetch(domain:bun.com)",
+      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc status)",
+      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc diff)",
+      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc log --oneline -5)",
+      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc add CLAUDE.md SETUP_PRECOMMIT.md README.md .husky/pre-commit .claude/settings.local.json Dockerfile plans/ralph-once.sh plans/ralph.sh plans/backlog/prompt.md progress.txt)"
     ],
     "deny": [],
     "ask": []

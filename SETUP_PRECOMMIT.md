@@ -7,7 +7,7 @@ This repository now has pre-commit hooks configured with Husky, Prettier, and li
 Due to permission issues, you need to run the following command to install the dependencies:
 
 ```bash
-pnpm install
+bun install
 ```
 
 This will:
@@ -34,17 +34,17 @@ This provides immediate feedback if:
 
 You can also run these commands manually:
 
-- `npm run format` - Format all files in the repository
-- `npm run format:check` - Check if all files are formatted (useful for CI)
-- `npm run typecheck` - Run TypeScript type checker
-- `npm run test` - Run tests
+- `bun run format` - Format all files in the repository
+- `bun run format:check` - Check if all files are formatted (useful for CI)
+- `bun run typecheck` - Run TypeScript type checker
+- `bun run test` - Run tests
 
 ## First Time Setup
 
-After running `pnpm install`, you should format the entire codebase once:
+After running `bun install`, you should format the entire codebase once:
 
 ```bash
-npm run format
+bun run format
 ```
 
 Then commit the formatting changes:

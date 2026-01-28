@@ -1,1 +1,1 @@
-Use npm for all package management.
+Use bun for all package management.
