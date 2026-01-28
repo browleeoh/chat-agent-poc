@@ -1,8 +1,42 @@
-# Ralph
+# Ralph Starter Kit
+
+A Bun project scaffold with pre-commit hooks and Claude Code automation using the Ralph pattern. Use it for frontend, backend, or monorepo projects.
+
+## Quick Start
+
+```bash
+bun install
+```
+
+## What's Included
+
+- **Bun** - Fast JavaScript runtime and package manager
+- **Pre-commit hooks** - Prettier, TypeScript, and tests run on every commit
+- **Docker** - Production-ready Dockerfile using `oven/bun:1`
+- **Ralph automation** - Scripts for AI-assisted development loops
+
+## Commands
+
+```bash
+bun run format      # Format all files
+bun run typecheck   # Run type checker
+bun run test        # Run tests
+```
+
+## Docker
+
+```bash
+docker build -t my-app .
+docker run -p 3000:3000 my-app
+```
+
+---
+
+## The Ralph Pattern
 
 ![Ralph](ralph.webp)
 
-Ralph is an autonomous AI agent loop that runs AI coding tool [Claude Code](https://docs.anthropic.com/en/docs/claude-code)) repeatedly until all PRD items are complete. Each iteration is a fresh instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
+Ralph is an autonomous AI agent loop that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) repeatedly until all PRD items are complete. Each iteration is a fresh instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
 
 Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
 
@@ -74,6 +108,20 @@ cat progress.txt
 
 # Check git history
 git log --oneline -10
+```
+
+## Project Structure
+
+```
+├── .husky/pre-commit     # Runs prettier, typecheck, tests
+├── plans/
+│   ├── ralph.sh          # Run N iterations
+│   ├── ralph-once.sh     # Run single iteration
+│   └── backlog/          # Task prompts
+├── CLAUDE.md             # Instructions for Claude Code
+├── Dockerfile            # Bun-based container
+├── progress.txt          # Development log
+└── prd.json              # PRD with user stories
 ```
 
 ## References
