@@ -38,7 +38,8 @@
       "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc status)",
       "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc diff)",
       "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc log --oneline -5)",
-      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc add CLAUDE.md SETUP_PRECOMMIT.md README.md .husky/pre-commit .claude/settings.local.json Dockerfile plans/ralph-once.sh plans/ralph.sh plans/backlog/prompt.md progress.txt)"
+      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc add CLAUDE.md SETUP_PRECOMMIT.md README.md .husky/pre-commit .claude/settings.local.json Dockerfile plans/ralph-once.sh plans/ralph.sh plans/backlog/prompt.md progress.txt)",
+      "Bash(git -C /Users/brauliosalhuana/git/chat-agent-poc commit -m \"$\\(cat <<''EOF''\nMigrate from npm/pnpm to bun\n\nReplace all node package manager references with bun equivalents:\n- npm install → bun install\n- npm ci → bun install --frozen-lockfile\n- npm run → bun run\n- npx → bunx\n- npm view → bun info\n- node:20-alpine → oven/bun:1\n- package-lock.json/pnpm-lock.yaml → bun.lock\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

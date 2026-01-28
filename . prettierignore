@@ -1,0 +1,33 @@
+# Dependencies
+
+node_modules
+pnpm-lock.yaml
+bun.lock
+
+# Build outputs
+
+build
+dist
+.react-router
+
+# Database
+
+_.db
+_.db-journal
+_.db-shm
+_.db-wal
+
+# Generated files
+
+.env
+.DS_Store
+\*.log
+
+# Coverage
+
+coverage
+
+# Misc
+
+.vscode
+.idea
